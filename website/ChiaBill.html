@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phần Mềm Tính Tiền Nhậu & Chia Quỹ Công Ty</title>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-body: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --green: #10b981;
+            --green-bg: #ecfdf5;
+            --red: #ef4444;
+            --red-bg: #fef2f2;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Header */
+        header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--green); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: #f9fafb; }
+        .btn-danger { background: var(--red); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Floating + Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-size: 24px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            z-index: 99;
+        }
+        .fab:hover { transform: scale(1.08); }
+
+        /* Card Section */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h2 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        /* Member List Table */
+        .member-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .member-name {
+            font-weight: 600;
+        }
+
+        .balance-badge {
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .balance-badge.green { background: var(--green-bg); color: var(--green); }
+        .balance-badge.red { background: var(--red-bg); color: var(--red); }
+        .balance-badge.zero { background: #f3f4f6; color: var(--text-muted); }
+
+        /* Logs List */
+        .log-container {
+            max-height: 540px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            background: #fafafa;
+        }
+
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-item {
+            padding: 10px 12px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-item.clickable { cursor: pointer; }
+        .log-item.clickable:hover { background: #f9fafb; }
+
+        .log-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+            font-size: 0.9rem;
+        }
+
+        .log-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .log-amount { font-weight: 700; font-size: 0.9rem; }
+        .log-amount.plus { color: var(--green); }
+        .log-amount.minus { color: var(--red); }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Modal Popup */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #f9fafb;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        /* Form Controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        /* Table inside Modal */
+        .meal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .meal-table th, .meal-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .meal-table input[type="number"] {
+            width: 100px;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        .summary-box {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1><i class="fa-solid fa-utensils"></i> Quản Lý Tiền Nhậu Công Ty</h1>
+            <div class="header-btns">
+                <button class="btn btn-outline btn-sm" onclick="openMealHistoryModal()"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Cuộc Nhậu</button>
+                <button class="btn btn-outline btn-sm" onclick="openMemberModal()"><i class="fa-solid fa-user-plus"></i> Thành viên</button>
+                <button class="btn btn-outline btn-sm" onclick="openChangePasswordModal()"><i class="fa-solid fa-key"></i> Đổi mật khẩu</button>
+                <button class="btn btn-outline btn-sm" onclick="resetData()"><i class="fa-solid fa-rotate-right"></i> Đặt lại</button>
+            </div>
+        </header>
+
+        <!-- Dynamic Member List Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-users"></i> Danh Sách Thành Viên & Quỹ Số Dư</h2>
+            </div>
+            <div id="memberList" class="member-list">
+                <!-- Dynamic list populated via JS -->
+            </div>
+        </div>
+
+        <!-- Money Logs Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-file-invoice-dollar"></i> Nhật Ký Giao Dịch Tiền</h2>
+            </div>
+            <div class="log-container">
+                <div id="moneyLogList" class="log-list">
+                    <!-- Dynamic money logs populated via JS -->
+                </div>
+            </div>
+            <!-- Pagination Bar -->
+            <div class="pagination">
+                <button class="btn btn-outline btn-sm" id="prevPageBtn" onclick="changeLogPage(-1)"><i class="fa-solid fa-chevron-left"></i> Trước</button>
+                <span id="logPageInfo">Trang 1 / 1</span>
+                <button class="btn btn-outline btn-sm" id="nextPageBtn" onclick="changeLogPage(1)">Sau <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button -->
+    <button class="fab" onclick="openAddMealModal()" title="Thêm bữa ăn mới">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- 1. Modal Add New Meal -->
+    <div class="modal-overlay" id="mealModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="mealModalTitle">Thêm Bữa Ăn Mới</h3>
+                <button class="close-btn" onclick="closeModal('mealModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="mealName">Tên bữa ăn / sự kiện</label>
+                    <input type="text" id="mealName" class="form-control" placeholder="Ví dụ: Lẩu dê cuối tuần, Chung kết VP...">
+                </div>
+                <div class="form-group">
+                    <label for="mealDate">Ngày tháng</label>
+                    <input type="date" id="mealDate" class="form-control">
+                </div>
+
+                <!-- Input Tổng Chi Phí Cuộc Nhậu (Chỉ cần nhập hàng nghìn) -->
+                <div class="form-group">
+                    <label for="mealTotalInput">Tổng chi phí cuộc nhậu (k) (Ví dụ: Nhập 1500 = 1.500k = 1.500.000đ):</label>
+                    <input type="number" id="mealTotalInput" class="form-control" placeholder="Ví dụ: 1500 (=1.500k)" oninput="updateMealCalculation()">
+                </div>
+
+                <div class="summary-box">
+                    <span>Tổng chi: <strong id="modalTotalPaid">0k</strong></span>
+                    <span>Chia đều (<span id="modalPeopleCount">0</span> người): <strong id="modalCostPerPerson">0k/người</strong></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Danh sách tham gia & Trả trước (k) (Ví dụ: Nhập 100 = 100k):</label>
+                    <table class="meal-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 35px;"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
+                                <th>Thành viên</th>
+                                <th style="text-align: right;">Trả trước (k)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mealMembersTable">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('mealModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="saveMeal()">Lưu bữa ăn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal Payment / Settlement -->
+    <div class="modal-overlay" id="payModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Thanh Toán / Cấn Trừ Quỹ</h3>
+                <button class="close-btn" onclick="closeModal('payModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="payMemberId">
+                <p>Thành viên: <strong id="payMemberName" style="color: var(--primary);"></strong></p>
+                <p>Trạng thái hiện tại: <span id="payCurrentBalance"></span></p>
+
+                <div class="form-group">
+                    <label for="payAmount">Nhập số tiền (k): (Nhập 100 = 100k = 100.000đ)</label>
+                    <input type="number" id="payAmount" class="form-control" placeholder="Ví dụ: 100 (=100k)">
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">
+                    * Nhập số dương khi thành viên nộp thêm tiền vào quỹ.<br>
+                    * Nhập số âm nếu thanh toán/trả lại tiền thừa cho thành viên.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('payModal')">Hủy</button>
+                <button class="btn btn-success" onclick="confirmPayment()">Xác nhận thanh toán</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Modal Manage Members -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Quản Lý Thành Viên</h3>
+                <button class="close-btn" onclick="closeModal('memberModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="flex-direction: row; gap: 8px;">
+                    <input type="text" id="newMemberName" class="form-control" placeholder="Nhập tên thành viên mới..." style="flex:1;">
+                    <button class="btn btn-primary" onclick="addMember()">Thêm</button>
+                </div>
+                <div class="form-group">
+                    <label>Danh sách hiện tại:</label>
+                    <div id="manageMemberList" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- List populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('memberModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Modal Meals History -->
+    <div class="modal-overlay" id="mealHistoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-list-check"></i> Lịch Sử Các Cuộc Nhậu</h3>
+                <button class="close-btn" onclick="closeModal('mealHistoryModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="mealHistoryList" class="log-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('mealHistoryModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Modal Meal Detail -->
+    <div class="modal-overlay" id="logDetailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="logDetailTitle">Chi Tiết Bữa Ăn</h3>
+                <button class="close-btn" onclick="closeModal('logDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="logDetailBody">
+                <!-- Dynamic text -->
+            </div>
+            <div class="modal-footer" id="logDetailFooter">
+                <button class="btn btn-outline" onclick="closeModal('logDetailModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Modal Password Prompt -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal" style="max-width: 380px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-lock"></i> Xác Thực Mật Khẩu</h3>
+                <button class="close-btn" onclick="closeModal('authModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="authPassword">Nhập mật khẩu để thực hiện chỉnh sửa:</label>
+                    <input type="password" id="authPassword" class="form-control" placeholder="Mật khẩu...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('authModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="submitAuth()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Modal Change Password -->
+    <div class="modal-overlay" id="changePassModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-key"></i> Đổi Mật Khẩu</h3>
+                <button class="close-btn" onclick="closeModal('changePassModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="oldPass">Mật khẩu hiện tại:</label>
+                    <input type="password" id="oldPass" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="newPass">Mật khẩu mới:</label>
+                    <input type="password" id="newPass" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('changePassModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="confirmChangePassword()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default initial data
+        const defaultMembers = [
+            { id: 1, name: "Đô", balance: 285000 },
+            { id: 2, name: "Đạt", balance: 212000 },
+            { id: 3, name: "Công", balance: 685000 },
+            { id: 4, name: "Hạnh", balance: 0 },
+            { id: 5, name: "Quyền", balance: -225000 },
+            { id: 6, name: "Duy", balance: 0 }
+        ];
+
+        let members = JSON.parse(localStorage.getItem('nhau_members')) || defaultMembers;
+        let meals = JSON.parse(localStorage.getItem('nhau_meals')) || [];
+        let moneyLogs = JSON.parse(localStorage.getItem('nhau_money_logs')) || [];
+        let currentPassword = localStorage.getItem('nhau_pass') || "@2664";
+
+        let pendingAction = null; 
+
+        // Pagination Variables for Log
+        let currentLogPage = 1;
+        const LOGS_PER_PAGE = 50;
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('nhau_members', JSON.stringify(members));
+            localStorage.setItem('nhau_meals', JSON.stringify(meals));
+            localStorage.setItem('nhau_money_logs', JSON.stringify(moneyLogs));
+            localStorage.setItem('nhau_pass', currentPassword);
+        }
+
+        // Helper: Convert user input to VND (1500 -> 1500000)
+        function parseInputMoney(val) {
+            let num = parseFloat(val);
+            if (isNaN(num)) return 0;
+            // Luôn nhân với 1000 để chuyển từ đơn vị "k" sang VNĐ
+            return num * 1000;
+        }
+
+        // Helper: Format Money to "k" format
+        function formatMoney(amount) {
+            const kVal = amount / 1000;
+            return (Number.isInteger(kVal) ? kVal : kVal.toFixed(1)) + "k";
+        }
+
+        // --- Security Check Gate ---
+        function requireAuth(actionCallback) {
+            pendingAction = actionCallback;
+            document.getElementById('authPassword').value = '';
+            openModal('authModal');
+        }
+
+        function submitAuth() {
+            const inputPass = document.getElementById('authPassword').value;
+            if (inputPass === currentPassword) {
+                closeModal('authModal');
+                if (pendingAction) {
+                    pendingAction();
+                    pendingAction = null;
+                }
+            } else {
+                alert("Mật khẩu không chính xác!");
+            }
+        }
+
+        function openChangePasswordModal() {
+            document.getElementById('oldPass').value = '';
+            document.getElementById('newPass').value = '';
+            openModal('changePassModal');
+        }
+
+        function confirmChangePassword() {
+            const oldP = document.getElementById('oldPass').value;
+            const newP = document.getElementById('newPass').value;
+
+            if (oldP !== currentPassword) {
+                alert("Mật khẩu hiện tại không đúng!");
+                return;
+            }
+            if (!newP.trim()) {
+                alert("Mật khẩu mới không được để trống!");
+                return;
+            }
+
+            currentPassword = newP.trim();
+            saveData();
+            alert("Đổi mật khẩu thành công!");
+            closeModal('changePassModal');
+        }
+
+        // Render Page
+        function render() {
+            renderMemberList();
+            renderMoneyLogs();
+        }
+
+        // Render Member List
+        function renderMemberList() {
+            const listEl = document.getElementById('memberList');
+            listEl.innerHTML = '';
+
+            if (members.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">Chưa có thành viên nào. Hãy bấm "Thành viên" để thêm!</div>';
+                return;
+            }
+
+            members.forEach(m => {
+                let badgeClass = "zero";
+                let badgeText = formatMoney(m.balance);
+
+                if (m.balance > 0) {
+                    badgeClass = "green";
+                    badgeText = "Thừa " + formatMoney(m.balance);
+                } else if (m.balance < 0) {
+                    badgeClass = "red";
+                    badgeText = "Thiếu " + formatMoney(Math.abs(m.balance));
+                }
+
+                const item = document.createElement('div');
+                item.className = 'member-item';
+                item.innerHTML = `
+                    <div class="member-info">
+                        <div class="avatar">${m.name.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <div class="member-name">${m.name}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="balance-badge ${badgeClass}">${badgeText}</span>
+                        <button class="btn btn-outline btn-sm" onclick="requireAuth(() => openPayModal(${m.id}))">Thanh toán</button>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        // Render Money Logs
+        function renderMoneyLogs() {
+            const listEl = document.getElementById('moneyLogList');
+            listEl.innerHTML = '';
+
+            if (moneyLogs.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">Chưa có nhật ký giao dịch tiền nào.</div>';
+                document.getElementById('logPageInfo').innerText = "Trang 1 / 1";
+                document.getElementById('prevPageBtn').disabled = true;
+                document.getElementById('nextPageBtn').disabled = true;
+                return;
+            }
+
+            const sortedLogs = [...moneyLogs].reverse();
+            const totalPages = Math.ceil(sortedLogs.length / LOGS_PER_PAGE);
+
+            if (currentLogPage > totalPages) currentLogPage = totalPages;
+            if (currentLogPage < 1) currentLogPage = 1;
+
+            const startIndex = (currentLogPage - 1) * LOGS_PER_PAGE;
+            const pageLogs = sortedLogs.slice(startIndex, startIndex + LOGS_PER_PAGE);
+
+            pageLogs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                
+                const isPlus = log.amount >= 0;
+                const amtClass = isPlus ? 'plus' : 'minus';
+                const sign = isPlus ? '+' : '';
+
+                item.innerHTML = `
+                    <div>
+                        <div class="log-title">${log.description}</div>
+                        <div class="log-sub">${log.date}</div>
+                    </div>
+                    <div class="log-amount ${amtClass}">${sign}${formatMoney(log.amount)}</div>
+                `;
+                listEl.appendChild(item);
+            });
+
+            document.getElementById('logPageInfo').innerText = `Trang ${currentLogPage} / ${totalPages}`;
+            document.getElementById('prevPageBtn').disabled = (currentLogPage === 1);
+            document.getElementById('nextPageBtn').disabled = (currentLogPage === totalPages);
+        }
+
+        function changeLogPage(delta) {
+            currentLogPage += delta;
+            renderMoneyLogs();
+        }
+
+        // Add Meal Modal Triggers
+        function openAddMealModal() {
+            requireAuth(() => {
+                document.getElementById('mealName').value = '';
+                document.getElementById('mealDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('mealTotalInput').value = '';
+                document.getElementById('checkAll').checked = true;
+
+                const tbody = document.getElementById('mealMembersTable');
+                tbody.innerHTML = '';
+
+                members.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><input type="checkbox" class="meal-check" value="${m.id}" checked onchange="updateMealCalculation()"></td>
+                        <td><strong>${m.name}</strong></td>
+                        <td style="text-align: right;">
+                            <input type="number" class="meal-paid" data-id="${m.id}" value="0">
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                updateMealCalculation();
+                openModal('mealModal');
+            });
+        }
+
+        function toggleCheckAll(master) {
+            const checkboxes = document.querySelectorAll('.meal-check');
+            checkboxes.forEach(cb => cb.checked = master.checked);
+            updateMealCalculation();
+        }
+
+        // Calculate cost per person
+        function updateMealCalculation() {
+            const checks = document.querySelectorAll('.meal-check');
+            const totalInput = document.getElementById('mealTotalInput').value;
+            const totalPaid = parseInputMoney(totalInput);
+
+            let participantCount = 0;
+            checks.forEach(cb => {
+                if (cb.checked) participantCount++;
+            });
+
+            const costPerPerson = participantCount > 0 ? Math.round(totalPaid / participantCount) : 0;
+
+            document.getElementById('modalTotalPaid').innerText = formatMoney(totalPaid);
+            document.getElementById('modalPeopleCount').innerText = participantCount;
+            document.getElementById('modalCostPerPerson').innerText = formatMoney(costPerPerson) + "/người";
+        }
+
+        // Save New Meal
+        function saveMeal() {
+            const name = document.getElementById('mealName').value.trim() || "Bữa ăn " + new Date().toLocaleDateString('vi-VN');
+            const date = document.getElementById('mealDate').value;
+
+            const totalInput = document.getElementById('mealTotalInput').value;
+            const totalPaid = parseInputMoney(totalInput);
+
+            const checks = document.querySelectorAll('.meal-check');
+            const paids = document.querySelectorAll('.meal-paid');
+
+            let participants = [];
+
+            checks.forEach((cb, idx) => {
+                if (cb.checked) {
+                    const memberId = parseInt(cb.value);
+                    const paid = parseInputMoney(paids[idx].value); 
+                    participants.push({ memberId, paid });
+                }
+            });
+
+            if (participants.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 thành viên tham gia!");
+                return;
+            }
+
+            const mealId = Date.now();
+            const costPerPerson = Math.round(totalPaid / participants.length);
+            let logDetails = [];
+
+            members.forEach(m => {
+                const part = participants.find(p => p.memberId === m.id);
+                const oldBal = m.balance;
+                let paid = 0;
+                let cost = 0;
+
+                if (part) {
+                    paid = part.paid;
+                    cost = costPerPerson;
+                }
+
+                const newBal = oldBal + paid - cost;
+                m.balance = newBal;
+
+                if (part) {
+                    logDetails.push({ memberId: m.id, name: m.name, oldBal, paid, cost, newBal });
+                    
+                    const netChange = paid - cost;
+                    moneyLogs.push({
+                        id: Date.now() + Math.random(),
+                        mealId: mealId,
+                        date: date,
+                        description: `${m.name}: Tham gia "${name}" (Trả trước ${formatMoney(paid)}, Chia nhậu ${formatMoney(cost)})`,
+                        amount: netChange
+                    });
+                }
+            });
+
+            meals.push({
+                id: mealId,
+                title: name,
+                date: date,
+                totalCost: totalPaid,
+                costPerPerson: costPerPerson,
+                participants: logDetails
+            });
+
+            saveData();
+            currentLogPage = 1;
+            render();
+            closeModal('mealModal');
+        }
+
+        // Delete Meal Functionality (Tính năng Xóa Cuộc Nhậu)
+        function deleteMeal(mealId) {
+            requireAuth(() => {
+                const mealIndex = meals.findIndex(m => m.id === mealId);
+                if (mealIndex === -1) return;
+
+                const meal = meals[mealIndex];
+
+                if (confirm(`Bạn có chắc chắn muốn xóa cuộc nhậu "${meal.title}"? Số tiền sẽ được hoàn/trừ lại chính xác cho các thành viên.`)) {
+                    // Revert Member Balances
+                    meal.participants.forEach(p => {
+                        const m = members.find(mem => mem.id === p.memberId || mem.name === p.name);
+                        if (m) {
+                            const netChange = p.paid - p.cost;
+                            m.balance -= netChange; // Hoàn tác lại biến động tiền
+                        }
+                    });
+
+                    // Remove associated money logs
+                    moneyLogs = moneyLogs.filter(log => log.mealId !== mealId);
+
+                    // Remove meal
+                    meals.splice(mealIndex, 1);
+
+                    saveData();
+                    render();
+                    closeModal('logDetailModal');
+                    openMealHistoryModal(); // Refresh modal history
+                    alert("Đã xóa cuộc nhậu và cập nhật lại số dư thành công!");
+                }
+            });
+        }
+
+        // Open Payment Modal
+        function openPayModal(memberId) {
+            const member = members.find(m => m.id === memberId);
+            if (!member) return;
+
+            document.getElementById('payMemberId').value = member.id;
+            document.getElementById('payMemberName').innerText = member.name;
+            
+            let badgeText = formatMoney(member.balance);
+            if (member.balance > 0) badgeText = "Thừa " + badgeText;
+            else if (member.balance < 0) badgeText = "Thiếu " + formatMoney(Math.abs(member.balance));
+
+            document.getElementById('payCurrentBalance').innerText = badgeText;
+            
+            document.getElementById('payAmount').value = member.balance < 0 ? (Math.abs(member.balance)/1000) : '';
+            openModal('payModal');
+        }
+
+        // Confirm Payment
+        function confirmPayment() {
+            const memberId = parseInt(document.getElementById('payMemberId').value);
+            const rawAmount = document.getElementById('payAmount').value;
+            const amount = parseInputMoney(rawAmount);
+
+            if (isNaN(amount) || amount === 0) {
+                alert("Vui lòng nhập số tiền hợp lệ!");
+                return;
+            }
+
+            const member = members.find(m => m.id === memberId);
+            if (member) {
+                member.balance += amount;
+
+                const today = new Date().toISOString().split('T')[0];
+                const actionText = amount > 0 ? "nộp quỹ/thanh toán nợ" : "nhận lại tiền thừa";
+                moneyLogs.push({
+                    id: Date.now(),
+                    date: today,
+                    description: `${member.name} ${actionText}`,
+                    amount: amount
+                });
+
+                saveData();
+                currentLogPage = 1;
+                render();
+                closeModal('payModal');
+            }
+        }
+
+        // Member Management
+        function openMemberModal() {
+            requireAuth(() => {
+                renderManageMemberList();
+                openModal('memberModal');
+            });
+        }
+
+        function renderManageMemberList() {
+            const container = document.getElementById('manageMemberList');
+            container.innerHTML = '';
+
+            members.forEach(m => {
+                const item = document.createElement('div');
+                item.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eee;";
+                item.innerHTML = `
+                    <span><strong>${m.name}</strong> (${formatMoney(m.balance)})</span>
+                    <button class="btn btn-danger btn-sm" onclick="removeMember(${m.id})"><i class="fa-solid fa-trash"></i></button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function addMember() {
+            const input = document.getElementById('newMemberName');
+            const name = input.value.trim();
+            if (!name) return;
+
+            members.push({ id: Date.now(), name: name, balance: 0 });
+            input.value = '';
+            saveData();
+            render();
+            renderManageMemberList();
+        }
+
+        function removeMember(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa thành viên này?")) {
+                members = members.filter(m => m.id !== id);
+                saveData();
+                render();
+                renderManageMemberList();
+            }
+        }
+
+        // Meal History Modal
+        function openMealHistoryModal() {
+            const listEl = document.getElementById('mealHistoryList');
+            listEl.innerHTML = '';
+
+            if (meals.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">Chưa có cuộc nhậu nào được ghi nhận.</div>';
+            } else {
+                const sortedMeals = [...meals].reverse();
+                sortedMeals.forEach(meal => {
+                    const item = document.createElement('div');
+                    item.className = 'log-item';
+
+                    item.innerHTML = `
+                        <div class="clickable" style="flex: 1;" onclick="showMealDetail(${meal.id})">
+                            <div class="log-title"><i class="fa-solid fa-utensils"></i> ${meal.title}</div>
+                            <div class="log-sub"><i class="fa-regular fa-calendar"></i> ${meal.date} • ${meal.participants.length} người tham gia</div>
+                        </div>
+                        <div style="text-align: right; display: flex; align-items: center; gap: 10px;">
+                            <div class="clickable" onclick="showMealDetail(${meal.id})">
+                                <div class="log-amount" style="color:var(--primary);">${formatMoney(meal.totalCost)}</div>
+                                <div class="log-sub">${formatMoney(meal.costPerPerson)}/người</div>
+                            </div>
+                            <button class="btn btn-danger btn-sm" title="Xóa cuộc nhậu này" onclick="deleteMeal(${meal.id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    listEl.appendChild(item);
+                });
+            }
+
+            openModal('mealHistoryModal');
+        }
+
+        // Show Meal Details Modal
+        function showMealDetail(mealId) {
+            const meal = meals.find(m => m.id === mealId);
+            if (!meal) return;
+
+            document.getElementById('logDetailTitle').innerText = meal.title;
+
+            let html = `
+                <div style="font-size:0.9rem; margin-bottom:12px;">
+                    <div><strong>Ngày:</strong> ${meal.date}</div>
+                    <div><strong>Tổng chi bữa ăn:</strong> ${formatMoney(meal.totalCost)}</div>
+                    <div><strong>Chi phí mỗi người:</strong> ${formatMoney(meal.costPerPerson)}</div>
+                </div>
+                <table class="meal-table">
+                    <thead>
+                        <tr>
+                            <th>Thành viên</th>
+                            <th style="text-align:right;">Trả trước</th>
+                            <th style="text-align:right;">Chi phí</th>
+                            <th style="text-align:right;">Số dư sau đó</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            meal.participants.forEach(p => {
+                const balClass = p.newBal >= 0 ? 'color: var(--green);' : 'color: var(--red);';
+                html += `
+                    <tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td style="text-align:right;">${formatMoney(p.paid)}</td>
+                        <td style="text-align:right;">${formatMoney(p.cost)}</td>
+                        <td style="text-align:right; font-weight:bold; ${balClass}">${formatMoney(p.newBal)}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            document.getElementById('logDetailBody').innerHTML = html;
+
+            // Add Delete Button to Footer
+            document.getElementById('logDetailFooter').innerHTML = `
+                <button class="btn btn-danger" onclick="deleteMeal(${meal.id})"><i class="fa-solid fa-trash"></i> Xóa cuộc nhậu này</button>
+                <button class="btn btn-outline" onclick="closeModal('logDetailModal')">Đóng</button>
+            `;
+
+            openModal('logDetailModal');
+        }
+
+        // Reset Data
+        function resetData() {
+            requireAuth(() => {
+                if (confirm("Bạn có chắc muốn khôi phục về dữ liệu ban đầu không? Mọi lịch sử sẽ bị xóa.")) {
+                    members = JSON.parse(JSON.stringify(defaultMembers));
+                    meals = [];
+                    moneyLogs = [];
+                    currentLogPage = 1;
+                    saveData();
+                    render();
+                }
+            });
+        }
+
+        // Modal Helpers
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // Initialize App
+        render();
+    </script>
+</body>
+</html>

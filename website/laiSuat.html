@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng Dụng Tính Lãi Suất Ngân Hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .nav-pills .nav-link {
+            color: #495057;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+        .result-box {
+            background-color: #e9ecef;
+            border-left: 5px solid #0d6efd;
+            border-radius: 5px;
+        }
+        .result-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-center mb-4 text-primary fw-bold">CÔNG CỤ TÍNH LÃI SUẤT NGÂN HÀNG</h2>
+            
+            <ul class="nav nav-pills mb-4 justify-content-center" id="interestTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="normal-tab" data-bs-toggle="tab" data-bs-target="#normal-pane" type="button" role="tab">Lãi Kỳ Hạn Thông Thường</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="compound-tab" data-bs-toggle="tab" data-bs-target="#compound-pane" type="button" role="tab">Lãi Suất Kép</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="myTabContent">
+                
+                <div class="tab-pane fade show active" id="normal-pane" role="tabpanel">
+                    <div class="card p-4">
+                        <h4 class="card-title mb-4 text-secondary">Tính Lãi Kỳ Hạn Thông Thường</h4>
+                        <form id="normalForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Số tiền gửi (VNĐ)</label>
+                                <input type="number" class="form-control" id="normalPrincipal" placeholder="Ví dụ: 100000000" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Lãi suất (% / năm)</label>
+                                <input type="number" step="0.1" class="form-control" id="normalRate" placeholder="Ví dụ: 5.5" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Kỳ hạn gửi</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="normalPeriod" placeholder="Ví dụ: 6" required>
+                                    <select class="form-select" id="normalPeriodType" style="max-width: 120px;">
+                                        <option value="thang">Tháng</option>
+                                        <option value="ngay">Ngày</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary w-100 fw-bold py-2 mt-2" onclick="calculateNormalInterest()">TÍNH LÃI</button>
+                        </form>
+
+                        <div id="normalResult" class="result-box p-3 mt-4 d-none">
+                            <p class="mb-2">Tiền lãi nhận được: <span id="normalInterestValue" class="result-value">0</span> VNĐ</p>
+                            <p class="mb-0">Tổng số tiền gốc + lãi: <span id="normalTotalValue" class="fw-bold text-success">0</span> VNĐ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="compound-pane" role="tabpanel">
+                    <div class="card p-4">
+                        <h4 class="card-title mb-4 text-secondary">Tính Lãi Suất Kép (Gốc nhập lãi)</h4>
+                        <form id="compoundForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Số tiền gốc ban đầu (VNĐ)</label>
+                                <input type="number" class="form-control" id="compoundPrincipal" placeholder="Ví dụ: 100000000" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Lãi suất (% / năm)</label>
+                                <input type="number" step="0.1" class="form-control" id="compoundRate" placeholder="Ví dụ: 6.0" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Thời gian gửi</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="compoundTime" placeholder="Ví dụ: 2" required>
+                                        <select class="form-select" id="compoundTimeType" style="max-width: 110px;">
+                                            <option value="nam">Năm</option>
+                                            <option value="thang">Tháng</option>
+                                            <option value="ngay">Ngày</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Kỳ hạn nhập gốc</label>
+                                    <select class="form-select" id="compoundCompoundType">
+                                        <option value="nam">Nhập gốc theo Năm</option>
+                                        <option value="thang">Nhập gốc theo Tháng</option>
+                                        <option value="ngay">Nhập gốc theo Ngày</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary w-100 fw-bold py-2 mt-2" onclick="calculateCompoundInterest()">TÍNH LÃI KÉP</button>
+                        </form>
+
+                        <div id="compoundResult" class="result-box p-3 mt-4 d-none">
+                            <p class="mb-2">Tổng tiền nhận được (Cả gốc lẫn lãi): <span id="compoundTotalValue" class="result-value">0</span> VNĐ</p>
+                            <p class="mb-0">Tiền lãi chênh lệch: <span id="compoundInterestValue" class="fw-bold text-success">0</span> VNĐ</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Hàm định dạng số tiền thành chuỗi dễ đọc (Ví dụ: 1,000,000)
+    function formatCurrency(num) {
+        return Math.round(num).toLocaleString('vi-VN');
+    }
+
+    // 1. XỬ LÝ TÍNH LÃI THÔNG THƯỜNG
+    function calculateNormalInterest() {
+        const principal = parseFloat(document.getElementById('normalPrincipal').value);
+        const rate = parseFloat(document.getElementById('normalRate').value) / 100; // Đổi % sang số thập phân
+        const period = parseFloat(document.getElementById('normalPeriod').value);
+        const periodType = document.getElementById('normalPeriodType').value;
+
+        if (isNaN(principal) || isNaN(rate) || isNaN(period)) {
+            alert("Vui lòng điền đầy đủ thông tin hợp lệ!");
+            return;
+        }
+
+        let interest = 0;
+        if (periodType === 'thang') {
+            // Công thức tính theo tháng: Gốc * Lãi suất năm * (Số tháng / 12)
+            interest = principal * rate * (period / 12);
+        } else if (periodType === 'ngay') {
+            // Công thức tính theo ngày: Gốc * Lãi suất năm * (Số ngày / 365)
+            interest = principal * rate * (period / 365);
+        }
+
+        const total = principal + interest;
+
+        // Hiển thị kết quả
+        document.getElementById('normalInterestValue').innerText = formatCurrency(interest);
+        document.getElementById('normalTotalValue').innerText = formatCurrency(total);
+        document.getElementById('normalResult').classList.remove('d-none');
+    }
+
+    // 2. XỬ LÝ TÍNH LÃI KÉP
+    function calculateCompoundInterest() {
+        const principal = parseFloat(document.getElementById('compoundPrincipal').value);
+        const annualRate = parseFloat(document.getElementById('compoundRate').value) / 100;
+        const timeVal = parseFloat(document.getElementById('compoundTime').value);
+        const timeType = document.getElementById('compoundTimeType').value;
+        const compoundType = document.getElementById('compoundCompoundType').value;
+
+        if (isNaN(principal) || isNaN(annualRate) || isNaN(timeVal)) {
+            alert("Vui lòng điền đầy đủ thông tin hợp lệ!");
+            return;
+        }
+
+        // Quy đổi tổng thời gian gửi sang đơn vị "Năm" để làm chuẩn tính toán ban đầu
+        let totalYears = 0;
+        if (timeType === 'nam') {
+            totalYears = timeVal;
+        } else if (timeType === 'thang') {
+            totalYears = timeVal / 12;
+        } else if (timeType === 'ngay') {
+            totalYears = timeVal / 365;
+        }
+
+        // Xác định số lần nhập gốc trong 1 năm (n) và số kỳ hạn tổng cộng (t)
+        let n = 1; // Số lần nhập gốc mỗi năm
+        if (compoundType === 'thang') {
+            n = 12;
+        } else if (compoundType === 'ngay') {
+            n = 365;
+        }
+
+        // Tổng số kỳ hạn nhập gốc trong suốt thời gian gửi
+        let totalPeriods = totalYears * n;
+
+        // Công thức lãi kép chuẩn: A = P * (1 + r/n)^(n*t)
+        // Trong đó n*t chính là tổng số kỳ hạn nhập gốc (totalPeriods)
+        const total = principal * Math.pow((1 + (annualRate / n)), totalPeriods);
+        const interest = total - principal;
+
+        // Hiển thị kết quả
+        document.getElementById('compoundTotalValue').innerText = formatCurrency(total);
+        document.getElementById('compoundInterestValue').innerText = formatCurrency(interest);
+        document.getElementById('compoundResult').classList.remove('d-none');
+    }
+</script>
+</body>
+</html>

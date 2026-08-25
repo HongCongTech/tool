@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>macOS Dashboard (Vertical Dock)</title>
+  
+  <!-- 1. Nhúng thư viện SortableJS để kéo thả -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    
+    body {
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #0f172a, #1e293b, #311b92);
+      color: #fff;
+    }
+
+    /* 1. Thanh Header Top-Bar gọn gàng */
+    .top-bar {
+      height: 54px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    .app-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .clock-widget {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .digital-clock {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #f8fafc;
+    }
+
+    .date-solar {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .lunar-info {
+      font-size: 12px;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 4px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* 2. Khung Bố cục Chính (Hàng dọc) */
+    .app-container {
+      flex: 1;
+      display: flex;
+      height: calc(100vh - 54px);
+      padding: 10px;
+      gap: 10px;
+    }
+
+    /* 3. macOS Dock Hàng dọc (Bên trái) */
+    .dock-vertical {
+      width: 68px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 15px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      flex-shrink: 0;
+    }
+
+    .dock-item {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: grab; /* Thay đổi con trỏ chuột thành hình bàn tay nắm */
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      user-select: none;
+    }
+
+    .dock-item:active {
+      cursor: grabbing;
+    }
+
+    /* Hiệu ứng Phóng to sang phải khi Hover */
+    .dock-item:hover {
+      transform: scale(1.15) translateX(4px);
+      background: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    }
+
+    /* Vạch chỉ dấu Module đang hoạt động */
+    .dock-item.active::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      width: 4px;
+      height: 18px;
+      background-color: #38bdf8;
+      border-radius: 4px;
+      box-shadow: 0 0 8px #38bdf8;
+    }
+
+    .dock-item.active {
+      background: rgba(255, 255, 255, 0.28);
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+
+    /* Tooltip hiển thị tên App */
+    .dock-item .tooltip {
+      position: absolute;
+      left: 62px;
+      background: rgba(15, 23, 42, 0.9);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 100;
+    }
+
+    .dock-item:hover .tooltip {
+      opacity: 1;
+    }
+
+    /* Class làm mờ icon khi đang kéo */
+    .sortable-ghost {
+      opacity: 0.3;
+    }
+
+    /* 4. Khung hiển thị Module */
+    .main-workspace {
+      flex: 1;
+      height: 100%;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Thanh Widget Top-Bar -->
+  <div class="top-bar">
+    <div class="app-title" id="current-app-name">📝 Ghi Chú</div>
+
+    <div class="clock-widget">
+      <div class="digital-clock" id="clock">00:00:00</div>
+      <div class="date-solar" id="date-solar">Đang tải...</div>
+      <div class="lunar-info" id="date-lunar">Âm lịch: --/--</div>
+    </div>
+  </div>
+
+  <!-- Bố cục Dọc chính -->
+  <div class="app-container">
+    
+    <!-- Dock Icon Hàng Dọc (Có ID 'dock-vertical' để kích hoạt Sortable) -->
+    <div class="dock-vertical" id="dock-vertical">
+      <div class="dock-item active" onclick="switchApp('chiabill.html', '🍻 Chia Bill', this)">
+        <span>🍻</span>
+        <div class="tooltip">chia bill</div>
+      </div>
+      <div class="dock-item" onclick="switchApp('tiencom.html', '🍚 Tính Tiền Cơm', this)">
+        <span>🍚</span>
+        <div class="tooltip">Tính Tiền Cơm</div>
+      </div>
+      <div class="dock-item" onclick="switchApp('laisuat.html', '💵 lãi suất', this)">
+        <span>💵</span>
+        <div class="tooltip">lãi suất</div>
+      </div>
+      <div class="dock-item" onclick="switchApp('note.html', '📝 Ghi Chú', this)">
+        <span>📝</span>
+        <div class="tooltip">Ghi Chú</div>
+      </div>
+    </div>
+
+    <!-- Khung xem nội dung Module -->
+    <div class="main-workspace">
+      <iframe id="app-frame" src="ghi_chu.html"></iframe>
+    </div>
+
+  </div>
+
+  <script>
+    // 2. Kích hoạt tính năng kéo thả sắp xếp cho Dock
+    const dockContainer = document.getElementById('dock-vertical');
+    new Sortable(dockContainer, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      forceFallback: true // Giúp hiệu ứng kéo thả mượt hơn trên mọi trình duyệt
+    });
+
+    // Chuyển đổi Module khi click vào Dock Icon
+    function switchApp(fileUrl, appName, element) {
+      document.getElementById('app-frame').src = fileUrl;
+      document.getElementById('current-app-name').innerText = appName;
+      
+      document.querySelectorAll('.dock-item').forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+    }
+
+    // Cập nhật đồng hồ Dương lịch Realtime
+    function updateClock() {
+      const now = new Date();
+      
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').innerText = `${hours}:${minutes}:${seconds}`;
+
+      const options = { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' };
+      document.getElementById('date-solar').innerText = now.toLocaleDateString('vi-VN', options);
+    }
+
+    // Gọi API lấy ngày Âm lịch chuẩn online
+    async function fetchLunarDate() {
+      try {
+        const today = new Date();
+        const d = today.getDate();
+        const m = today.getMonth() + 1;
+        const y = today.getFullYear();
+
+        const response = await fetch(`https://api.vht.network/calendar/solar-to-lunar?day=${d}&month=${m}&year=${y}`);
+        const data = await response.json();
+
+        if (data && data.lunarDay && data.lunarMonth) {
+          const dayStr = String(data.lunarDay).padStart(2, '0');
+          const monthStr = String(data.lunarMonth).padStart(2, '0');
+          document.getElementById('date-lunar').innerText = `Âm lịch: ${dayStr}/${monthStr}`;
+        }
+      } catch (error) {
+        document.getElementById('date-lunar').innerText = `Âm lịch: --/--`;
+      }
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+    fetchLunarDate();
+  </script>
+</body>
+</html>

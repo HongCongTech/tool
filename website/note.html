@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghi Chú & Đếm Ngược - Sticky Notes Pro</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --border-focus: #3b82f6;
+            --todo-color: #fff9c4;   
+            --warning-color: #ffcdd2;
+            --done-color: #c8e6c9;   
+            --primary-color: #2563eb;
+            --text-main: #1e293b;
+            --board-width: 1000px;
+            --sidebar-width: 250px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1560px; 
+            gap: 24px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .countdown-sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0 0 5px 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 6px;
+        }
+
+        .mini-note {
+            background-color: #fffae6; 
+            padding: 12px 14px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px -2px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .mini-note:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -2px rgba(0,0,0,0.1);
+        }
+        .mini-note.urgent {
+            background-color: var(--warning-color) !important;
+            border-left: 4px solid #ef4444;
+        }
+        .mini-note-text {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            color: #1e293b;
+            margin-bottom: 24px; 
+            word-break: break-word;
+        }
+        .mini-note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            position: absolute;
+            bottom: 10px;
+            left: 14px;
+            right: 14px;
+        }
+        .mini-countdown {
+            color: #dc2626;
+            background: #ffffff;
+            padding: 2px 6px;
+            border-radius: 12px;
+            border: 1px solid #ef4444;
+        }
+        .mini-time { color: #64748b; }
+        .mini-delete-btn {
+            position: absolute; top: 8px; right: 8px; background: none; border: none;
+            color: #94a3b8; cursor: pointer; font-size: 12px; padding: 0; font-weight: bold;
+        }
+        .mini-delete-btn:hover { color: #ef4444; }
+
+        .center-content {
+            flex: 1; max-width: var(--board-width); display: flex; flex-direction: column; align-items: center; width: 100%;
+        }
+
+        .header-dashboard {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 25px;
+            background: #1e293b; padding: 25px 35px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            border: 1px solid #334155; box-sizing: border-box;
+        }
+        .header-dashboard h1 { font-size: 2rem; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: -0.025em; }
+
+        .widget-clock-calendar { text-align: right; display: flex; flex-direction: column; gap: 6px; }
+        @keyframes neonGlow {
+            0% { text-shadow: 0 0 10px rgba(59,130,246,0.6), 0 0 20px rgba(59,130,246,0.4); color: #60a5fa; }
+            33% { text-shadow: 0 0 10px rgba(168,85,247,0.6), 0 0 20px rgba(168,85,247,0.4); color: #c084fc; }
+            66% { text-shadow: 0 0 10px rgba(5,150,105,0.6), 0 0 20px rgba(5,150,105,0.4); color: #34d399; }
+            100% { text-shadow: 0 0 10px rgba(59,130,246,0.6), 0 0 20px rgba(59,130,246,0.4); color: #60a5fa; }
+        }
+        .widget-time { font-size: 3.5rem; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; font-family: 'Courier New', Courier, monospace; animation: neonGlow 8s infinite linear; }
+        .widget-date { font-size: 1.15rem; font-weight: 700; color: #94a3b8; }
+        .lunar-text { color: #34d399; font-weight: 800; margin-left: 6px; }
+
+        .input-container {
+            display: flex; flex-direction: column; width: 100%; gap: 14px; margin-bottom: 35px; background: #ffffff;
+            padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); box-sizing: border-box; border: 1px solid #e2e8f0;
+        }
+        .main-input-row { display: flex; width: 100%; gap: 12px; align-items: center; }
+        .main-input-row textarea {
+            flex: 2; padding: 14px 18px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 16px; outline: none;
+            font-family: inherit; resize: none; height: 54px; box-sizing: border-box; transition: all 0.2s ease; background-color: #f8fafc;
+        }
+        .main-input-row textarea:focus { border-color: var(--border-focus); background-color: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
+
+        .input-controls-group { display: flex; gap: 12px; align-items: center; flex: 1.7; }
+        .date-picker-wrapper { flex: 1; }
+        .date-picker-wrapper input[type="date"] {
+            width: 100%; padding: 0 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 14px; outline: none;
+            font-family: inherit; box-sizing: border-box; height: 54px; background-color: #f8fafc; color: #0f172a; font-weight: 600;
+        }
+        .hour-input-wrapper { flex: 0.8; }
+        .hour-input-wrapper input[type="text"] {
+            width: 100%; padding: 0 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 15px; outline: none;
+            font-family: inherit; box-sizing: border-box; height: 54px; text-align: center; background-color: #f8fafc; color: #0f172a; font-weight: 600;
+        }
+        .hour-input-wrapper input[type="text"]:focus { border-color: var(--border-focus); background-color: #ffffff; }
+
+        .toggle-mode-container { display: flex; align-items: center; background: #f1f5f9; padding: 4px; border-radius: 10px; border: 1px solid #e2e8f0; height: 54px; box-sizing: border-box; flex: 1.2; }
+        .toggle-mode-label { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #64748b; cursor: pointer; border-radius: 7px; transition: all 0.2s ease; user-select: none; white-space: nowrap; }
+        input[name="noteMode"] { display: none; }
+        input[name="noteMode"]:checked + .toggle-mode-label { background-color: #ffffff; color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        #modeCountdown:checked + .toggle-mode-label { color: #ea580c; }
+
+        .add-btn {
+            padding: 0 20px; height: 54px; background-color: var(--primary-color); color: white; border: none; border-radius: 10px;
+            font-size: 15px; cursor: pointer; font-weight: 600; box-sizing: border-box; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); white-space: nowrap;
+        }
+        .add-btn:hover { background-color: #1d4ed8; transform: translateY(-1px); }
+
+        .shortcut-row { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; border-top: 1px dashed #e2e8f0; }
+        .shortcut-label { font-size: 13px; font-weight: 700; color: #64748b; display: flex; align-items: center; margin-right: 6px; }
+        .shortcut-btn { padding: 6px 14px; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #334155; cursor: pointer; transition: all 0.15s ease; }
+        .shortcut-btn:hover { background-color: #e2e8f0; color: #0f172a; }
+        .shortcut-btn.active { background-color: #e0f2fe; border-color: #7dd3fc; color: #0369a1; }
+
+        .board { display: flex; width: 100%; gap: 24px; align-items: flex-start; box-sizing: border-box; }
+        .column { flex: 1; width: 50%; max-width: 50%; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); min-height: 480px; box-sizing: border-box; border: 1px solid #e2e8f0; }
+        .column h2 { text-align: center; margin-top: 0; padding-bottom: 14px; border-bottom: 2px solid #f1f5f9; color: #334155; font-size: 1.25rem; font-weight: 700; }
+
+        .note {
+            background-color: var(--todo-color); padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 18px; position: relative;
+            transform: rotate(-0.5deg); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; box-sizing: border-box; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.03);
+        }
+        .note:nth-child(even) { transform: rotate(0.8deg); }
+        .note:hover { transform: scale(1.02) rotate(0deg); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .note.urgent { background-color: var(--warning-color) !important; border-left: 5px solid #ef4444; }
+        .done-column .note { background-color: var(--done-color) !important; color: #475569; border-left: none; transform: rotate(0deg) !important; }
+        .done-column .note .note-text { text-decoration: line-through; color: #64748b; }
+
+        .countdown-tag { position: absolute; top: 12px; right: 12px; background-color: #ffffff; color: #dc2626; border: 1.5px solid #ef4444; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; z-index: 10; }
+        .completed-text { font-size: 12px; color: #64748b; font-style: italic; margin-top: 4px; margin-bottom: 4px; display: block; }
+        .note-text { font-size: 17px; font-weight: 600; margin-bottom: 8px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; padding-right: 85px; }
+        .note.expanded .note-text { display: block; overflow: visible; -webkit-line-clamp: unset; }
+
+        .toggle-expand-btn { background: none; border: none; color: #2563eb; font-size: 13px; cursor: pointer; padding: 2px 0; font-weight: 700; align-self: flex-start; margin-bottom: 45px; display: none; }
+        .toggle-expand-btn:hover { text-decoration: underline; }
+
+        .note-actions { display: flex; justify-content: space-between; align-items: center; position: absolute; bottom: 12px; left: 14px; right: 14px; border-top: 1px solid rgba(0, 0, 0, 0.05); padding-top: 10px; margin-top: 10px; }
+        .deadline-text { font-size: 12px; color: #475569; font-weight: 600; }
+        .note.urgent .deadline-text { color: #b91c1c; }
+        .done-column .deadline-text { color: #15803d; }
+
+        .arrow-btn { background: rgba(0, 0, 0, 0.04); border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+        .arrow-btn:hover { background: rgba(0, 0, 0, 0.1); }
+        .action-center { display: flex; gap: 14px; align-items: center; }
+        .edit-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 13px; font-weight: 700; }
+        .edit-btn:hover { text-decoration: underline; }
+        .delete-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 13px; font-weight: 700; }
+        .delete-btn:hover { text-decoration: underline; }
+
+        /* MODAL POPUP */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 99999; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background: white; padding: 28px; border-radius: 16px; width: 90%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(0.95); transition: all 0.3s ease; border: 1px solid #e2e8f0; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-box h3 { margin-top: 0; color: #0f172a; font-size: 19px; margin-bottom: 18px; font-weight: 700; }
+        .modal-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .modal-field label { font-size: 13px; font-weight: 600; color: #475569; }
+        .modal-field textarea { padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; font-family: inherit; resize: vertical; min-height: 80px; background-color: #f8fafc; }
+        .modal-field textarea:focus { border-color: #3b82f6; background-color: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
+        .modal-field input[type="datetime-local"] { padding: 11px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 15px; outline: none; font-family: inherit; background-color: #f8fafc; color: #475569; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+        .modal-btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-cancel { background: #f1f5f9; color: #475569; }
+        .btn-save { background: #2563eb; color: white; }
+
+        @media (max-width: 1450px) {
+            .countdown-sidebar { display: none; }
+        }
+
+        @media (max-width: 900px) {
+            body { padding: 15px 10px; }
+            .header-dashboard { flex-direction: column; text-align: center; padding: 20px 15px; gap: 15px; }
+            .widget-clock-calendar { text-align: center; align-items: center; }
+            .widget-time { font-size: 2.8rem; }
+            .main-input-row { flex-direction: column; align-items: stretch; gap: 12px; }
+            .main-input-row textarea { width: 100% !important; height: 60px; }
+            .input-controls-group { display: flex !important; flex-direction: row !important; width: 100% !important; gap: 6px !important; }
+            .date-picker-wrapper, .hour-input-wrapper, .toggle-mode-container { width: auto !important; flex: 1 !important; }
+            .date-picker-wrapper input[type="date"], .hour-input-wrapper input[type="text"], .toggle-mode-container { padding: 0 6px !important; font-size: 13px !important; height: 48px !important; }
+            .toggle-mode-label { font-size: 12px !important; padding: 0 4px !important; }
+            .add-btn { width: 100% !important; height: 48px !important; }
+            .board { flex-direction: column; gap: 20px; }
+            .column { width: 100% !important; max-width: 100% !important; min-height: auto; padding: 15px; }
+            .main-wrapper { flex-direction: column; align-items: stretch; }
+            .countdown-sidebar { display: flex !important; width: 100% !important; position: static !important; margin-top: 15px; order: 3; }
+            .sidebar-title { border-bottom: 2px solid #cbd5e1; margin-bottom: 10px; }
+            .countdown-sidebar #leftMiniList, .countdown-sidebar #rightMiniList { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <div class="countdown-sidebar" id="leftSidebar">
+            <div class="sidebar-title">🎂 Sự Kiện (Nhóm A)</div>
+            <div id="leftMiniList"></div>
+        </div>
+
+        <div class="center-content">
+            <div class="header-dashboard">
+                <h1>📝 Sticky Notes Pro</h1>
+                <div class="widget-clock-calendar">
+                    <div class="widget-time" id="liveClock">00:00:00</div>
+                    <div class="widget-date" id="liveCalendar">Đang tải lịch...</div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <div class="main-input-row">
+                    <textarea id="taskInput" placeholder="Nhập nhiệm vụ hoặc nội dung sự kiện..."></textarea>
+                    <div class="input-controls-group">
+                        <div class="date-picker-wrapper">
+                            <input type="date" id="dateInput">
+                        </div>
+                        <div class="hour-input-wrapper">
+                            <input type="text" id="hourInput" placeholder="Giờ (18:30)">
+                        </div>
+                        <div class="toggle-mode-container">
+                            <input type="radio" id="modeTodo" name="noteMode" value="todo" checked>
+                            <label for="modeTodo" class="toggle-mode-label">Todo</label>
+                            <input type="radio" id="modeCountdown" name="noteMode" value="countdown">
+                            <label for="modeCountdown" class="toggle-mode-label">Đếm ngược</label>
+                        </div>
+                    </div>
+                    <button class="add-btn" onclick="addTask()">Thêm việc</button>
+                </div>
+
+                <div class="shortcut-row">
+                    <span class="shortcut-label">Hạn nhanh:</span>
+                    <button type="button" class="shortcut-btn" id="shortcut-0" onclick="applyShortcut(0)">Trong ngày</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-1" onclick="applyShortcut(1)">Ngày mai</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-2" onclick="applyShortcut(2)">2 ngày</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-3" onclick="applyShortcut(3)">3 ngày</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-5" onclick="applyShortcut(5)">5 ngày</button>
+                </div>
+            </div>
+
+            <div class="board">
+                <div class="column" id="todoColumn">
+                    <h2>Việc Phải Làm 📌</h2>
+                    <div class="notes-list"></div>
+                </div>
+                <div class="column done-column" id="doneColumn">
+                    <h2>Đã Xong 🎉</h2>
+                    <div class="notes-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="countdown-sidebar" id="rightSidebar">
+            <div class="sidebar-title">🎂 Sự Kiện (Nhóm B)</div>
+            <div id="rightMiniList"></div>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA GHI CHÚ -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <h3>✏️ Chỉnh sửa ghi chú</h3>
+            <input type="hidden" id="editNoteId">
+            <div class="modal-field">
+                <label>Nội dung công việc:</label>
+                <textarea id="editTaskText" rows="3"></textarea>
+            </div>
+            <div class="modal-field">
+                <label>Thời gian tới hạn:</label>
+                <input type="datetime-local" id="editTaskDeadline">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal()">Hủy</button>
+                <button class="modal-btn btn-save" onclick="saveModalChanges()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let notesData = [];
+        let lastHourlyAlertHour = -1; 
+        let lastExactAlertTime = 0;
+
+        const LUNAR_INFO = {
+            2025: [30,29,30,29,29,30,29,30,29,30,30,30,0],
+            2026: [29,30,29,29,30,29,29,30,30,29,30,30,0],
+            2027: [29,30,30,29,29,30,29,29,30,29,30,30,0],
+            2028: [30,29,30,30,29,29,30,29,29,30,29,30,0],
+            2029: [30,30,29,30,29,30,29,30,29,29,30,29,0],
+            2030: [30,30,29,30,30,29,30,29,30,29,29,30,0]
+        };
+        const LUNAR_NEW_YEARS = {
+            2025: new Date(2025, 0, 29),
+            2026: new Date(2026, 1, 17),
+            2027: new Date(2027, 1, 6),
+            2028: new Date(2028, 0, 26),
+            2029: new Date(2029, 1, 13),
+            2030: new Date(2030, 1, 3)
+        };
+
+        function getLunarDate(date) {
+            const year = date.getFullYear();
+            if (year < 2025 || year > 2030) return "";
+            
+            let baseDate = LUNAR_NEW_YEARS[year];
+            let diffTime = date - baseDate;
+            let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+                const prevYear = year - 1;
+                if (prevYear < 2025) return "";
+                baseDate = LUNAR_NEW_YEARS[prevYear];
+                diffDays = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
+                return calculateLunarFromOffset(diffDays, prevYear);
+            }
+            return calculateLunarFromOffset(diffDays, year);
+        }
+
+        function calculateLunarFromOffset(offsetDays, lunarYear) {
+            const months = LUNAR_INFO[lunarYear];
+            let lunarMonth = 1;
+            let lunarDay = offsetDays + 1;
+
+            for (let i = 0; i < months.length; i++) {
+                if (lunarDay <= months[i]) break;
+                lunarDay -= months[i];
+                lunarMonth++;
+            }
+            return ` (Âm lịch: ${lunarDay}/${lunarMonth})`;
+        }
+
+        function updateClockAndCalendar() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const liveClockEl = document.getElementById('liveClock');
+            if(liveClockEl) liveClockEl.innerText = `${hours}:${minutes}:${seconds}`;
+            
+            const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            const dayName = daysOfWeek[now.getDay()];
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            
+            const solarText = `${dayName}, ${day}/${month}/${year}`;
+            const lunarText = getLunarDate(now);
+            
+            const liveCalEl = document.getElementById('liveCalendar');
+            if(liveCalEl) liveCalEl.innerHTML = `${solarText} <span class="lunar-text">${lunarText}</span>`;
+        }
+        setInterval(updateClockAndCalendar, 1000);
+
+        function formatDateToYYYYMMDD(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function applyShortcut(daysOffset) {
+            const dateInput = document.getElementById('dateInput');
+            const hourInput = document.getElementById('hourInput');
+            
+            document.querySelectorAll('.shortcut-btn').forEach(btn => btn.classList.remove('active'));
+            const targetBtn = document.getElementById(`shortcut-${daysOffset}`);
+            if (targetBtn) targetBtn.classList.add('active');
+
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + daysOffset);
+            
+            dateInput.value = formatDateToYYYYMMDD(targetDate);
+            hourInput.value = "18:30"; 
+        }
+
+        document.getElementById('dateInput').addEventListener('change', () => {
+            document.querySelectorAll('.shortcut-btn').forEach(btn => btn.classList.remove('active'));
+        });
+        document.getElementById('hourInput').addEventListener('input', () => {
+            document.querySelectorAll('.shortcut-btn').forEach(btn => btn.classList.remove('active'));
+        });
+
+        function initDefaultDateTime() { applyShortcut(0); }
+
+        function loadNotes() {
+            const savedNotes = localStorage.getItem('sticky_notes_data');
+            if (savedNotes) {
+                notesData = JSON.parse(savedNotes);
+                autoCleanOldDoneNotes();
+                renderAllNotes();
+            }
+        }
+
+        function saveNotesToStorage() { localStorage.setItem('sticky_notes_data', JSON.stringify(notesData)); }
+
+        function autoCleanOldDoneNotes() {
+            const nowMs = new Date().getTime();
+            const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+            const filteredNotes = notesData.filter(noteObj => {
+                if (noteObj.status === 'done' && noteObj.completedAt) {
+                    return (nowMs - noteObj.completedAt) < twoDaysInMs;
+                }
+                return true;
+            });
+            if (filteredNotes.length !== notesData.length) {
+                notesData = filteredNotes;
+                saveNotesToStorage();
+            }
+        }
+
+        function getCountdownText(deadlineMs) {
+            const nowMs = new Date().getTime();
+            const diffMs = deadlineMs - nowMs;
+            if (diffMs <= 0) return "Quá hạn!";
+
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            if (diffHours < 24) {
+                return `Còn: ${diffHours} giờ`;
+            } else {
+                const days = Math.floor(diffHours / 24);
+                const hours = diffHours % 24;
+                return `Còn: ${days}ngày ${hours}g`;
+            }
+        }
+
+        function renderAllNotes() {
+            document.querySelector('#todoColumn .notes-list').innerHTML = '';
+            document.querySelector('#doneColumn .notes-list').innerHTML = '';
+            document.getElementById('leftMiniList').innerHTML = '';
+            document.getElementById('rightMiniList').innerHTML = '';
+
+            const todoAndDoneNotes = notesData.filter(n => n.type !== 'countdown');
+            const countdownNotes = notesData.filter(n => n.type === 'countdown');
+
+            todoAndDoneNotes.sort((a, b) => a.deadline - b.deadline);
+            todoAndDoneNotes.forEach(noteObj => {
+                const deadlineDate = new Date(noteObj.deadline);
+                const formattedDate = deadlineDate.toLocaleString('vi-VN', {
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                });
+
+                const note = document.createElement('div');
+                note.className = 'note';
+                note.dataset.id = noteObj.id;
+                note.dataset.deadline = noteObj.deadline;
+
+                const isTodo = noteObj.status === 'todo';
+                let countdownHtml = isTodo ? `<div class="countdown-tag">${getCountdownText(noteObj.deadline)}</div>` : '';
+
+                let completedTimeHtml = '';
+                if (!isTodo && noteObj.completedAt) {
+                    const compDate = new Date(noteObj.completedAt);
+                    completedTimeHtml = `<span class="completed-text">✓ Xong lúc: ${compDate.getHours()}:${String(compDate.getMinutes()).padStart(2, '0')} - ${compDate.getDate()}/${compDate.getMonth()+1}</span>`;
+                }
+
+                note.innerHTML = `
+                    ${countdownHtml}
+                    <div class="note-text">${noteObj.text}</div>
+                    <button class="toggle-expand-btn" onclick="toggleExpand(this)">Xem thêm 🔽</button>
+                    
+                    <div class="note-actions">
+                        <button class="arrow-btn back-btn" style="visibility: ${isTodo ? 'hidden' : 'visible'};" onclick="moveLeft(this)">⬅</button>
+                        <div class="action-center">
+                            <span class="deadline-text">⏳ Hạn: ${formattedDate}</span>
+                            ${completedTimeHtml}
+                            <button class="edit-btn" onclick="openEditModal('${noteObj.id}')">Sửa</button>
+                            <button class="delete-btn" onclick="deleteNoteById('${noteObj.id}')">Xóa</button>
+                        </div>
+                        <button class="arrow-btn next-btn" style="visibility: ${isTodo ? 'visible' : 'hidden'};" onclick="moveRight(this)">➡</button>
+                    </div>
+                `;
+
+                if (isTodo) {
+                    document.querySelector('#todoColumn .notes-list').appendChild(note);
+                } else {
+                    document.querySelector('#doneColumn .notes-list').appendChild(note);
+                }
+
+                const noteTextElem = note.querySelector('.note-text');
+                const toggleBtn = note.querySelector('.toggle-expand-btn');
+                if (noteTextElem.scrollHeight > noteTextElem.clientHeight) {
+                    toggleBtn.style.display = 'block';
+                } else {
+                    noteTextElem.style.marginBottom = "45px"; 
+                }
+            });
+
+            countdownNotes.sort((a, b) => a.deadline - b.deadline);
+            countdownNotes.forEach((noteObj, idx) => {
+                const deadlineDate = new Date(noteObj.deadline);
+                const nowMs = new Date().getTime();
+                const isUrgent = (noteObj.deadline - nowMs) <= (24 * 60 * 60 * 1000);
+                
+                const miniNote = document.createElement('div');
+                miniNote.className = `mini-note ${isUrgent ? 'urgent' : ''}`;
+                const miniTimeText = `${deadlineDate.getDate()}/${deadlineDate.getMonth()+1} lúc ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}`;
+                
+                miniNote.innerHTML = `
+                    <button class="mini-delete-btn" onclick="deleteNoteById('${noteObj.id}')">✕</button>
+                    <div class="mini-note-text">${noteObj.text}</div>
+                    <div class="mini-note-meta">
+                        <span class="mini-time">⏳ ${miniTimeText}</span>
+                        <span class="mini-countdown" data-mini-deadline="${noteObj.deadline}">${getCountdownText(noteObj.deadline)}</span>
+                    </div>
+                `;
+
+                if (idx % 2 === 0) {
+                    document.getElementById('leftMiniList').appendChild(miniNote);
+                } else {
+                    document.getElementById('rightMiniList').appendChild(miniNote);
+                }
+            });
+
+            checkTimeAndAlerts();
+        }
+
+        function toggleExpand(btn) {
+            const note = btn.closest('.note');
+            if (note.classList.contains('expanded')) {
+                note.classList.remove('expanded');
+                btn.innerHTML = 'Xem thêm 🔽';
+            } else {
+                note.classList.add('expanded');
+                btn.innerHTML = 'Thu gọn 🔼';
+            }
+        }
+
+        function validateAndParseTime(hourStr) {
+            const cleanStr = hourStr.trim().replace('h', ':');
+            const timeRegex = /^([0-1]?[0-9]|2[0-3])(:[0-5][0-9])?$/;
+            if (!timeRegex.test(cleanStr)) {
+                alert("❌ SAI ĐỊNH DẠNG GIỜ!\nVui lòng nhập đúng định dạng 24h (Ví dụ: 9, 13:15, 18:30).");
+                return null;
+            }
+            let hours = 0, minutes = 0;
+            if (cleanStr.includes(':')) {
+                const parts = cleanStr.split(':');
+                hours = parseInt(parts[0]);
+                minutes = parseInt(parts[1]);
+            } else {
+                hours = parseInt(cleanStr);
+                minutes = 0;
+            }
+            return { hours, minutes };
+        }
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const dateInput = document.getElementById('dateInput');
+            const hourInput = document.getElementById('hourInput');
+            
+            const selectedMode = document.querySelector('input[name="noteMode"]:checked').value;
+            const taskText = taskInput.value.trim();
+            const dateValue = dateInput.value;
+
+            if (taskText === "" || dateValue === "") {
+                alert("Vui lòng nhập nội dung và chọn ngày!");
+                return;
+            }
+
+            const timeObj = validateAndParseTime(hourInput.value);
+            if (timeObj === null) return; 
+
+            const dateParts = dateValue.split('-'); 
+            const deadlineDate = new Date(
+                parseInt(dateParts[0]),
+                parseInt(dateParts[1]) - 1,
+                parseInt(dateParts[2]),
+                timeObj.hours,
+                timeObj.minutes,
+                0, 0
+            );
+
+            if (deadlineDate.getTime() < new Date().getTime()) {
+                alert("❌ THỜI GIAN LÀ QUÁ KHỨ!\nHạn định không được nhỏ hơn thời gian hiện tại.");
+                return;
+            }
+
+            notesData.push({
+                id: Date.now().toString(),
+                text: taskText,
+                deadline: deadlineDate.getTime(),
+                status: 'todo',
+                type: selectedMode,
+                completedAt: null
+            });
+            saveNotesToStorage();
+            renderAllNotes();
+
+            taskInput.value = "";
+            initDefaultDateTime(); 
+        }
+
+        function openEditModal(id) {
+            const noteObj = notesData.find(n => n.id === id);
+            if (!noteObj) return;
+
+            document.getElementById('editNoteId').value = id;
+            document.getElementById('editTaskText').value = noteObj.text;
+
+            const d = new Date(noteObj.deadline);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('editTaskDeadline').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('editModal').classList.remove('active'); }
+
+        function saveModalChanges() {
+            const id = document.getElementById('editNoteId').value;
+            const newText = document.getElementById('editTaskText').value.trim();
+            const newDeadlineValue = document.getElementById('editTaskDeadline').value;
+
+            if (newText === "" || newDeadlineValue === "") {
+                alert("Nội dung và thời gian không được để trống!");
+                return;
+            }
+
+            const newDeadlineDate = new Date(newDeadlineValue);
+            if (isNaN(newDeadlineDate.getTime())) { alert("Thời gian không hợp lệ!"); return; }
+            if (newDeadlineDate.getTime() < new Date().getTime()) { alert("❌ THỜI GIAN LÀ QUÁ KHỨ!"); return; }
+
+            const noteObj = notesData.find(n => n.id === id);
+            if (noteObj) {
+                noteObj.text = newText;
+                noteObj.deadline = newDeadlineDate.getTime();
+                saveNotesToStorage();
+                renderAllNotes();
+                closeModal();
+            }
+        }
+
+        function playBeep(duration, frequency, count = 1) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let timeOffset = 0;
+                for (let i = 0; i < count; i++) {
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime + timeOffset);
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime + timeOffset);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + timeOffset + duration);
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscillator.start(audioCtx.currentTime + timeOffset);
+                    oscillator.stop(audioCtx.currentTime + timeOffset + duration);
+                    timeOffset += duration + 0.1;
+                }
+            } catch (e) { console.log("Hệ thống âm thanh chờ tương tác."); }
+        }
+
+        function checkTimeAndAlerts() {
+            const nowMs = new Date().getTime();
+            const oneDayInMs = 24 * 60 * 60 * 1000; 
+            autoCleanOldDoneNotes();
+
+            const todoNotes = document.querySelectorAll('#todoColumn .note');
+            let hasUrgent = false;
+            let hasExactOrOverdue = false;
+
+            todoNotes.forEach(note => {
+                const deadline = parseInt(note.dataset.deadline);
+                const timeLeft = deadline - nowMs;
+                const tag = note.querySelector('.countdown-tag');
+                if (tag) tag.innerText = getCountdownText(deadline);
+
+                if (timeLeft <= 0) {
+                    note.classList.add('urgent');
+                    hasExactOrOverdue = true;
+                } else if (timeLeft <= oneDayInMs) {
+                    note.classList.add('urgent');
+                    hasUrgent = true;
+                } else {
+                    note.classList.remove('urgent');
+                }
+            });
+
+            const miniCountdowns = document.querySelectorAll('[data-mini-deadline]');
+            miniCountdowns.forEach(miniTag => {
+                const deadline = parseInt(miniTag.dataset.miniDeadline);
+                miniTag.innerText = getCountdownText(deadline);
+                const miniNoteCard = miniTag.closest('.mini-note');
+                if (miniNoteCard) {
+                    if (deadline - nowMs <= 0 || deadline - nowMs <= oneDayInMs) {
+                        miniNoteCard.classList.add('urgent');
+                    } else {
+                        miniNoteCard.classList.remove('urgent');
+                    }
+                }
+            });
+
+            if (hasExactOrOverdue) {
+                if (nowMs - lastExactAlertTime > 30000) {
+                    playBeep(0.4, 880, 3);
+                    lastExactAlertTime = nowMs;
+                }
+                return;
+            }
+
+            if (hasUrgent) {
+                const currentHour = new Date().getHours();
+                if (currentHour !== lastHourlyAlertHour) {
+                    playBeep(0.15, 600, 1);
+                    lastHourlyAlertHour = currentHour;
+                }
+            }
+        }
+        setInterval(checkTimeAndAlerts, 10000);
+
+        function moveRight(button) {
+            const note = button.closest('.note');
+            const noteObj = notesData.find(n => n.id === note.dataset.id);
+            if (noteObj) { noteObj.status = 'done'; noteObj.completedAt = new Date().getTime(); }
+            saveNotesToStorage();
+            renderAllNotes();
+        }
+
+        function moveLeft(button) {
+            const note = button.closest('.note');
+            const noteObj = notesData.find(n => n.id === note.dataset.id);
+            if (noteObj) { noteObj.status = 'todo'; noteObj.completedAt = null; }
+            saveNotesToStorage();
+            renderAllNotes();
+        }
+
+        function deleteNoteById(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa ghi chú này không?")) {
+                notesData = notesData.filter(n => n.id !== id);
+                saveNotesToStorage();
+                renderAllNotes();
+            }
+        }
+
+        // KHỞI CHẠY HỆ THỐNG GHI CHÚ
+        updateClockAndCalendar();
+        initDefaultDateTime();
+        loadNotes();
+    </script>
+</body>
+</html>

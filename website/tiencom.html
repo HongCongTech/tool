@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Tính Tiền Cơm Đồng Nghiệp</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --success-bg: #e8f8f5;
+            --danger-color: #e74c3c;
+            --danger-bg: #fdeaea;
+            --text-color: #2c3e50;
+            --border-color: #e2e8f0;
+            --bg-color: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            padding: 30px 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 25px; 
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); 
+            position: relative;
+        }
+
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #1e293b; font-size: 24px; }
+        h2 { text-align: left; font-size: 1.2rem; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-top: 30px; margin-bottom: 15px; }
+
+        .top-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .add-colleague-box { display: flex; gap: 8px; }
+
+        input[type="text"], input[type="number"] { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; background: white; }
+        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary-color); }
+
+        button { cursor: pointer; padding: 8px 14px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: #357abd; }
+        .btn-config-toggle { background-color: #64748b; color: white; }
+        .btn-config-toggle:hover { background-color: #475569; }
+
+        .config-dropdown {
+            display: none; position: absolute; top: 75px; right: 25px; background: white; border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); padding: 20px; border-radius: 8px; z-index: 10; width: 320px;
+        }
+        .config-dropdown.show { display: block; }
+        .config-dropdown h3 { font-size: 14px; color: #334155; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+        .config-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+        .config-row label { font-size: 12px; width: 45px; font-weight: bold; color: #64748b; }
+        .config-row input[type="text"] { flex: 1; }
+        .config-row input[type="number"] { width: 70px; }
+
+        .colleague-list { display: flex; flex-direction: column; gap: 12px; }
+        .colleague-item { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border-color); padding: 12px 15px; border-radius: 8px; gap: 15px; flex-wrap: wrap; }
+        .colleague-info { flex: 1; min-width: 140px; }
+        .colleague-name { font-weight: bold; font-size: 16px; color: #334155; }
+        .colleague-balance { font-size: 13px; margin-top: 2px; }
+        .balance-debt { color: var(--danger-color); font-weight: 600; }
+        .balance-clear { color: #64748b; }
+        .balance-add { color: var(--success-color); font-weight: 600; }
+
+        .action-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .section-add { background-color: var(--success-bg); padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px; }
+        .section-pay { background-color: var(--danger-bg); padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px; }
+
+        .btn-quick { background-color: #ffffff; border: 1px solid var(--success-color); color: var(--success-color); padding: 5px 8px; font-size: 12px; border-radius: 4px; }
+        .btn-quick:hover { background-color: var(--success-color); color: white; }
+        .input-small { width: 65px; padding: 5px 6px !important; font-size: 13px !important; text-align: center; }
+        .unit-label { font-size: 12px; color: #64748b; margin-left: -2px; margin-right: 2px; }
+        .btn-action-add { background-color: var(--success-color); color: white; padding: 5px 10px; font-size: 13px; }
+        .btn-action-add:hover { background-color: #27ae60; }
+        .btn-action-pay { background-color: var(--danger-color); color: white; padding: 5px 10px; font-size: 13px; }
+        .btn-action-pay:hover { background-color: #c0392b; }
+        .btn-delete { background-color: transparent; color: #94a3b8; padding: 4px; font-size: 15px; }
+        .btn-delete:hover { color: var(--danger-color); }
+
+        .log-container { margin-top: 15px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; max-height: 320px; overflow-y: auto; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        .log-table th { background-color: #e2e8f0; color: #334155; padding: 10px; position: sticky; top: 0; z-index: 1; }
+        .log-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+        .log-add { color: #27ae60; font-weight: 500; }
+        .log-pay { color: #c0392b; font-weight: 500; }
+        .empty-state { text-align: center; color: #94a3b8; padding: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-area">
+            <h1>Tính Tiền Cơm Đồng Nghiệp 🍚</h1>
+            <div class="top-actions">
+                <div class="add-colleague-box">
+                    <input type="text" id="colleagueNameInput" placeholder="Thêm tên đồng nghiệp...">
+                    <button class="btn-primary" onclick="addColleague()">Thêm</button>
+                </div>
+                <button class="btn-config-toggle" onclick="toggleConfigMenu(event)">⚙️ Cài đặt nút nhanh</button>
+            </div>
+        </div>
+
+        <div class="config-dropdown" id="configDropdown">
+            <h3>Cấu hình 3 nút bấm nhanh</h3>
+            <p style="font-size: 11px; color:#64748b; margin-bottom:10px;">Nhập số hàng nghìn (VD: 30 ứng với 30.000đ)</p>
+            <div class="config-row">
+                <label>Nút 1:</label>
+                <input type="text" id="quickName1" placeholder="Tên" value="Cơm">
+                <input type="number" id="quickVal1" placeholder="Giá" value="30">
+            </div>
+            <div class="config-row">
+                <label>Nút 2:</label>
+                <input type="text" id="quickName2" placeholder="Tên" value="Nước">
+                <input type="number" id="quickVal2" placeholder="Giá" value="35">
+            </div>
+            <div class="config-row">
+                <label>Nút 3:</label>
+                <input type="text" id="quickName3" placeholder="Tên" value="Khác">
+                <input type="number" id="quickVal3" placeholder="Giá" value="15">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                <button class="btn-config-toggle" style="background:#cbd5e1; color:#334155;" onclick="toggleConfigMenu(event)">Đóng</button>
+                <button class="btn-primary" onclick="saveQuickConfig()">Lưu cài đặt</button>
+            </div>
+        </div>
+
+        <h2>Danh Sách Đồng Nghiệp & Tiền Cơm</h2>
+        <div class="colleague-list" id="colleagueList"></div>
+
+        <h2>Lịch Sử Giao Dịch</h2>
+        <div class="log-container">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Tên đồng nghiệp</th>
+                        <th>Hành động</th>
+                        <th>Số tiền</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody"></tbody>
+            </table>
+            <div id="logEmptyState" class="empty-state">Chưa có lịch sử giao dịch.</div>
+        </div>
+    </div>
+
+    <script>
+        let colleagues = JSON.parse(localStorage.getItem('lunch_colleagues')) || [];
+        let logs = JSON.parse(localStorage.getItem('lunch_logs')) || [];
+        
+        let quickConfig = JSON.parse(localStorage.getItem('lunch_quick_config')) || {
+            name1: 'Cơm', val1: 30,
+            name2: 'Nước', val2: 35,
+            name3: 'Khác', val3: 15
+        };
+
+        document.getElementById('quickName1').value = quickConfig.name1;
+        document.getElementById('quickVal1').value = quickConfig.val1;
+        document.getElementById('quickName2').value = quickConfig.name2;
+        document.getElementById('quickVal2').value = quickConfig.val2;
+        document.getElementById('quickName3').value = quickConfig.name3;
+        document.getElementById('quickVal3').value = quickConfig.val3;
+
+        function saveLunchData() {
+            localStorage.setItem('lunch_colleagues', JSON.stringify(colleagues));
+            localStorage.setItem('lunch_logs', JSON.stringify(logs));
+            localStorage.setItem('lunch_quick_config', JSON.stringify(quickConfig));
+        }
+
+        function toggleConfigMenu(event) {
+            if(event) event.stopPropagation();
+            const dropdown = document.getElementById('configDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function saveQuickConfig() {
+            quickConfig.name1 = document.getElementById('quickName1').value.trim() || 'Nút 1';
+            quickConfig.val1 = parseInt(document.getElementById('quickVal1').value) || 0;
+            quickConfig.name2 = document.getElementById('quickName2').value.trim() || 'Nút 2';
+            quickConfig.val2 = parseInt(document.getElementById('quickVal2').value) || 0;
+            quickConfig.name3 = document.getElementById('quickName3').value.trim() || 'Nút 3';
+            quickConfig.val3 = parseInt(document.getElementById('quickVal3').value) || 0;
+            
+            saveLunchData();
+            renderColleagues();
+            toggleConfigMenu();
+        }
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        function formatDateTime(dateStr) {
+            const d = new Date(dateStr);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function addColleague() {
+            const nameInput = document.getElementById('colleagueNameInput');
+            const name = nameInput.value.trim();
+            if (!name) { alert('Vui lòng nhập tên đồng nghiệp!'); return; }
+            if (colleagues.some(c => c.name.toLowerCase() === name.toLowerCase())) { alert('Tên này đã tồn tại!'); return; }
+
+            colleagues.push({ id: Date.now().toString(), name: name, balance: 0 });
+            nameInput.value = '';
+            saveLunchData();
+            renderColleagues();
+        }
+
+        function deleteColleague(id) {
+            if(confirm('Xóa đồng nghiệp này khỏi danh sách?')) {
+                colleagues = colleagues.filter(c => c.id !== id);
+                saveLunchData();
+                renderColleagues();
+            }
+        }
+
+        function addMoney(id, amount, isRawK = false) {
+            let parsedAmount = parseInt(amount);
+            if (isNaN(parsedAmount) || parsedAmount <= 0) { alert('Vui lòng nhập số tiền hợp lệ!'); return; }
+            if (isRawK) { parsedAmount = parsedAmount * 1000; }
+
+            const colleague = colleagues.find(c => c.id === id);
+            if (colleague) {
+                colleague.balance += parsedAmount;
+                addLunchLog(colleague.name, 'Thêm tiền', parsedAmount);
+                saveLunchData();
+                renderColleagues();
+                renderLunchLogs();
+            }
+        }
+
+        function payMoney(id, amount, isRawK = false) {
+            let parsedAmount = parseInt(amount);
+            if (isNaN(parsedAmount) || parsedAmount <= 0) { alert('Vui lòng nhập số tiền hợp lệ!'); return; }
+            if (isRawK) { parsedAmount = parsedAmount * 1000; }
+
+            const colleague = colleagues.find(c => c.id === id);
+            if (colleague) {
+                colleague.balance -= parsedAmount;
+                addLunchLog(colleague.name, 'Trả nợ', parsedAmount);
+                saveLunchData();
+                renderColleagues();
+                renderLunchLogs();
+            }
+        }
+
+        function addLunchLog(name, action, amount) {
+            const now = new Date();
+            logs.unshift({ timestamp: now.toISOString(), name: name, action: action, amount: amount });
+            const twoMonthsAgo = new Date();
+            twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
+            logs = logs.filter(log => new Date(log.timestamp) >= twoMonthsAgo);
+        }
+
+        function renderColleagues() {
+            const listContainer = document.getElementById('colleagueList');
+            listContainer.innerHTML = '';
+            if (colleagues.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">Chưa có đồng nghiệp nào. Hãy thêm ở trên!</div>';
+                return;
+            }
+
+            colleagues.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'colleague-item';
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'colleague-info';
+                
+                let balanceClass = 'balance-clear', balanceText = 'Đã sạch nợ 🎉';
+                if (c.balance > 0) {
+                    balanceClass = 'balance-debt'; balanceText = `Còn nợ: ${formatMoney(c.balance)}`;
+                } else if (c.balance < 0) {
+                    balanceClass = 'balance-add'; balanceText = `Trả dư: ${formatMoney(Math.abs(c.balance))}`;
+                }
+
+                infoDiv.innerHTML = `
+                    <div class="colleague-name">${c.name}</div>
+                    <div class="colleague-balance ${balanceClass}">${balanceText}</div>
+                `;
+
+                const actionGroup = document.createElement('div');
+                actionGroup.className = 'action-group';
+
+                const addSection = document.createElement('div');
+                addSection.className = 'section-add';
+                addSection.innerHTML = `
+                    <button class="btn-quick" onclick="addMoney('${c.id}', ${quickConfig.val1 * 1000})">${quickConfig.name1} (${quickConfig.val1}k)</button>
+                    <button class="btn-quick" onclick="addMoney('${c.id}', ${quickConfig.val2 * 1000})">${quickConfig.name2} (${quickConfig.val2}k)</button>
+                    <button class="btn-quick" onclick="addMoney('${c.id}', ${quickConfig.val3 * 1000})">${quickConfig.name3} (${quickConfig.val3}k)</button>
+                    <input type="number" id="customAdd_${c.id}" class="input-small" placeholder="Số khác" min="0">
+                    <span class="unit-label">.000</span>
+                    <button class="btn-action-add" onclick="const val = document.getElementById('customAdd_${c.id}').value; addMoney('${c.id}', val, true); document.getElementById('customAdd_${c.id}').value='';">Thêm</button>
+                `;
+
+                const paySection = document.createElement('div');
+                paySection.className = 'section-pay';
+                paySection.innerHTML = `
+                    <input type="number" id="customPay_${c.id}" class="input-small" placeholder="Số tiền" min="0">
+                    <span class="unit-label">.000</span>
+                    <button class="btn-action-pay" onclick="const val = document.getElementById('customPay_${c.id}').value; payMoney('${c.id}', val, true); document.getElementById('customPay_${c.id}').value='';">Trả</button>
+                `;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete'; deleteBtn.innerHTML = '🗑️';
+                deleteBtn.onclick = () => deleteColleague(c.id);
+
+                actionGroup.appendChild(addSection);
+                actionGroup.appendChild(paySection);
+                actionGroup.appendChild(deleteBtn);
+
+                item.appendChild(infoDiv);
+                item.appendChild(actionGroup);
+                listContainer.appendChild(item);
+            });
+        }
+
+        function renderLunchLogs() {
+            const tableBody = document.getElementById('logTableBody');
+            const emptyState = document.getElementById('logEmptyState');
+            tableBody.innerHTML = '';
+
+            const twoMonthsAgo = new Date();
+            twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
+            logs = logs.filter(log => new Date(log.timestamp) >= twoMonthsAgo);
+            saveLunchData();
+
+            if (logs.length === 0) {
+                emptyState.style.display = 'block'; return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                const actionClass = log.action === 'Thêm tiền' ? 'log-add' : 'log-pay';
+                const actionSymbol = log.action === 'Thêm tiền' ? '+' : '-';
+
+                tr.innerHTML = `
+                    <td>${formatDateTime(log.timestamp)}</td>
+                    <td><strong>${log.name}</strong></td>
+                    <td class="${actionClass}">${log.action}</td>
+                    <td class="${actionClass}">${actionSymbol}${formatMoney(log.amount)}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        window.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('configDropdown');
+            const toggleBtn = document.querySelector('.btn-config-toggle');
+            if (dropdown && !dropdown.contains(event.target) && event.target !== toggleBtn) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // KHỞI CHẠY HỆ THỐNG TIỀN CƠM
+        renderColleagues();
+        renderLunchLogs();
+    </script>
+</body>
+</html>
