@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>macOS Dashboard Web</title>
   
-  <!-- Thư viện SortableJS cho phép kéo thả sắp xếp ứng dụng -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
   <style>
@@ -28,7 +27,7 @@
       color: #fff;
     }
 
-    /* 1. TOP MENU BAR STYLE MACOS */
+    /* TOP MENU BAR */
     .top-bar {
       width: 100%;
       height: 30px;
@@ -52,12 +51,9 @@
       gap: 16px;
     }
 
-    .apple-logo {
-      font-size: 15px;
-      cursor: pointer;
-    }
+    .apple-logo { font-size: 15px; cursor: pointer; }
 
-    /* 2. KHUNG CHÍNH (DESKTOP + DOCK BÊN PHẢI) */
+    /* WORKSPACE */
     .mac-body {
       flex: 1;
       height: calc(100% - 30px);
@@ -78,7 +74,6 @@
       overflow: hidden;
     }
 
-    /* Lưới ứng dụng trên màn hình Desktop */
     .app-grid-container {
       width: 100%;
       height: 100%;
@@ -90,9 +85,7 @@
       overflow-y: auto;
     }
 
-    .app-grid-container.hidden {
-      display: none;
-    }
+    .app-grid-container.hidden { display: none; }
 
     .app-item {
       position: relative;
@@ -105,13 +98,8 @@
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .app-item:hover {
-      transform: scale(1.1);
-    }
-
-    .app-item:active {
-      transform: scale(0.95);
-    }
+    .app-item:hover { transform: scale(1.1); }
+    .app-item:active { transform: scale(0.95); }
 
     .app-icon {
       width: 68px;
@@ -127,10 +115,8 @@
       align-items: center;
       font-size: 34px;
       margin-bottom: 8px;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Chế độ lắc icon khi sửa */
     body.edit-mode .app-item:not(.btn-add-item) {
       animation: macShake 0.25s infinite alternate ease-in-out;
     }
@@ -140,14 +126,11 @@
       100% { transform: rotate(2deg); }
     }
 
-    /* Nút xóa ứng dụng khi ở Edit Mode */
     .delete-btn {
       display: none;
       position: absolute;
-      top: -4px;
-      right: 12px;
-      width: 22px;
-      height: 22px;
+      top: -4px; right: 12px;
+      width: 22px; height: 22px;
       border-radius: 50%;
       background: #ff3b30;
       color: white;
@@ -159,9 +142,7 @@
       z-index: 10;
     }
 
-    body.edit-mode .delete-btn {
-      display: flex;
-    }
+    body.edit-mode .delete-btn { display: flex; }
 
     .app-label {
       font-size: 12px;
@@ -175,21 +156,17 @@
       text-overflow: ellipsis;
     }
 
-    /* Nút Thêm Ứng Dụng */
     .btn-add-icon {
       border: 2px dashed rgba(255, 255, 255, 0.4);
       background: rgba(255, 255, 255, 0.1);
     }
 
-    /* 3. CỬA SỔ ỨNG DỤNG FULL SCREEN */
+    /* WINDOW */
     .main-workspace {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       display: none;
       flex-direction: column;
       background: rgba(15, 23, 42, 0.95);
-      border: none;
-      box-shadow: none;
       overflow: hidden;
       animation: fadeIn 0.2s ease-out;
     }
@@ -199,9 +176,7 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    .main-workspace.active {
-      display: flex;
-    }
+    .main-workspace.active { display: flex; }
 
     .window-header {
       height: 34px;
@@ -211,209 +186,88 @@
       align-items: center;
       padding: 0 14px;
       gap: 8px;
-      flex-shrink: 0;
     }
 
-    .traffic-btn {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
+    .traffic-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
     .btn-close { background-color: #ff5f56; border: 1px solid #e0443e; }
     .btn-minimize { background-color: #ffbd2e; border: 1px solid #dea123; }
     .btn-maximize { background-color: #27c93f; border: 1px solid #1aab29; }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      flex: 1;
-      border: none;
-      background: #ffffff;
-    }
+    iframe { width: 100%; height: 100%; flex: 1; border: none; background: #ffffff; }
 
-    /* 4. DOCK PHẢI */
+    /* DOCK PHẢI */
     .dock-container {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      padding-right: 12px;
-      padding-left: 6px;
-      z-index: 1000;
+      height: 100%; display: flex; align-items: center;
+      padding-right: 12px; padding-left: 6px; z-index: 1000;
     }
 
     .mac-dock {
-      width: 64px;
-      padding: 14px 0;
+      width: 64px; padding: 14px 0;
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(30px);
       -webkit-backdrop-filter: blur(30px);
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 20px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
     }
 
     .dock-btn {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
+      width: 46px; height: 46px; border-radius: 12px;
       background: rgba(255, 255, 255, 0.25);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 22px;
-      cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+      display: flex; justify-content: center; align-items: center;
+      font-size: 22px; cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .dock-btn:hover {
-      transform: scale(1.25) translateX(-6px);
-      background: rgba(255, 255, 255, 0.4);
-    }
+    .dock-btn:hover { transform: scale(1.25) translateX(-6px); background: rgba(255, 255, 255, 0.4); }
 
-    .dock-divider {
-      width: 35px;
-      height: 1px;
-      background: rgba(255, 255, 255, 0.25);
-      margin: 4px 0;
-    }
+    .dock-divider { width: 35px; height: 1px; background: rgba(255, 255, 255, 0.25); margin: 4px 0; }
 
-    .edit-toggle-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 36px;
-      height: 20px;
-    }
-
+    .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
     .switch input { opacity: 0; width: 0; height: 0; }
-
     .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255, 255, 255, 0.25);
-      transition: 0.3s;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.25); transition: 0.3s;
+      border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.3);
     }
-
     .slider:before {
-      position: absolute;
-      content: "";
-      height: 12px;
-      width: 12px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
+      position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px;
+      background-color: white; transition: 0.3s; border-radius: 50%;
     }
-
     input:checked + .slider { background-color: #34c759; }
     input:checked + .slider:before { transform: translateX(16px); }
 
-    /* 5. MODAL FORM TẠO ỨNG DỤNG MỚI */
+    /* MODAL FORM */
     .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(8px);
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);
+      justify-content: center; align-items: center; z-index: 2000;
     }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
+    .modal-overlay.active { display: flex; }
     .modal-box {
-      width: 320px;
-      background: rgba(30, 41, 59, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      width: 320px; background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px;
+      padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; gap: 14px;
     }
-
-    .modal-title {
-      font-size: 16px;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .input-group label {
-      font-size: 12px;
-      color: #cbd5e1;
-    }
-
+    .modal-title { font-size: 16px; font-weight: 600; text-align: center; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label { font-size: 12px; color: #cbd5e1; }
     .input-group input {
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(0, 0, 0, 0.3);
-      color: #fff;
-      outline: none;
-      font-size: 14px;
+      padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.3); color: #fff; outline: none; font-size: 14px;
     }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .btn-action {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .btn-cancel {
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-    }
-
-    .btn-save {
-      background: #007aff;
-      color: white;
-    }
-
-    .sortable-ghost {
-      opacity: 0.2;
-    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+    .btn-action { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; }
+    .btn-cancel { background: rgba(255, 255, 255, 0.15); color: white; }
+    .btn-save { background: #007aff; color: white; }
+    .sortable-ghost { opacity: 0.2; }
   </style>
 </head>
 <body>
 
-  <!-- Top Menu Bar -->
   <div class="top-bar">
     <div class="top-bar-left">
       <span class="apple-logo"></span>
@@ -423,43 +277,29 @@
       <span>View</span>
     </div>
     <div class="top-bar-right">
-      <span>🔋 100%</span>
-      <span>🔍</span>
+      <span id="sync-status" style="font-size:11px; color:#34c759;">☁️ Synced</span>
       <span id="mac-clock">00:00 AM</span>
     </div>
   </div>
 
-  <!-- Body Dashboard -->
   <div class="mac-body">
-
-    <!-- Desktop Workspace -->
     <div class="mac-desktop">
-      
-      <!-- Lưới ứng dụng -->
-      <div class="app-grid-container" id="app-grid">
-        <!-- Đổ danh sách ứng dụng bằng Javascript tại đây -->
-      </div>
-
-      <!-- Cửa sổ ứng dụng Workspace -->
+      <div class="app-grid-container" id="app-grid"></div>
       <div class="main-workspace" id="main-workspace">
         <div class="window-header">
-          <div class="traffic-btn btn-close" onclick="goHome()" title="Đóng"></div>
-          <div class="traffic-btn btn-minimize" onclick="goHome()" title="Thu nhỏ"></div>
-          <div class="traffic-btn btn-maximize" title="Phóng to"></div>
+          <div class="traffic-btn btn-close" onclick="goHome()"></div>
+          <div class="traffic-btn btn-minimize" onclick="goHome()"></div>
+          <div class="traffic-btn btn-maximize"></div>
         </div>
         <iframe id="app-frame" src=""></iframe>
       </div>
-
     </div>
 
-    <!-- Dock Bên Phải -->
     <div class="dock-container">
       <div class="mac-dock">
         <button class="dock-btn" onclick="goHome()" title="Trang chủ">🏠</button>
-
         <div class="dock-divider"></div>
-
-        <div class="edit-toggle-wrapper" title="Bật/Tắt chế độ di chuyển & xóa icon">
+        <div class="edit-toggle-wrapper">
           <label class="switch">
             <input type="checkbox" id="edit-toggle" onchange="toggleEditMode(this.checked)">
             <span class="slider"></span>
@@ -467,10 +307,8 @@
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- MODAL FORM THÊM APP MỚI -->
   <div class="modal-overlay" id="app-modal">
     <div class="modal-box">
       <div class="modal-title">Thêm Ứng Dụng Mới</div>
@@ -480,7 +318,7 @@
       </div>
       <div class="input-group">
         <label>Biểu tượng (Emoji):</label>
-        <input type="text" id="app-icon-input" placeholder="VD: 🌐 hoặc 📊" maxlength="4">
+        <input type="text" id="app-icon-input" placeholder="VD: 🌐" maxlength="4">
       </div>
       <div class="input-group">
         <label>Đường dẫn File / URL Web:</label>
@@ -488,45 +326,63 @@
       </div>
       <div class="modal-actions">
         <button class="btn-action btn-cancel" onclick="closeModal()">Hủy</button>
-        <button class="btn-action btn-save" onclick="saveNewApp()">Thêm</button>
+        <button class="btn-action btn-save" onclick="saveNewApp()">Thêm & Đồng Bộ</button>
       </div>
     </div>
   </div>
 
   <script>
-    // 1. Danh sách App mặc định
-    const defaultApps = [
-      { id: '1', title: 'Chia Bill', icon: '🍻', url: 'chiabill.html' },
-      { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'tiencom.html' },
-      { id: '3', title: 'Lãi Suất', icon: '💵', url: 'laisuat.html' },
-      { id: '4', title: 'Ghi Chú', icon: '📝', url: 'note.html' }
-    ];
+    // === ĐIỀN THÔNG TIN JSONBIN CỦA BẠN VÀO ĐÂY ===
+    const BIN_ID = 'Untitled';
+    const MASTER_KEY = '6aa980aaac6210605ad1619d';
+    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let appsList = [];
     let isEditMode = false;
 
-    // 2. Tải danh sách App từ localStorage
-    function loadApps() {
-  const stored = localStorage.getItem('mac_dashboard_apps_v2'); // Đổi sang _v2
-  if (stored) {
-    appsList = JSON.parse(stored);
-  } else {
-    appsList = [...defaultApps];
-    saveAppsToStorage();
-  }
-  renderAppGrid();
-}
+    // 1. Tải danh sách App từ Cloud
+    async function loadAppsFromCloud() {
+      const syncStatus = document.getElementById('sync-status');
+      syncStatus.innerText = '🔄 Loading...';
+      try {
+        const res = await fetch(API_URL, {
+          headers: { 'X-Master-Key': MASTER_KEY }
+        });
+        const data = await res.json();
+        appsList = data.record;
+        renderAppGrid();
+        syncStatus.innerText = '☁️ Synced';
+      } catch (err) {
+        console.error('Lỗi tải từ Cloud:', err);
+        syncStatus.innerText = '⚠️ Sync Error';
+      }
+    }
 
-function saveAppsToStorage() {
-  localStorage.setItem('mac_dashboard_apps_v2', JSON.stringify(appsList)); // Đổi sang _v2
-}
+    // 2. Lưu danh sách App lên Cloud khi Thêm/Xóa
+    async function saveAppsToCloud() {
+      const syncStatus = document.getElementById('sync-status');
+      syncStatus.innerText = '🔄 Saving...';
+      try {
+        await fetch(API_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY
+          },
+          body: JSON.stringify(appsList)
+        });
+        syncStatus.innerText = '☁️ Synced';
+      } catch (err) {
+        console.error('Lỗi lưu lên Cloud:', err);
+        syncStatus.innerText = '⚠️ Save Error';
+      }
+    }
 
-    // 3. Hiển thị Lưới Icon lên Dashboard
+    // 3. Render giao diện
     function renderAppGrid() {
       const grid = document.getElementById('app-grid');
       grid.innerHTML = '';
 
-      // Hiển thị từng App
       appsList.forEach(app => {
         const item = document.createElement('div');
         item.className = 'app-item';
@@ -540,7 +396,6 @@ function saveAppsToStorage() {
         grid.appendChild(item);
       });
 
-      // Thêm Nút "+" (Thêm Ứng Dụng Mới) ở cuối
       const addBtn = document.createElement('div');
       addBtn.className = 'app-item btn-add-item';
       addBtn.onclick = openModal;
@@ -551,7 +406,7 @@ function saveAppsToStorage() {
       grid.appendChild(addBtn);
     }
 
-    // 4. Đồng hồ Top Bar
+    // Đồng hồ
     function updateClock() {
       const now = new Date();
       const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -560,28 +415,22 @@ function saveAppsToStorage() {
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 5. Khởi tạo SortableJS kéo thả sắp xếp
+    // Sortable
     const appGrid = document.getElementById('app-grid');
     const sortable = new Sortable(appGrid, {
       animation: 200,
       ghostClass: 'sortable-ghost',
       forceFallback: true,
       disabled: true,
-      filter: '.btn-add-item' // Không cho kéo nút "Thêm App"
+      filter: '.btn-add-item'
     });
 
-    // 6. Bật / Tắt Edit Mode
     function toggleEditMode(enable) {
       isEditMode = enable;
       sortable.option('disabled', !enable);
-      if (enable) {
-        document.body.classList.add('edit-mode');
-      } else {
-        document.body.classList.remove('edit-mode');
-      }
+      document.body.classList.toggle('edit-mode', enable);
     }
 
-    // 7. Xử lý Thêm & Xóa App
     function openModal() {
       if(isEditMode) return;
       document.getElementById('app-modal').classList.add('active');
@@ -594,37 +443,30 @@ function saveAppsToStorage() {
       document.getElementById('app-url-input').value = '';
     }
 
-    function saveNewApp() {
+    async function saveNewApp() {
       const name = document.getElementById('app-name-input').value.trim();
       const icon = document.getElementById('app-icon-input').value.trim() || '🚀';
       const url = document.getElementById('app-url-input').value.trim();
 
       if (!name || !url) {
-        alert('Vui lòng nhập Tên và Đường dẫn ứng dụng!');
+        alert('Vui lòng nhập Tên và Đường dẫn!');
         return;
       }
 
-      const newApp = {
-        id: Date.now().toString(),
-        title: name,
-        icon: icon,
-        url: url
-      };
-
+      const newApp = { id: Date.now().toString(), title: name, icon: icon, url: url };
       appsList.push(newApp);
-      saveAppsToStorage();
       renderAppGrid();
       closeModal();
+      await saveAppsToCloud();
     }
 
-    function deleteApp(event, id) {
-      event.stopPropagation(); // Ngăn mở app khi bấm xóa
+    async function deleteApp(event, id) {
+      event.stopPropagation();
       appsList = appsList.filter(app => app.id !== id);
-      saveAppsToStorage();
       renderAppGrid();
+      await saveAppsToCloud();
     }
 
-    // 8. Mở / Đóng Ứng dụng Window
     function handleAppClick(event, fileUrl) {
       if (isEditMode) {
         event.preventDefault();
@@ -634,27 +476,19 @@ function saveAppsToStorage() {
     }
 
     function openApp(fileUrl) {
-      const frame = document.getElementById('app-frame');
-      const workspace = document.getElementById('main-workspace');
-      const grid = document.getElementById('app-grid');
-
-      frame.src = fileUrl;
-      grid.classList.add('hidden');
-      workspace.classList.add('active');
+      document.getElementById('app-frame').src = fileUrl;
+      document.getElementById('app-grid').classList.add('hidden');
+      document.getElementById('main-workspace').classList.add('active');
     }
 
     function goHome() {
-      const workspace = document.getElementById('main-workspace');
-      const grid = document.getElementById('app-grid');
-      const frame = document.getElementById('app-frame');
-
-      workspace.classList.remove('active');
-      grid.classList.remove('hidden');
-      frame.src = '';
+      document.getElementById('main-workspace').classList.remove('active');
+      document.getElementById('app-grid').classList.remove('hidden');
+      document.getElementById('app-frame').src = '';
     }
 
-    // Khởi chạy ban đầu
-    loadApps();
+    // Khởi chạy: Tải dữ liệu từ Cloud về
+    loadAppsFromCloud();
   </script>
 </body>
 </html>
