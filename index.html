@@ -161,7 +161,7 @@
       background: rgba(255, 255, 255, 0.1);
     }
 
-    /* WINDOW */
+    /* WINDOW WORKSPACE */
     .main-workspace {
       width: 100%; height: 100%;
       display: none;
@@ -322,7 +322,7 @@
       </div>
       <div class="input-group">
         <label>Đường dẫn File / URL Web:</label>
-        <input type="text" id="app-url-input" placeholder="VD: app.html hoặc https://google.com">
+        <input type="text" id="app-url-input" placeholder="VD: chiabill.html hoặc https://google.com">
       </div>
       <div class="modal-actions">
         <button class="btn-action btn-cancel" onclick="closeModal()">Hủy</button>
@@ -332,38 +332,64 @@
   </div>
 
   <script>
-    // === ĐIỀN THÔNG TIN JSONBIN CỦA BẠN VÀO ĐÂY ===
-    const BIN_ID = 'Untitled';
-    const MASTER_KEY = '6aa980aaac6210605ad1619d';
+    // === CẤU HÌNH JSONBIN API ===
+    const BIN_ID = '6aa980aaac6210605ad1619d';
+    const MASTER_KEY = '$2a$10$NDXbbecfe274mcRlsymz6u86Pz/LflJQL6hGTi.QncaFXLpIU4hCS';
     const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let appsList = [];
     let isEditMode = false;
 
-    // 1. Tải danh sách App từ Cloud
+    // Danh sách mặc định dự phòng nếu Cloud hoàn toàn trống
+    const defaultApps = [
+      { id: '1', title: 'Chia Bill', icon: '🍻', url: 'chiabill.html' },
+      { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'tiencom.html' },
+      { id: '3', title: 'Lãi Suất', icon: '💵', url: 'laisuat.html' },
+      { id: '4', title: 'Ghi Chú', icon: '📝', url: 'note.html' }
+    ];
+
+    // 1. Tải danh sách App từ JSONBin Cloud
     async function loadAppsFromCloud() {
       const syncStatus = document.getElementById('sync-status');
-      syncStatus.innerText = '🔄 Loading...';
+      if (syncStatus) syncStatus.innerText = '🔄 Loading...';
+      
       try {
-        const res = await fetch(API_URL, {
-          headers: { 'X-Master-Key': MASTER_KEY }
+        const res = await fetch(`${API_URL}/latest`, {
+          method: 'GET',
+          headers: { 
+            'X-Master-Key': MASTER_KEY,
+            'X-Bin-Meta': 'false'
+          }
         });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
         const data = await res.json();
-        appsList = data.record;
+        
+        if (Array.isArray(data) && data.length > 0) {
+          appsList = data;
+        } else {
+          appsList = defaultApps;
+          await saveAppsToCloud();
+        }
+        
         renderAppGrid();
-        syncStatus.innerText = '☁️ Synced';
+        if (syncStatus) syncStatus.innerText = '☁️ Synced';
       } catch (err) {
         console.error('Lỗi tải từ Cloud:', err);
-        syncStatus.innerText = '⚠️ Sync Error';
+        if (syncStatus) syncStatus.innerText = '⚠️ Key Error';
+        appsList = defaultApps;
+        renderAppGrid();
       }
     }
 
-    // 2. Lưu danh sách App lên Cloud khi Thêm/Xóa
+    // 2. Lưu danh sách App lên Cloud
     async function saveAppsToCloud() {
       const syncStatus = document.getElementById('sync-status');
-      syncStatus.innerText = '🔄 Saving...';
+      if (syncStatus) syncStatus.innerText = '🔄 Saving...';
+      
       try {
-        await fetch(API_URL, {
+        const res = await fetch(API_URL, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -371,14 +397,18 @@
           },
           body: JSON.stringify(appsList)
         });
-        syncStatus.innerText = '☁️ Synced';
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+        if (syncStatus) syncStatus.innerText = '☁️ Synced';
       } catch (err) {
         console.error('Lỗi lưu lên Cloud:', err);
-        syncStatus.innerText = '⚠️ Save Error';
+        if (syncStatus) syncStatus.innerText = '⚠️ Save Error';
+        alert('Không thể lưu lên Cloud. Vui lòng kiểm tra lại Master Key!');
       }
     }
 
-    // 3. Render giao diện
+    // 3. Hiển thị danh sách ra màn hình
     function renderAppGrid() {
       const grid = document.getElementById('app-grid');
       grid.innerHTML = '';
@@ -406,7 +436,7 @@
       grid.appendChild(addBtn);
     }
 
-    // Đồng hồ
+    // Cập nhật đồng hồ topbar
     function updateClock() {
       const now = new Date();
       const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -415,14 +445,25 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Sortable
+    // Khởi tạo Sortable
     const appGrid = document.getElementById('app-grid');
     const sortable = new Sortable(appGrid, {
       animation: 200,
       ghostClass: 'sortable-ghost',
       forceFallback: true,
       disabled: true,
-      filter: '.btn-add-item'
+      filter: '.btn-add-item',
+      onEnd: async function () {
+        const newOrder = [];
+        const items = appGrid.querySelectorAll('.app-item:not(.btn-add-item)');
+        items.forEach(item => {
+          const title = item.querySelector('.app-label').innerText;
+          const found = appsList.find(a => a.title === title);
+          if (found) newOrder.push(found);
+        });
+        appsList = newOrder;
+        await saveAppsToCloud();
+      }
     });
 
     function toggleEditMode(enable) {
@@ -445,7 +486,7 @@
 
     async function saveNewApp() {
       const name = document.getElementById('app-name-input').value.trim();
-      const icon = document.getElementById('app-icon-input').value.trim() || '🚀';
+      const icon = document.getElementById('app-icon-input').value.trim() || '🌐';
       const url = document.getElementById('app-url-input').value.trim();
 
       if (!name || !url) {
@@ -487,7 +528,7 @@
       document.getElementById('app-frame').src = '';
     }
 
-    // Khởi chạy: Tải dữ liệu từ Cloud về
+    // Tải dữ liệu từ Cloud ngay khi mở web
     loadAppsFromCloud();
   </script>
 </body>
