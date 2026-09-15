@@ -333,14 +333,14 @@
 
   <script>
     // === CẤU HÌNH JSONBIN API ===
-    const BIN_ID = '6aa980aaac6210605ad1619d';
+    const BIN_ID = '6aa983d6ffd5d160530affa9';
     const MASTER_KEY = '$2a$10$NDXbbecfe274mcRlsymz6u86Pz/LflJQL6hGTi.QncaFXLpIU4hCS';
     const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let appsList = [];
     let isEditMode = false;
 
-    // Danh sách mặc định dự phòng nếu Cloud hoàn toàn trống
+    // Danh sách mặc định để tự động sửa (fix Cách 2) nếu Bin mới chưa có dữ liệu mảng
     const defaultApps = [
       { id: '1', title: 'Chia Bill', icon: '🍻', url: 'chiabill.html' },
       { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'tiencom.html' },
@@ -348,7 +348,7 @@
       { id: '4', title: 'Ghi Chú', icon: '📝', url: 'note.html' }
     ];
 
-    // 1. Tải danh sách App từ JSONBin Cloud
+    // 1. Tải ứng dụng từ Cloud - Tự động ghi đè danh sách mảng chuẩn nếu phát hiện dữ liệu lỗi
     async function loadAppsFromCloud() {
       const syncStatus = document.getElementById('sync-status');
       if (syncStatus) syncStatus.innerText = '🔄 Loading...';
@@ -362,13 +362,16 @@
           }
         });
 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
 
         const data = await res.json();
         
+        // Kiểm tra xem dữ liệu trả về có phải là mảng hợp lệ không
         if (Array.isArray(data) && data.length > 0) {
           appsList = data;
         } else {
+          // Nếu bin mới rỗng hoặc sai dạng Object -> Tự khắc phục bằng Cách 2 (ghi đè mảng chuẩn)
+          console.warn('Dữ liệu Cloud không phải dạng mảng. Tiến hành khởi tạo lại Bin...');
           appsList = defaultApps;
           await saveAppsToCloud();
         }
@@ -376,14 +379,14 @@
         renderAppGrid();
         if (syncStatus) syncStatus.innerText = '☁️ Synced';
       } catch (err) {
-        console.error('Lỗi tải từ Cloud:', err);
-        if (syncStatus) syncStatus.innerText = '⚠️ Key Error';
+        console.error('Lỗi khi tải dữ liệu từ Cloud:', err);
+        if (syncStatus) syncStatus.innerText = '⚠️ Sync Error';
         appsList = defaultApps;
         renderAppGrid();
       }
     }
 
-    // 2. Lưu danh sách App lên Cloud
+    // 2. Lưu danh sách ứng dụng lên JSONBin Cloud bằng lệnh PUT
     async function saveAppsToCloud() {
       const syncStatus = document.getElementById('sync-status');
       if (syncStatus) syncStatus.innerText = '🔄 Saving...';
@@ -398,17 +401,16 @@
           body: JSON.stringify(appsList)
         });
 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
 
         if (syncStatus) syncStatus.innerText = '☁️ Synced';
       } catch (err) {
-        console.error('Lỗi lưu lên Cloud:', err);
+        console.error('Lỗi khi lưu dữ liệu lên Cloud:', err);
         if (syncStatus) syncStatus.innerText = '⚠️ Save Error';
-        alert('Không thể lưu lên Cloud. Vui lòng kiểm tra lại Master Key!');
       }
     }
 
-    // 3. Hiển thị danh sách ra màn hình
+    // 3. Render các icon ứng dụng ra màn hình
     function renderAppGrid() {
       const grid = document.getElementById('app-grid');
       grid.innerHTML = '';
@@ -436,7 +438,7 @@
       grid.appendChild(addBtn);
     }
 
-    // Cập nhật đồng hồ topbar
+    // Cập nhật đồng hồ Topbar
     function updateClock() {
       const now = new Date();
       const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -445,7 +447,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Khởi tạo Sortable
+    // Cấu hình kéo thả đổi vị trí icon (SortableJS)
     const appGrid = document.getElementById('app-grid');
     const sortable = new Sortable(appGrid, {
       animation: 200,
@@ -528,7 +530,7 @@
       document.getElementById('app-frame').src = '';
     }
 
-    // Tải dữ liệu từ Cloud ngay khi mở web
+    // Chạy tải dữ liệu Cloud ngay khi mở trang
     loadAppsFromCloud();
   </script>
 </body>
