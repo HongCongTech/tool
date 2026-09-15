@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>macOS Dashboard Web</title>
+  
+  <!-- Thư viện SortableJS cho phép kéo thả sắp xếp ứng dụng -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+
+    /* 1. TOP MENU BAR STYLE MACOS */
+    .top-bar {
+      width: 100%;
+      height: 30px;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 1000;
+      user-select: none;
+    }
+
+    .top-bar-left, .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .apple-logo {
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    /* 2. KHUNG CHÍNH (DESKTOP + DOCK BÊN PHẢI) */
+    .mac-body {
+      flex: 1;
+      height: calc(100% - 30px);
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .mac-desktop {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Lưới ứng dụng trên màn hình Desktop */
+    .app-grid-container {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      grid-auto-rows: 110px;
+      gap: 20px;
+      align-content: start;
+      overflow-y: auto;
+    }
+
+    .app-grid-container.hidden {
+      display: none;
+    }
+
+    .app-item {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .app-item:hover {
+      transform: scale(1.1);
+    }
+
+    .app-item:active {
+      transform: scale(0.95);
+    }
+
+    .app-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 34px;
+      margin-bottom: 8px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Chế độ lắc icon khi sửa */
+    body.edit-mode .app-item:not(.btn-add-item) {
+      animation: macShake 0.25s infinite alternate ease-in-out;
+    }
+
+    @keyframes macShake {
+      0% { transform: rotate(-2deg); }
+      100% { transform: rotate(2deg); }
+    }
+
+    /* Nút xóa ứng dụng khi ở Edit Mode */
+    .delete-btn {
+      display: none;
+      position: absolute;
+      top: -4px;
+      right: 12px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ff3b30;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+
+    body.edit-mode .delete-btn {
+      display: flex;
+    }
+
+    .app-label {
+      font-size: 12px;
+      color: #ffffff;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      font-weight: 500;
+      max-width: 90px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Nút Thêm Ứng Dụng */
+    .btn-add-icon {
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* 3. CỬA SỔ ỨNG DỤNG FULL SCREEN */
+    .main-workspace {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      background: rgba(15, 23, 42, 0.95);
+      border: none;
+      box-shadow: none;
+      overflow: hidden;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .main-workspace.active {
+      display: flex;
+    }
+
+    .window-header {
+      height: 34px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .traffic-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .btn-close { background-color: #ff5f56; border: 1px solid #e0443e; }
+    .btn-minimize { background-color: #ffbd2e; border: 1px solid #dea123; }
+    .btn-maximize { background-color: #27c93f; border: 1px solid #1aab29; }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      border: none;
+      background: #ffffff;
+    }
+
+    /* 4. DOCK PHẢI */
+    .dock-container {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding-right: 12px;
+      padding-left: 6px;
+      z-index: 1000;
+    }
+
+    .mac-dock {
+      width: 64px;
+      padding: 14px 0;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dock-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+    }
+
+    .dock-btn:hover {
+      transform: scale(1.25) translateX(-6px);
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .dock-divider {
+      width: 35px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.25);
+      margin: 4px 0;
+    }
+
+    .edit-toggle-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.25);
+      transition: 0.3s;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider { background-color: #34c759; }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    /* 5. MODAL FORM TẠO ỨNG DỤNG MỚI */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 320px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    .input-group input {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .btn-action {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn-cancel {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+
+    .btn-save {
+      background: #007aff;
+      color: white;
+    }
+
+    .sortable-ghost {
+      opacity: 0.2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Menu Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <span class="apple-logo"></span>
+      <span style="font-weight: 600;">Finder</span>
+      <span>File</span>
+      <span>Edit</span>
+      <span>View</span>
+    </div>
+    <div class="top-bar-right">
+      <span>🔋 100%</span>
+      <span>🔍</span>
+      <span id="mac-clock">00:00 AM</span>
+    </div>
+  </div>
+
+  <!-- Body Dashboard -->
+  <div class="mac-body">
+
+    <!-- Desktop Workspace -->
+    <div class="mac-desktop">
+      
+      <!-- Lưới ứng dụng -->
+      <div class="app-grid-container" id="app-grid">
+        <!-- Đổ danh sách ứng dụng bằng Javascript tại đây -->
+      </div>
+
+      <!-- Cửa sổ ứng dụng Workspace -->
+      <div class="main-workspace" id="main-workspace">
+        <div class="window-header">
+          <div class="traffic-btn btn-close" onclick="goHome()" title="Đóng"></div>
+          <div class="traffic-btn btn-minimize" onclick="goHome()" title="Thu nhỏ"></div>
+          <div class="traffic-btn btn-maximize" title="Phóng to"></div>
+        </div>
+        <iframe id="app-frame" src=""></iframe>
+      </div>
+
+    </div>
+
+    <!-- Dock Bên Phải -->
+    <div class="dock-container">
+      <div class="mac-dock">
+        <button class="dock-btn" onclick="goHome()" title="Trang chủ">🏠</button>
+
+        <div class="dock-divider"></div>
+
+        <div class="edit-toggle-wrapper" title="Bật/Tắt chế độ di chuyển & xóa icon">
+          <label class="switch">
+            <input type="checkbox" id="edit-toggle" onchange="toggleEditMode(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL FORM THÊM APP MỚI -->
+  <div class="modal-overlay" id="app-modal">
+    <div class="modal-box">
+      <div class="modal-title">Thêm Ứng Dụng Mới</div>
+      <div class="input-group">
+        <label>Tên ứng dụng:</label>
+        <input type="text" id="app-name-input" placeholder="VD: Google Search">
+      </div>
+      <div class="input-group">
+        <label>Biểu tượng (Emoji):</label>
+        <input type="text" id="app-icon-input" placeholder="VD: 🌐 hoặc 📊" maxlength="4">
+      </div>
+      <div class="input-group">
+        <label>Đường dẫn File / URL Web:</label>
+        <input type="text" id="app-url-input" placeholder="VD: app.html hoặc https://google.com">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-action btn-cancel" onclick="closeModal()">Hủy</button>
+        <button class="btn-action btn-save" onclick="saveNewApp()">Thêm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Danh sách App mặc định
+    const defaultApps = [
+      { id: '1', title: 'Chia Bill', icon: '🍻', url: 'chiabill.html' },
+      { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'tiencom.html' },
+      { id: '3', title: 'Lãi Suất', icon: '💵', url: 'laisuat.html' },
+      { id: '4', title: 'Ghi Chú', icon: '📝', url: 'note.html' }
+    ];
+
+    let appsList = [];
+    let isEditMode = false;
+
+    // 2. Tải danh sách App từ localStorage
+    function loadApps() {
+      const stored = localStorage.getItem('mac_dashboard_apps');
+      if (stored) {
+        appsList = JSON.parse(stored);
+      } else {
+        appsList = [...defaultApps];
+        saveAppsToStorage();
+      }
+      renderAppGrid();
+    }
+
+    function saveAppsToStorage() {
+      localStorage.setItem('mac_dashboard_apps', JSON.stringify(appsList));
+    }
+
+    // 3. Hiển thị Lưới Icon lên Dashboard
+    function renderAppGrid() {
+      const grid = document.getElementById('app-grid');
+      grid.innerHTML = '';
+
+      // Hiển thị từng App
+      appsList.forEach(app => {
+        const item = document.createElement('div');
+        item.className = 'app-item';
+        item.onclick = (e) => handleAppClick(e, app.url);
+        
+        item.innerHTML = `
+          <div class="delete-btn" onclick="deleteApp(event, '${app.id}')">✕</div>
+          <div class="app-icon">${app.icon}</div>
+          <div class="app-label">${app.title}</div>
+        `;
+        grid.appendChild(item);
+      });
+
+      // Thêm Nút "+" (Thêm Ứng Dụng Mới) ở cuối
+      const addBtn = document.createElement('div');
+      addBtn.className = 'app-item btn-add-item';
+      addBtn.onclick = openModal;
+      addBtn.innerHTML = `
+        <div class="app-icon btn-add-icon">➕</div>
+        <div class="app-label">Thêm App</div>
+      `;
+      grid.appendChild(addBtn);
+    }
+
+    // 4. Đồng hồ Top Bar
+    function updateClock() {
+      const now = new Date();
+      const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      document.getElementById('mac-clock').innerText = now.toLocaleDateString('en-US', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 5. Khởi tạo SortableJS kéo thả sắp xếp
+    const appGrid = document.getElementById('app-grid');
+    const sortable = new Sortable(appGrid, {
+      animation: 200,
+      ghostClass: 'sortable-ghost',
+      forceFallback: true,
+      disabled: true,
+      filter: '.btn-add-item' // Không cho kéo nút "Thêm App"
+    });
+
+    // 6. Bật / Tắt Edit Mode
+    function toggleEditMode(enable) {
+      isEditMode = enable;
+      sortable.option('disabled', !enable);
+      if (enable) {
+        document.body.classList.add('edit-mode');
+      } else {
+        document.body.classList.remove('edit-mode');
+      }
+    }
+
+    // 7. Xử lý Thêm & Xóa App
+    function openModal() {
+      if(isEditMode) return;
+      document.getElementById('app-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('app-modal').classList.remove('active');
+      document.getElementById('app-name-input').value = '';
+      document.getElementById('app-icon-input').value = '';
+      document.getElementById('app-url-input').value = '';
+    }
+
+    function saveNewApp() {
+      const name = document.getElementById('app-name-input').value.trim();
+      const icon = document.getElementById('app-icon-input').value.trim() || '🚀';
+      const url = document.getElementById('app-url-input').value.trim();
+
+      if (!name || !url) {
+        alert('Vui lòng nhập Tên và Đường dẫn ứng dụng!');
+        return;
+      }
+
+      const newApp = {
+        id: Date.now().toString(),
+        title: name,
+        icon: icon,
+        url: url
+      };
+
+      appsList.push(newApp);
+      saveAppsToStorage();
+      renderAppGrid();
+      closeModal();
+    }
+
+    function deleteApp(event, id) {
+      event.stopPropagation(); // Ngăn mở app khi bấm xóa
+      appsList = appsList.filter(app => app.id !== id);
+      saveAppsToStorage();
+      renderAppGrid();
+    }
+
+    // 8. Mở / Đóng Ứng dụng Window
+    function handleAppClick(event, fileUrl) {
+      if (isEditMode) {
+        event.preventDefault();
+        return;
+      }
+      openApp(fileUrl);
+    }
+
+    function openApp(fileUrl) {
+      const frame = document.getElementById('app-frame');
+      const workspace = document.getElementById('main-workspace');
+      const grid = document.getElementById('app-grid');
+
+      frame.src = fileUrl;
+      grid.classList.add('hidden');
+      workspace.classList.add('active');
+    }
+
+    function goHome() {
+      const workspace = document.getElementById('main-workspace');
+      const grid = document.getElementById('app-grid');
+      const frame = document.getElementById('app-frame');
+
+      workspace.classList.remove('active');
+      grid.classList.remove('hidden');
+      frame.src = '';
+    }
+
+    // Khởi chạy ban đầu
+    loadApps();
+  </script>
+</body>
+</html>
