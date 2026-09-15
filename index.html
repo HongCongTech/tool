@@ -507,19 +507,19 @@
 
     // 2. Tải danh sách App từ localStorage
     function loadApps() {
-      const stored = localStorage.getItem('mac_dashboard_apps');
-      if (stored) {
-        appsList = JSON.parse(stored);
-      } else {
-        appsList = [...defaultApps];
-        saveAppsToStorage();
-      }
-      renderAppGrid();
-    }
+  const stored = localStorage.getItem('mac_dashboard_apps_v2'); // Đổi sang _v2
+  if (stored) {
+    appsList = JSON.parse(stored);
+  } else {
+    appsList = [...defaultApps];
+    saveAppsToStorage();
+  }
+  renderAppGrid();
+}
 
-    function saveAppsToStorage() {
-      localStorage.setItem('mac_dashboard_apps', JSON.stringify(appsList));
-    }
+function saveAppsToStorage() {
+  localStorage.setItem('mac_dashboard_apps_v2', JSON.stringify(appsList)); // Đổi sang _v2
+}
 
     // 3. Hiển thị Lưới Icon lên Dashboard
     function renderAppGrid() {
