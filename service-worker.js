@@ -1,9 +1,9 @@
 /**
- * macOS Web Dashboard - Service Worker (v3)
+ * macOS Web Dashboard - Service Worker (v4)
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v5-otp-flow';
+const CACHE_NAME = 'macos-dashboard-v6-static-auth';
 const STATIC_ASSETS = [
   './',
   './index.html',

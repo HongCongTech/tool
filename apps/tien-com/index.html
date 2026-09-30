@@ -1085,14 +1085,14 @@
                 <button class="modal-close" onclick="closeModal('adminAuthModal')">&times;</button>
             </div>
             <p style="font-size:13px; color:var(--slate-600); margin-bottom:12px;">
-                Nhập mật khẩu Admin để truy cập toàn quyền quản trị (Mặc định: <b>admin</b>):
+                Nhập mật khẩu Admin để truy cập toàn quyền quản trị:
             </p>
             <div class="form-group">
-                <input type="password" id="adminAuthPassInput" class="form-input" placeholder="Nhập mật khẩu (mặc định: admin)..." onkeyup="if(event.key==='Enter') submitAdminLogin()">
+                <input type="password" id="adminAuthPassInput" class="form-input" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitAdminLogin()">
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-4px; margin-bottom:14px;">
                 <button type="button" onclick="quickResetAdminPasswordFromApp()" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
-                    ⚡ Quên mật khẩu? Đặt lại về "admin"
+                    Quên mật khẩu? Khôi phục bằng OTP
                 </button>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px;">
@@ -1102,7 +1102,7 @@
         </div>
     </div>
 
-    <!-- MODAL 8: KHÔI PHỤC MẬT KHẨU ADMIN NHANH (KHÔNG CẦN OTP) -->
+    <!-- MODAL 8: CHUYỂN TIẾP KHÔI PHỤC MẬT KHẨU QUA OTP -->
     <div class="modal-overlay" id="adminRecoveryModal">
         <div class="modal-card" style="max-width:400px; text-align:center;">
             <div class="modal-header">
@@ -1110,16 +1110,16 @@
                 <button class="modal-close" onclick="closeModal('adminRecoveryModal')">&times;</button>
             </div>
             <p style="font-size:12.5px; color:var(--slate-600); margin-bottom:14px;">
-                Đặt lại mật khẩu nhanh về mặc định hoặc nhập mật khẩu mới:
+                Việc khôi phục mật khẩu cần xác minh OTP tại Dashboard chính.
             </p>
 
             <div style="background:rgba(2, 132, 199, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:10px; padding:14px; margin-bottom:14px; text-align:center;">
                 <button type="button" class="btn btn-primary" style="width:100%; font-weight:700; padding:9px 14px;" onclick="quickResetAdminPasswordFromApp()">
-                    ⚡ Đặt Lại Mật Khẩu Về "admin" & Đăng Nhập
+                    Mở Khôi Phục Bằng OTP
                 </button>
             </div>
 
-            <div style="text-align:left; border-top:1px solid var(--border); padding-top:12px;">
+            <div style="display:none; text-align:left; border-top:1px solid var(--border); padding-top:12px;">
                 <div style="font-size:12px; font-weight:700; color:var(--slate-700); margin-bottom:8px;">Hoặc đặt mật khẩu mới trực tiếp:</div>
                 <div class="form-group" style="margin-bottom:8px;">
                     <input type="password" id="tcNewAdminPassDirect" class="form-input" placeholder="Nhập mật khẩu mới...">
@@ -1276,18 +1276,11 @@
             if (!pass) return alert('Vui lòng nhập mật khẩu Admin!');
 
             const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
-            const defaultHash = await hashPassword('admin');
             const hashed = await hashPassword(pass);
 
-            const isMatched = (storedHash && hashed === storedHash) ||
-                              (!storedHash && (pass === 'admin' || pass === 'admin123')) ||
-                              (pass === 'admin' || pass === 'admin123');
+            const isMatched = Boolean(storedHash && hashed === storedHash);
 
             if (isMatched) {
-                if (!storedHash) {
-                    localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
-                    localStorage.setItem('sys_admin_password_hash', defaultHash);
-                }
                 setAdminMode(true);
                 closeModal('adminAuthModal');
                 alert('Đăng nhập Quản trị viên thành công!');
@@ -1300,56 +1293,22 @@
                     openAddMemberModal();
                 }
             } else {
-                alert('Mật khẩu Admin không chính xác! (Mặc định: admin)');
+                alert('Mật khẩu Admin không chính xác. Hãy dùng OTP nếu bạn quên mật khẩu.');
             }
         }
 
         async function quickResetAdminPasswordFromApp() {
-            if (confirm('Bạn có muốn đặt lại Mật khẩu Admin về mặc định (admin) và đăng nhập ngay lập tức không?')) {
-                const defaultPass = 'admin';
-                const defaultHash = await hashPassword(defaultPass);
-                localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
-                localStorage.setItem('sys_admin_password_hash', defaultHash);
-                localStorage.setItem('p2p_admin_pass_hash', defaultHash);
-                setAdminMode(true);
-                closeModal('adminAuthModal');
-                closeModal('adminRecoveryModal');
-
-                try {
-                    new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
-                } catch(e) {}
-
-                if (window.parent && typeof window.parent.showMacAlert === 'function') {
-                    window.parent.showMacAlert('🎉 Đặt Lại Thành Công', 'Mật khẩu Admin đã được đặt lại về: <b>admin</b>.<br><br>Bạn đã đăng nhập quyền Quản trị.', 'success');
-                } else {
-                    alert('🎉 Đã đặt lại Mật khẩu Admin về mặc định: admin!');
-                }
+            closeModal('adminAuthModal');
+            closeModal('adminRecoveryModal');
+            if (window.parent?.dashboard?.openForgotPasswordModal) {
+                window.parent.dashboard.openForgotPasswordModal();
+            } else {
+                alert('Hãy mở Dashboard chính và chọn khôi phục mật khẩu bằng OTP.');
             }
         }
 
         async function submitDirectPasswordResetFromApp() {
-            const newPass = (document.getElementById('tcNewAdminPassDirect')?.value || '').trim();
-            const confirmPass = (document.getElementById('tcConfirmAdminPassDirect')?.value || '').trim();
-
-            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
-            if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không khớp!');
-
-            const newHashed = await hashPassword(newPass);
-            localStorage.setItem(SYS_ADMIN_HASH_KEY, newHashed);
-            localStorage.setItem('sys_admin_password_hash', newHashed);
-            localStorage.setItem('p2p_admin_pass_hash', newHashed);
-            setAdminMode(true);
-            closeModal('adminRecoveryModal');
-
-            try {
-                new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
-            } catch(e) {}
-
-            if (window.parent && typeof window.parent.showMacAlert === 'function') {
-                window.parent.showMacAlert('🎉 Đổi Mật Khẩu Thành Công', 'Mật khẩu Admin mới đã được cập nhật thành công! Bạn đã đăng nhập quyền Quản trị.', 'success');
-            } else {
-                alert('🎉 Đổi mật khẩu Admin thành công!');
-            }
+            quickResetAdminPasswordFromApp();
         }
 
         // Cross-tab and Sub-App Broadcast Synchronization

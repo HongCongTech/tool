@@ -2350,35 +2350,8 @@
 
             const storedHash = localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('sys_admin_pass_hash') || localStorage.getItem('p2p_admin_pass_hash');
             if (!storedHash) {
-                const defaultHash = await hashPassword('admin123');
-                const hashed = await hashPassword(pass);
-                if (hashed === defaultHash || pass === 'admin123') {
-                    localStorage.setItem('sys_admin_password_hash', defaultHash);
-                    localStorage.setItem('sys_admin_pass_hash', defaultHash);
-                    localStorage.setItem('p2p_admin_pass_hash', defaultHash);
-                    localStorage.setItem('sys_is_admin', 'true');
-                    isAdmin = true;
-                    addSecurityAuditLog('Đăng nhập Quản trị viên', 'Thành công', 'Đăng nhập lần đầu bằng mật khẩu mặc định');
-                    localStorage.setItem('sys_failed_attempts', '0');
-                    updateAdminBadge();
-                    closeCpAdminAuthModal();
-                    try {
-                        const bc = new BroadcastChannel('system_admin_auth');
-                        bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
-                    } catch(e) {}
-                    alert('Đăng nhập Quản trị viên thành công!');
-                    if (pendingEditMemberId) {
-                        const memId = pendingEditMemberId;
-                        pendingEditMemberId = null;
-                        openEditMemberModal(memId);
-                    } else if (pendingAddMember) {
-                        pendingAddMember = false;
-                        openAddMemberModal();
-                    }
-                    return;
-                }
                 recordFailedAttempt();
-                alert('Mật khẩu Admin mặc định không đúng. Vui lòng thử lại!');
+                alert('Chưa có mật khẩu Admin. Hãy thiết lập hoặc khôi phục bằng OTP tại Dashboard chính.');
                 return;
             }
 
@@ -2718,30 +2691,11 @@
         }
 
         async function resetAdminPasswordFromCp() {
-            const defaultPass = 'admin';
-            const defaultHash = await hashPassword(defaultPass);
-            localStorage.setItem('sys_admin_password_hash', defaultHash);
-            localStorage.setItem('sys_admin_pass_hash', defaultHash);
-            localStorage.setItem('p2p_admin_pass_hash', defaultHash);
-            localStorage.setItem('sys_is_admin', 'true');
-            localStorage.setItem('sys_failed_attempts', '0');
-            isAdmin = true;
-
-            updateAdminBadge();
-            if (typeof initSecurityCenter === 'function') initSecurityCenter();
-            resetPasswordForm();
-
-            try {
-                const bc = new BroadcastChannel('system_admin_auth');
-                bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
-                bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
-            } catch(e) {}
-
             closeCpForgotModal();
-            if (window.parent && typeof window.parent.showMacAlert === 'function') {
-                window.parent.showMacAlert('🎉 Đặt Lại Thành Công', 'Mật khẩu Admin đã được đặt lại về mặc định: <b>admin</b>.<br><br>Bạn đã đăng nhập quyền Quản trị viên.', 'success');
+            if (window.parent?.dashboard?.openForgotPasswordModal) {
+                window.parent.dashboard.openForgotPasswordModal();
             } else {
-                alert('🎉 Đã đặt lại Mật khẩu Admin về mặc định: admin!');
+                alert('Hãy mở Dashboard chính và chọn khôi phục mật khẩu bằng OTP.');
             }
         }
 
