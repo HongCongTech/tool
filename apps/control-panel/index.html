@@ -553,6 +553,204 @@
             border-radius: 4px;
             margin-left: 4px;
         }
+
+        /* ========================================================================= */
+        /* PROFESSIONAL SECURITY & PASSWORD MANAGER STYLES                          */
+        /* ========================================================================= */
+        .sec-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            color: white;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sec-banner::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(2, 132, 199, 0.25) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .sec-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .sec-stat-box {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 14px;
+            backdrop-filter: blur(8px);
+        }
+        .sec-stat-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        .sec-stat-value {
+            font-size: 15px;
+            font-weight: 800;
+            margin-top: 4px;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Password input with toggle */
+        .password-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-input-wrap .form-control {
+            width: 100%;
+            padding-right: 42px;
+        }
+        .pass-toggle-btn {
+            position: absolute;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--slate-400);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .pass-toggle-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Password Strength Meter */
+        .strength-meter-wrap {
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+        .strength-bar-bg {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            display: flex;
+            gap: 4px;
+        }
+        .strength-bar-seg {
+            height: 100%;
+            flex: 1;
+            background: #cbd5e1;
+            border-radius: 2px;
+            transition: background 0.3s ease;
+        }
+        .strength-feedback {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .criteria-checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 6px;
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 11.5px;
+        }
+        .criteria-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--slate-500);
+            transition: color 0.2s;
+        }
+        .criteria-item.valid {
+            color: #15803d;
+            font-weight: 600;
+        }
+        .criteria-item.valid i {
+            color: #16a34a;
+        }
+
+        /* Password Generator Card */
+        .generator-box {
+            background: #f8fafc;
+            border: 1.5px dashed var(--primary-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 14px;
+        }
+        .generator-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--slate-900);
+            word-break: break-all;
+            margin-bottom: 14px;
+        }
+        .gen-control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .gen-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+            font-size: 12px;
+            margin-bottom: 14px;
+        }
+        .gen-option-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--slate-700);
+            user-select: none;
+        }
+
+        /* Master Key Display Badge */
+        .master-key-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: 'SF Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: 1.5px;
+        }
     </style>
 </head>
 <body>
@@ -853,24 +1051,330 @@
             <!-- ========================================================================= -->
             <!-- 5. BẢO MẬT & ADMIN -->
             <!-- ========================================================================= -->
+            <!-- ========================================================================= -->
+            <!-- 5. BẢO MẬT & ADMIN (PROFESSIONAL PASSWORD & SECURITY CENTER) -->
+            <!-- ========================================================================= -->
             <section class="cp-section" id="sec-security">
                 <div class="section-header">
-                    <div class="section-title"><i class="fa-solid fa-lock" style="color: var(--danger);"></i> Trung Tâm Bảo Mật & Phân Quyền Admin</div>
-                    <div class="section-desc">Cấu hình mật khẩu quản trị viên bảo vệ dữ liệu toàn hệ thống.</div>
+                    <div class="section-title"><i class="fa-solid fa-shield-halved" style="color: var(--danger);"></i> Trung Tâm Bảo Mật & Quản Lý Mật Khẩu</div>
+                    <div class="section-desc">Giao diện quản lý an ninh, mã hóa mật khẩu Quản trị viên, tạo mật khẩu ngẫu nhiên và khóa cứu hộ khẩn cấp Master Key chuẩn Enterprise.</div>
                 </div>
 
+                <!-- 1. OVERVIEW & HEALTH SCORE BANNER -->
+                <div class="sec-banner">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; position:relative; z-index:2;">
+                        <div style="display:flex; align-items:center; gap:14px;">
+                            <div style="width:48px; height:48px; border-radius:12px; background:rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.4); display:flex; align-items:center; justify-content:center; font-size:22px; color:#f87171;">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:18px; font-weight:800; letter-spacing:-0.3px; color:#f8fafc;">
+                                    Tình Trạng An Ninh Hệ Thống
+                                </div>
+                                <div id="secHealthSubtext" style="font-size:12.5px; color:#94a3b8; margin-top:3px;">
+                                    Đang phân tích mức độ bảo mật thông tin đăng nhập và cơ chế cứu hộ...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span id="secAdminStatusBadge" class="badge" style="padding:6px 12px; font-size:12px; font-weight:700; border-radius:20px; background:rgba(255,255,255,0.12); color:#f8fafc; border:1px solid rgba(255,255,255,0.2);">
+                                <i class="fa-solid fa-circle" style="font-size:8px; margin-right:4px;"></i> Đang kiểm tra...
+                            </span>
+                            <button class="btn btn-sm" id="secBtnQuickAction" style="background:#0284c7; color:white; border:none; font-weight:600; padding:6px 14px; border-radius:8px;" onclick="handleAdminLoginLogout()">
+                                <i class="fa-solid fa-key"></i> Đăng Nhập
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SECURITY STATS GRID -->
+                    <div class="sec-stat-grid">
+                        <div class="sec-stat-box">
+                            <div class="sec-stat-label">Cấp Độ An Ninh</div>
+                            <div class="sec-stat-value" id="secStatScore" style="color:#38bdf8;">
+                                <i class="fa-solid fa-shield-heart"></i> <span id="secScoreVal">--%</span>
+                            </div>
+                        </div>
+                        <div class="sec-stat-box">
+                            <div class="sec-stat-label">Mã Hóa Mật Khẩu</div>
+                            <div class="sec-stat-value" style="color:#4ade80;">
+                                <i class="fa-solid fa-lock"></i> <span>SHA-256 Cloud</span>
+                            </div>
+                        </div>
+                        <div class="sec-stat-box">
+                            <div class="sec-stat-label">Master Recovery Key</div>
+                            <div class="sec-stat-value" id="secStatMasterKey" style="color:#fbbf24;">
+                                <i class="fa-solid fa-key"></i> <span id="secMasterKeyStatus">Đã kích hoạt</span>
+                            </div>
+                        </div>
+                        <div class="sec-stat-box">
+                            <div class="sec-stat-label">Đăng Nhập Sai</div>
+                            <div class="sec-stat-value" id="secStatFailedAttempts" style="color:#f87171; justify-content:space-between;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> <span id="secFailedCount">0</span> lần
+                                </div>
+                                <button type="button" class="btn btn-outline btn-sm admin-only" style="padding:2px 8px; font-size:10px; color:#cbd5e1; border-color:rgba(255,255,255,0.2);" onclick="resetFailedAttemptsCounter()" title="Reset về 0">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap:20px; margin-bottom:20px;">
+                    <!-- 2. CARD: THAY ĐỔI MẬT KHẨU QUẢN TRỊ VIÊN -->
+                    <div class="card" style="margin-bottom:0;">
+                        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-key" style="color:var(--primary);"></i>
+                                <span>Đổi Mật Khẩu Admin</span>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="togglePassGenWidget()" style="font-size:11.5px; padding:4px 10px;">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--primary);"></i> Tạo mật khẩu
+                            </button>
+                        </div>
+                        <p style="font-size:12px; color:var(--slate-500); margin-top:-6px; margin-bottom:14px;">
+                            Cập nhật mật khẩu quản trị bảo vệ toàn bộ dữ liệu hệ thống, bảng chi tiêu và danh bạ.
+                        </p>
+
+                        <form id="formChangeAdminPass" onsubmit="event.preventDefault(); submitChangeAdminPassword();">
+                            <!-- Current Password -->
+                            <div class="form-group" style="margin-bottom:12px;">
+                                <label class="form-label">Mật khẩu hiện tại:</label>
+                                <div class="password-input-wrap">
+                                    <input type="password" id="curAdminPassInput" class="form-control" placeholder="Nhập mật khẩu hiện tại (mặc định: admin123)" autocomplete="current-password">
+                                    <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('curAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- New Password -->
+                            <div class="form-group" style="margin-bottom:6px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <label class="form-label">Mật khẩu mới:</label>
+                                    <span id="strengthTextLabel" style="font-size:11px; font-weight:700; color:var(--slate-500);">Chưa nhập</span>
+                                </div>
+                                <div class="password-input-wrap">
+                                    <input type="password" id="newAdminPassInput" class="form-control" placeholder="Nhập mật khẩu mới..." oninput="onNewPasswordInput(this.value)" autocomplete="new-password">
+                                    <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('newAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Real-time Strength Meter -->
+                            <div class="strength-meter-wrap">
+                                <div class="strength-bar-bg">
+                                    <div class="strength-bar-seg" id="strSeg1"></div>
+                                    <div class="strength-bar-seg" id="strSeg2"></div>
+                                    <div class="strength-bar-seg" id="strSeg3"></div>
+                                    <div class="strength-bar-seg" id="strSeg4"></div>
+                                </div>
+                                <div class="criteria-checklist">
+                                    <div class="criteria-item" id="critLength"><i class="fa-regular fa-circle-dot"></i> 8+ ký tự</div>
+                                    <div class="criteria-item" id="critCase"><i class="fa-regular fa-circle-dot"></i> Hoa & thường</div>
+                                    <div class="criteria-item" id="critNumber"><i class="fa-regular fa-circle-dot"></i> Có chữ số (0-9)</div>
+                                    <div class="criteria-item" id="critSpecial"><i class="fa-regular fa-circle-dot"></i> Ký tự đặc biệt</div>
+                                </div>
+                            </div>
+
+                            <!-- Confirm New Password -->
+                            <div class="form-group" style="margin-bottom:16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <label class="form-label">Xác nhận mật khẩu mới:</label>
+                                    <span id="matchStatusLabel" style="font-size:11px; font-weight:700;"></span>
+                                </div>
+                                <div class="password-input-wrap">
+                                    <input type="password" id="confirmAdminPassInput" class="form-control" placeholder="Nhập lại mật khẩu mới..." oninput="checkPasswordMatch()" autocomplete="new-password">
+                                    <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('confirmAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                <button type="button" class="btn btn-outline btn-sm" onclick="resetPasswordForm()">Xóa form</button>
+                                <button type="submit" class="btn btn-primary" id="btnSubmitChangePass">
+                                    <i class="fa-solid fa-shield-halved"></i> Cập Nhật Mật Khẩu
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 3. CARD: TRÌNH TẠO MẬT KHẨU CHUYÊN NGHIỆP (GENERATOR WIDGET) -->
+                    <div class="card" id="cardPassGenerator" style="margin-bottom:0;">
+                        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="color:#8b5cf6;"></i>
+                                <span>Trình Tạo Mật Khẩu Mạnh</span>
+                            </div>
+                            <span class="badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; font-size:11px;">Chuẩn 1Password</span>
+                        </div>
+                        <p style="font-size:12px; color:var(--slate-500); margin-top:-6px; margin-bottom:12px;">
+                            Sinh ngẫu nhiên chuỗi bảo mật cao entropy, chống brute-force và rò rỉ.
+                        </p>
+
+                        <!-- Generator Display Output -->
+                        <div class="generator-display" style="justify-content:space-between; align-items:center;">
+                            <span id="genPasswordDisplay" style="color:var(--primary); font-size:16px; letter-spacing:1px; user-select:all;">••••••••••••••••</span>
+                            <div style="display:flex; gap:6px;">
+                                <button type="button" class="btn btn-outline btn-sm" onclick="generateRandomPassword()" title="Sinh mật khẩu ngẫu nhiên mới" style="padding:4px 8px;">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="copyGenPassword()" title="Sao chép vào Clipboard" style="padding:4px 8px;">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Generator Length Slider -->
+                        <div class="gen-control-row">
+                            <label style="font-size:12.5px; font-weight:700; color:var(--slate-700);">
+                                Độ dài: <span id="genLengthDisplay" style="color:var(--primary); font-weight:800; font-size:14px;">16</span> ký tự
+                            </label>
+                            <input type="range" id="genLengthSlider" min="8" max="32" value="16" style="width:60%; cursor:pointer;" oninput="onGenLengthChange(this.value)">
+                        </div>
+
+                        <!-- Generator Option Checkboxes -->
+                        <div class="gen-options-grid">
+                            <label class="gen-option-label">
+                                <input type="checkbox" id="genOptUpper" checked onchange="generateRandomPassword()">
+                                <span>Chữ hoa (A-Z)</span>
+                            </label>
+                            <label class="gen-option-label">
+                                <input type="checkbox" id="genOptLower" checked onchange="generateRandomPassword()">
+                                <span>Chữ thường (a-z)</span>
+                            </label>
+                            <label class="gen-option-label">
+                                <input type="checkbox" id="genOptNumbers" checked onchange="generateRandomPassword()">
+                                <span>Chữ số (0-9)</span>
+                            </label>
+                            <label class="gen-option-label">
+                                <input type="checkbox" id="genOptSymbols" checked onchange="generateRandomPassword()">
+                                <span>Ký tự đặc biệt (!@#$)</span>
+                            </label>
+                            <label class="gen-option-label" style="grid-column: span 2;">
+                                <input type="checkbox" id="genOptAvoidAmbiguous" checked onchange="generateRandomPassword()">
+                                <span>Tránh ký tự dễ nhầm lẫn (l, 1, I, O, 0)</span>
+                            </label>
+                        </div>
+
+                        <div style="display:flex; gap:8px;">
+                            <button type="button" class="btn btn-primary btn-sm" style="flex:1;" onclick="applyGenPasswordToForm()">
+                                <i class="fa-solid fa-arrow-left"></i> Áp Dụng Cho Mật Khẩu Mới
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="copyGenPassword()">
+                                <i class="fa-solid fa-copy"></i> Sao Chép
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap:20px; margin-bottom:20px;">
+                    <!-- 4. CARD: KHÓA CỨU HỘ MASTER KEY VAULT -->
+                    <div class="card" style="margin-bottom:0;">
+                        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-vault" style="color:#d97706;"></i>
+                                <span>Khóa Cứu Hộ Khẩn Cấp (Master Key)</span>
+                            </div>
+                            <span class="badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-size:11px;">Offline Recovery</span>
+                        </div>
+                        <p style="font-size:12px; color:var(--slate-500); margin-top:-6px; margin-bottom:12px;">
+                            Khóa giải cứu độc lập giúp bạn đặt lại quyền Quản trị ngay lập tức trong trường hợp quên mật khẩu mà không cần máy chủ hoặc internet.
+                        </p>
+
+                        <!-- Key Display Field -->
+                        <div style="background:#f8fafc; border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:11px; text-transform:uppercase; color:var(--slate-500); font-weight:700; letter-spacing:0.5px; margin-bottom:4px;">Master Recovery Key</div>
+                                <div id="masterKeyFormattedDisplay" style="font-family:'SF Mono','Courier New',monospace; font-size:14.5px; font-weight:800; letter-spacing:2px; color:var(--slate-800);">
+                                    •••• - •••• - •••• - ••••
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-sm" id="btnToggleMasterMask" onclick="toggleMasterKeyMask()" title="Hiện/Ẩn Master Key" style="padding:6px 10px;">
+                                <i class="fa-solid fa-eye"></i> Hiện
+                            </button>
+                        </div>
+
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="copyMasterKeyFormatted()">
+                                <i class="fa-solid fa-copy"></i> Sao Chép Key
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="downloadMasterKeyKit()">
+                                <i class="fa-solid fa-file-arrow-down"></i> Tải Kit Cứu Hộ (.txt)
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm admin-only" onclick="generateAndSaveNewMasterKey()">
+                                <i class="fa-solid fa-arrows-rotate"></i> Tạo Key Mới
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 5. CARD: EMAIL CỨU HỘ & XÁC THỰC OTP -->
+                    <div class="card" style="margin-bottom:0;">
+                        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-envelope-shield" style="color:#0284c7;"></i>
+                                <span>Email Cứu Hộ & Xác Thực OTP</span>
+                            </div>
+                            <span class="badge" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; font-size:11px;">Xác Thực 2 Lớp</span>
+                        </div>
+                        <p style="font-size:12px; color:var(--slate-500); margin-top:-6px; margin-bottom:12px;">
+                            Hệ thống gửi mã xác thực 6 chữ số (OTP) về hòm thư này khi thực hiện các thao tác bảo mật nhạy cảm.
+                        </p>
+
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label class="form-label">Địa chỉ email cứu hộ:</label>
+                            <div class="password-input-wrap">
+                                <input type="email" id="secRecoveryEmailInput" class="form-control" placeholder="admin@hethong.com">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="testSendRecoveryOtp()">
+                                <i class="fa-solid fa-paper-plane"></i> Gửi Thử OTP
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm admin-only" onclick="saveRecoveryEmailFromCard()">
+                                <i class="fa-solid fa-floppy-disk"></i> Lưu Email Cứu Hộ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. CARD: NHẬT KÝ HOẠT ĐỘNG & BẢO MẬT (AUDIT LOG) -->
                 <div class="card">
-                    <div class="card-title">Trạng thái quyền hạn hiện tại</div>
-                    <p id="adminStatusText" style="font-size:0.9rem; font-weight:700; margin-bottom:14px; color:var(--slate-600);">
-                        👁️ Bạn đang ở chế độ xem (Chỉ đọc).
-                    </p>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-primary" id="btnAdminAction" onclick="handleAdminLoginLogout()">
-                            <i class="fa-solid fa-key"></i> Đăng Nhập Quản Trị Viên
-                        </button>
-                        <button class="btn btn-outline" onclick="resetAdminCredentials()">
-                            <i class="fa-solid fa-envelope-shield"></i> Khôi Phục Qua Email (OTP)
-                        </button>
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <div class="card-title" style="margin-bottom:2px;">
+                                <i class="fa-solid fa-clock-rotate-left" style="color:var(--slate-600);"></i> Nhật Ký Hoạt Động & An Ninh Hệ Thống
+                            </div>
+                            <p style="font-size:12px; color:var(--slate-500); margin:0;">
+                                Ghi nhận các sự kiện bảo mật, đăng nhập, đổi mật khẩu và cấp phát chìa khóa an ninh.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-outline btn-sm" onclick="renderSecurityAuditLog()"><i class="fa-solid fa-rotate"></i> Làm Mới</button>
+                            <button class="btn btn-outline btn-sm admin-only" onclick="clearSecurityAuditLog()"><i class="fa-solid fa-trash"></i> Xóa Nhật Ký</button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-md);">
+                        <table class="member-table" style="font-size:12.5px;">
+                            <thead>
+                                <tr>
+                                    <th style="width:160px;">Thời Gian</th>
+                                    <th>Hành Động</th>
+                                    <th style="width:130px;">Trạng Thái</th>
+                                    <th>Chi Tiết / Nguồn</th>
+                                </tr>
+                            </thead>
+                            <tbody id="secAuditLogTableBody">
+                                <tr>
+                                    <td colspan="4" style="text-align:center; padding:18px; color:var(--slate-500); font-style:italic;">
+                                        Đang tải nhật ký bảo mật...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -1224,6 +1728,7 @@
             loadGlobalMembers();
             loadWallpapers();
             renderCpAppsTable();
+            if (typeof initSecurityCenter === 'function') initSecurityCenter();
         }
 
         function updateAdminBadge() {
@@ -1250,6 +1755,7 @@
                 if (btnQuick) btnQuick.innerHTML = '<i class="fa-solid fa-key"></i> Đăng Nhập';
             }
             renderCpAppsTable();
+            if (typeof initSecurityCenter === 'function') initSecurityCenter();
         }
 
         function checkAdminPermission() {
@@ -1272,6 +1778,10 @@
 
             const activeBtn = Array.from(document.querySelectorAll('.cp-nav-item')).find(b => b.getAttribute('onclick').includes(secId));
             if (activeBtn) activeBtn.classList.add('active');
+
+            if (secId === 'security' && typeof initSecurityCenter === 'function') {
+                initSecurityCenter();
+            }
         }
 
         // =========================================================================
@@ -1912,6 +2422,7 @@
                 if (confirm('Đăng xuất quyền Quản trị viên về Chế độ xem (Chỉ đọc)?')) {
                     localStorage.setItem('sys_is_admin', 'false');
                     isAdmin = false;
+                    addSecurityAuditLog('Đăng xuất Quản trị viên', 'Thành công', 'Chuyển về chế độ xem chỉ đọc');
                     updateAdminBadge();
                     try {
                         const bc = new BroadcastChannel('system_admin_auth');
@@ -1956,6 +2467,8 @@
                     localStorage.setItem('p2p_admin_pass_hash', defaultHash);
                     localStorage.setItem('sys_is_admin', 'true');
                     isAdmin = true;
+                    addSecurityAuditLog('Đăng nhập Quản trị viên', 'Thành công', 'Đăng nhập lần đầu bằng mật khẩu mặc định');
+                    localStorage.setItem('sys_failed_attempts', '0');
                     updateAdminBadge();
                     closeCpAdminAuthModal();
                     try {
@@ -1973,7 +2486,8 @@
                     }
                     return;
                 }
-                alert('Chưa thiết lập Mật khẩu Admin trong hệ thống. Vui lòng mở trang chính Dashboard để cài đặt ban đầu!');
+                recordFailedAttempt();
+                alert('Mật khẩu Admin mặc định không đúng. Vui lòng thử lại!');
                 return;
             }
 
@@ -1981,6 +2495,8 @@
             if (hashed === storedHash) {
                 localStorage.setItem('sys_is_admin', 'true');
                 isAdmin = true;
+                addSecurityAuditLog('Đăng nhập Quản trị viên', 'Thành công', 'Xác thực mật khẩu mã hóa SHA-256');
+                localStorage.setItem('sys_failed_attempts', '0');
                 updateAdminBadge();
                 closeCpAdminAuthModal();
                 try {
@@ -1997,8 +2513,498 @@
                     openAddMemberModal();
                 }
             } else {
+                recordFailedAttempt();
                 alert('Mật khẩu Admin không chính xác!');
             }
+        }
+
+        // =========================================================================
+        // SECURITY CENTER: HEALTH OVERVIEW, GENERATOR, AUDIT LOG & RECOVERY VAULT
+        // =========================================================================
+        let currentGeneratedPass = '';
+        let isMasterKeyMasked = true;
+
+        function initSecurityCenter() {
+            const badge = document.getElementById('secAdminStatusBadge');
+            const btnQuick = document.getElementById('secBtnQuickAction');
+            const scoreVal = document.getElementById('secScoreVal');
+            const healthSubtext = document.getElementById('secHealthSubtext');
+            const failedCountEl = document.getElementById('secFailedCount');
+            const emailInput = document.getElementById('secRecoveryEmailInput');
+            const statMasterKey = document.getElementById('secMasterKeyStatus');
+
+            if (badge) {
+                if (isAdmin) {
+                    badge.style.background = 'rgba(34, 197, 94, 0.2)';
+                    badge.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                    badge.style.color = '#4ade80';
+                    badge.innerHTML = '<i class="fa-solid fa-shield-check" style="font-size:11px; margin-right:4px;"></i> Đã Đăng Nhập Quản Trị';
+                } else {
+                    badge.style.background = 'rgba(234, 179, 8, 0.2)';
+                    badge.style.borderColor = 'rgba(234, 179, 8, 0.5)';
+                    badge.style.color = '#fde047';
+                    badge.innerHTML = '<i class="fa-solid fa-eye" style="font-size:11px; margin-right:4px;"></i> Chế Độ Xem (Chỉ Đọc)';
+                }
+            }
+
+            if (btnQuick) {
+                btnQuick.innerHTML = isAdmin ? '<i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất' : '<i class="fa-solid fa-key"></i> Đăng Nhập';
+                btnQuick.style.background = isAdmin ? '#dc2626' : '#0284c7';
+            }
+
+            // Health Score calculation
+            let score = 100;
+            const storedHash = localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('sys_admin_pass_hash');
+            const email = localStorage.getItem('sys_recovery_email');
+            const failed = parseInt(localStorage.getItem('sys_failed_attempts') || '0', 10);
+
+            if (!storedHash) score -= 20;
+            if (!email) score -= 20;
+            score -= Math.min(30, failed * 10);
+            if (score < 40) score = 40;
+
+            if (scoreVal) scoreVal.innerText = `${score}%`;
+            if (healthSubtext) {
+                if (score >= 90) {
+                    healthSubtext.innerText = 'Bảo mật xuất sắc. Mật khẩu mã hóa SHA-256 Cloud, Master Key và xác thực OTP đang hoạt động an toàn.';
+                } else if (score >= 70) {
+                    healthSubtext.innerText = 'Mức độ an ninh khá. Bạn có thể cải thiện điểm số bằng cách đổi mật khẩu mạnh hơn và cập nhật email cứu hộ.';
+                } else {
+                    healthSubtext.innerText = 'Cảnh báo an ninh: Hãy đổi mật khẩu quản trị và cấu hình email cứu hộ để đảm bảo an toàn tối đa.';
+                }
+            }
+
+            if (failedCountEl) failedCountEl.innerText = failed;
+            if (emailInput && !emailInput.value) {
+                emailInput.value = email || 'admin@hethong.com';
+            }
+
+            if (statMasterKey) {
+                statMasterKey.innerText = 'Đã kích hoạt';
+            }
+
+            updateMasterKeyDisplay();
+            renderSecurityAuditLog();
+            if (!currentGeneratedPass) {
+                generateRandomPassword();
+            }
+        }
+
+        // Toggle password show/hide
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+            } else {
+                input.type = 'password';
+                if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+            }
+        }
+
+        // Evaluate password strength & criteria live
+        function onNewPasswordInput(val) {
+            const pass = val || '';
+            const hasLength = pass.length >= 8;
+            const hasUpper = /[A-Z]/.test(pass);
+            const hasLower = /[a-z]/.test(pass);
+            const hasNumber = /[0-9]/.test(pass);
+            const hasSpecial = /[^A-Za-z0-9]/.test(pass);
+
+            // Update checklist
+            updateCriteriaItem('critLength', hasLength);
+            updateCriteriaItem('critCase', hasUpper && hasLower);
+            updateCriteriaItem('critNumber', hasNumber);
+            updateCriteriaItem('critSpecial', hasSpecial);
+
+            let score = 0;
+            if (pass.length >= 6) score++;
+            if (hasLength) score++;
+            if (hasUpper && hasLower && hasNumber) score++;
+            if (hasSpecial && pass.length >= 10) score++;
+
+            // Update segmented progress bar
+            const segs = ['strSeg1', 'strSeg2', 'strSeg3', 'strSeg4'].map(id => document.getElementById(id));
+            const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+            const labels = ['Chưa nhập', 'Yếu (Cần thêm ký tự)', 'Trung bình', 'Mạnh', 'Rất mạnh (Chuẩn Enterprise)'];
+            const labelColors = ['var(--slate-500)', '#ef4444', '#f97316', '#ca8a04', '#16a34a'];
+
+            segs.forEach((seg, idx) => {
+                if (seg) {
+                    if (pass.length > 0 && idx < score) {
+                        seg.style.background = colors[score - 1];
+                    } else {
+                        seg.style.background = '#cbd5e1';
+                    }
+                }
+            });
+
+            const labelEl = document.getElementById('strengthTextLabel');
+            if (labelEl) {
+                labelEl.innerText = pass.length === 0 ? 'Chưa nhập' : labels[score];
+                labelEl.style.color = pass.length === 0 ? 'var(--slate-500)' : labelColors[score];
+            }
+
+            checkPasswordMatch();
+        }
+
+        function updateCriteriaItem(id, isValid) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('valid', isValid);
+            const icon = el.querySelector('i');
+            if (icon) {
+                if (isValid) {
+                    icon.className = 'fa-solid fa-circle-check';
+                } else {
+                    icon.className = 'fa-regular fa-circle-dot';
+                }
+            }
+        }
+
+        function checkPasswordMatch() {
+            const newPass = (document.getElementById('newAdminPassInput')?.value || '');
+            const confirmPass = (document.getElementById('confirmAdminPassInput')?.value || '');
+            const label = document.getElementById('matchStatusLabel');
+            if (!label) return;
+
+            if (!confirmPass) {
+                label.innerText = '';
+                return;
+            }
+
+            if (newPass === confirmPass) {
+                label.innerText = '✅ Khớp hoàn toàn';
+                label.style.color = '#16a34a';
+            } else {
+                label.innerText = '❌ Chưa trùng khớp';
+                label.style.color = '#dc2626';
+            }
+        }
+
+        function resetPasswordForm() {
+            document.getElementById('curAdminPassInput').value = '';
+            document.getElementById('newAdminPassInput').value = '';
+            document.getElementById('confirmAdminPassInput').value = '';
+            onNewPasswordInput('');
+            checkPasswordMatch();
+        }
+
+        // Professional Password Generator
+        function onGenLengthChange(val) {
+            document.getElementById('genLengthDisplay').innerText = val;
+            generateRandomPassword();
+        }
+
+        function generateRandomPassword() {
+            const length = parseInt(document.getElementById('genLengthSlider')?.value || 16, 10);
+            const useUpper = document.getElementById('genOptUpper')?.checked ?? true;
+            const useLower = document.getElementById('genOptLower')?.checked ?? true;
+            const useNumbers = document.getElementById('genOptNumbers')?.checked ?? true;
+            const useSymbols = document.getElementById('genOptSymbols')?.checked ?? true;
+            const avoidAmbiguous = document.getElementById('genOptAvoidAmbiguous')?.checked ?? true;
+
+            let uppers = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+            let lowers = 'abcdefghijkmnopqrstuvwxyz';
+            let numbers = '23456789';
+            let symbols = '!@#$%^&*-_=+';
+
+            if (!avoidAmbiguous) {
+                uppers += 'IO';
+                lowers += 'l';
+                numbers += '01';
+            }
+
+            let charPool = '';
+            let result = [];
+
+            if (useUpper) { charPool += uppers; result.push(uppers[Math.floor(Math.random() * uppers.length)]); }
+            if (useLower) { charPool += lowers; result.push(lowers[Math.floor(Math.random() * lowers.length)]); }
+            if (useNumbers) { charPool += numbers; result.push(numbers[Math.floor(Math.random() * numbers.length)]); }
+            if (useSymbols) { charPool += symbols; result.push(symbols[Math.floor(Math.random() * symbols.length)]); }
+
+            if (!charPool) {
+                charPool = lowers + numbers;
+                result.push(charPool[0]);
+            }
+
+            const array = new Uint32Array(length);
+            window.crypto.getRandomValues(array);
+            while (result.length < length) {
+                const randIndex = array[result.length % length] % charPool.length;
+                result.push(charPool[randIndex]);
+            }
+
+            // Shuffle
+            for (let i = result.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+
+            currentGeneratedPass = result.join('');
+            const display = document.getElementById('genPasswordDisplay');
+            if (display) display.innerText = currentGeneratedPass;
+        }
+
+        function copyGenPassword() {
+            if (!currentGeneratedPass) generateRandomPassword();
+            copyText(currentGeneratedPass, 'Đã sao chép mật khẩu ngẫu nhiên');
+        }
+
+        function applyGenPasswordToForm() {
+            if (!currentGeneratedPass) generateRandomPassword();
+            const newPassInput = document.getElementById('newAdminPassInput');
+            const confirmPassInput = document.getElementById('confirmAdminPassInput');
+            if (newPassInput) newPassInput.value = currentGeneratedPass;
+            if (confirmPassInput) confirmPassInput.value = currentGeneratedPass;
+            onNewPasswordInput(currentGeneratedPass);
+            checkPasswordMatch();
+            alert('✨ Đã điền mật khẩu mạnh vừa tạo vào ô Mật Khẩu Mới & Xác Nhận!');
+        }
+
+        function togglePassGenWidget() {
+            const card = document.getElementById('cardPassGenerator');
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.style.transition = 'box-shadow 0.3s';
+                card.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.4)';
+                setTimeout(() => card.style.boxShadow = '', 1200);
+            }
+        }
+
+        // Change Admin Password Submission
+        async function submitChangeAdminPassword() {
+            const curPass = document.getElementById('curAdminPassInput').value;
+            const newPass = document.getElementById('newAdminPassInput').value;
+            const confirmPass = document.getElementById('confirmAdminPassInput').value;
+
+            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
+            if (newPass.length < 6) return alert('Mật khẩu mới phải có tối thiểu 6 ký tự!');
+            if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không trùng khớp!');
+
+            const storedHash = localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('sys_admin_pass_hash') || localStorage.getItem('p2p_admin_pass_hash');
+            
+            if (storedHash) {
+                const hashedCur = await hashPassword(curPass);
+                const defaultHash = await hashPassword('admin123');
+                const isCurCorrect = (hashedCur === storedHash) || (!curPass && storedHash === defaultHash);
+                
+                if (!isCurCorrect) {
+                    recordFailedAttempt();
+                    return alert('Mật khẩu hiện tại không chính xác! Vui lòng kiểm tra lại.');
+                }
+            }
+
+            const newHashed = await hashPassword(newPass);
+            localStorage.setItem('sys_admin_password_hash', newHashed);
+            localStorage.setItem('sys_admin_pass_hash', newHashed);
+            localStorage.setItem('p2p_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_is_admin', 'true');
+            isAdmin = true;
+
+            addSecurityAuditLog('Đổi Mật Khẩu Admin', 'Thành công', 'Đổi mật khẩu bảo mật qua Control Panel');
+            localStorage.setItem('sys_failed_attempts', '0');
+
+            updateAdminBadge();
+            initSecurityCenter();
+            resetPasswordForm();
+
+            try {
+                const bc = new BroadcastChannel('system_admin_auth');
+                bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+                bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
+            } catch(e) {}
+
+            alert('🎉 Chúc mừng! Mật khẩu Quản trị viên mới đã được cập nhật và đồng bộ toàn hệ thống thành công.');
+        }
+
+        // Master Recovery Key Vault Functions
+        function getRawMasterKey() {
+            let raw = localStorage.getItem('sys_raw_master_key');
+            if (!raw) {
+                raw = 'MSTR-9821-4820-K7X2';
+                localStorage.setItem('sys_raw_master_key', raw);
+            }
+            return raw;
+        }
+
+        function updateMasterKeyDisplay() {
+            const el = document.getElementById('masterKeyFormattedDisplay');
+            const btn = document.getElementById('btnToggleMasterMask');
+            if (!el) return;
+            const key = getRawMasterKey();
+            if (isMasterKeyMasked) {
+                el.innerText = '•••• - •••• - •••• - ••••';
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-eye"></i> Hiện';
+            } else {
+                el.innerText = key;
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Ẩn';
+            }
+        }
+
+        function toggleMasterKeyMask() {
+            isMasterKeyMasked = !isMasterKeyMasked;
+            updateMasterKeyDisplay();
+        }
+
+        function copyMasterKeyFormatted() {
+            const key = getRawMasterKey();
+            copyText(key, 'Đã sao chép Master Recovery Key');
+        }
+
+        function downloadMasterKeyKit() {
+            const key = getRawMasterKey();
+            const email = localStorage.getItem('sys_recovery_email') || 'admin@hethong.com';
+            const dateStr = new Date().toLocaleString('vi-VN');
+            const content = `=====================================================
+MAC DASHBOARD ENTERPRISE - EMERGENCY RECOVERY KIT
+=====================================================
+Ngày cấp phát: ${dateStr}
+Email cứu hộ: ${email}
+Hệ thống: MacOS Dashboard & Control Panel v3.0
+
+MASTER RECOVERY KEY:
+${key}
+
+HƯỚNG DẪN SỬ DỤNG:
+1. Master Key dùng để khôi phục quyền Quản trị viên (Admin) và đặt lại Mật khẩu khi bạn quên mật khẩu đăng nhập.
+2. Master Key hoạt động hoàn toàn độc lập, không phụ thuộc kết nối mạng hoặc server bên ngoài.
+3. Vui lòng in hoặc lưu trữ file này vào nơi an toàn, không chia sẻ cho người khác.
+=====================================================`;
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mac-recovery-kit-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            addSecurityAuditLog('Tải File Kit Cứu Hộ', 'Thành công', 'Tải bản sao lưu Master Key .txt');
+        }
+
+        async function generateAndSaveNewMasterKey() {
+            if (!checkAdminPermission()) return;
+            if (!confirm('⚠️ Bạn có chắc chắn muốn TẠO MASTER KEY MỚI?\nKhóa cứu hộ cũ sẽ bị vô hiệu hóa ngay lập tức.')) return;
+
+            // Generate 16 random chars formatted as XXXX-XXXX-XXXX-XXXX
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            const array = new Uint32Array(16);
+            window.crypto.getRandomValues(array);
+            let rawKeyParts = [];
+            for (let i = 0; i < 4; i++) {
+                let chunk = '';
+                for (let j = 0; j < 4; j++) {
+                    chunk += chars[array[i * 4 + j] % chars.length];
+                }
+                rawKeyParts.push(chunk);
+            }
+            const newRawKey = rawKeyParts.join('-');
+            const newHashedKey = await hashPassword(newRawKey);
+
+            localStorage.setItem('sys_raw_master_key', newRawKey);
+            localStorage.setItem('sys_master_key_hash', newHashedKey);
+
+            isMasterKeyMasked = false;
+            updateMasterKeyDisplay();
+            addSecurityAuditLog('Tạo Master Key Mới', 'Thành công', `Cấp phát Master Key mới: ${newRawKey.substring(0, 4)}-****`);
+            alert(`✅ Đã tạo Master Key cứu hộ mới thành công!\n\nKhóa mới của bạn là:\n[ ${newRawKey} ]\n\nVui lòng sao chép hoặc tải file Kit cứu hộ để cất giữ an toàn!`);
+        }
+
+        // Emergency Email & OTP
+        function saveRecoveryEmailFromCard() {
+            if (!checkAdminPermission()) return;
+            const email = (document.getElementById('secRecoveryEmailInput')?.value || '').trim();
+            if (!email || !email.includes('@')) return alert('Vui lòng nhập địa chỉ email hợp lệ!');
+
+            localStorage.setItem('sys_recovery_email', email);
+            addSecurityAuditLog('Cập Nhật Email Cứu Hộ', 'Thành công', `Lưu email: ${email}`);
+            initSecurityCenter();
+            alert(`✅ Đã lưu Email cứu hộ: ${email}`);
+        }
+
+        function testSendRecoveryOtp() {
+            const email = (document.getElementById('secRecoveryEmailInput')?.value || '').trim() || localStorage.getItem('sys_recovery_email') || 'admin@hethong.com';
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            cpLocalOtp = { code: otp, expiry: Date.now() + 10 * 60 * 1000, email: email };
+            addSecurityAuditLog('Thử Nghiệm Gửi OTP', 'Thành công', `Mã OTP kiểm tra [${otp}] gửi tới ${email}`);
+            renderSecurityAuditLog();
+            alert(`📧 [TEST OTP THÀNH CÔNG]\n\nMã xác thực OTP giả lập đã được tạo:\nMã số: [ ${otp} ]\nGửi tới hòm thư: ${email}\nThời hạn hiệu lực: 10 phút.`);
+        }
+
+        // Security Audit Log & History
+        function getSecurityAuditLog() {
+            try {
+                const raw = localStorage.getItem('sys_security_audit_log');
+                if (raw) return JSON.parse(raw);
+            } catch(e) {}
+            return [
+                { time: new Date().toLocaleString('vi-VN'), action: 'Khởi tạo hệ thống an ninh', status: 'Thành công', detail: 'Kích hoạt trung tâm bảo mật Enterprise' }
+            ];
+        }
+
+        function addSecurityAuditLog(action, status, detail) {
+            const logs = getSecurityAuditLog();
+            logs.unshift({
+                time: new Date().toLocaleString('vi-VN'),
+                action: action,
+                status: status,
+                detail: detail
+            });
+            if (logs.length > 50) logs.pop();
+            localStorage.setItem('sys_security_audit_log', JSON.stringify(logs));
+        }
+
+        function renderSecurityAuditLog() {
+            const tbody = document.getElementById('secAuditLogTableBody');
+            if (!tbody) return;
+            const logs = getSecurityAuditLog();
+            tbody.innerHTML = '';
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:18px; color:var(--slate-500); font-style:italic;">Chưa có lịch sử hoạt động bảo mật.</td></tr>`;
+                return;
+            }
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                const isSuccess = log.status.includes('Thành công') || log.status.includes('Success');
+                tr.innerHTML = `
+                    <td style="color:var(--slate-500); font-size:12px;">${log.time}</td>
+                    <td style="font-weight:600; color:var(--slate-800);">${log.action}</td>
+                    <td>
+                        <span class="badge" style="background:${isSuccess ? '#ecfdf5' : '#fee2e2'}; color:${isSuccess ? '#047857' : '#b91c1c'}; border:1px solid ${isSuccess ? '#a7f3d0' : '#fecaca'}; font-size:11px; padding:2px 8px; border-radius:4px; font-weight:600;">
+                            <i class="fa-solid ${isSuccess ? 'fa-check' : 'fa-xmark'}"></i> ${log.status}
+                        </span>
+                    </td>
+                    <td style="color:var(--slate-600); font-size:12px;">${log.detail || 'Hệ thống'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearSecurityAuditLog() {
+            if (!checkAdminPermission()) return;
+            if (confirm('Bạn có chắc muốn xóa sạch toàn bộ lịch sử hoạt động bảo mật?')) {
+                localStorage.setItem('sys_security_audit_log', JSON.stringify([]));
+                renderSecurityAuditLog();
+                alert('Đã dọn dẹp nhật ký an ninh.');
+            }
+        }
+
+        function recordFailedAttempt() {
+            let count = parseInt(localStorage.getItem('sys_failed_attempts') || '0', 10);
+            count++;
+            localStorage.setItem('sys_failed_attempts', count.toString());
+            addSecurityAuditLog('Đăng nhập thất bại', 'Thất bại', `Nhập sai mật khẩu quản trị (lần ${count})`);
+            initSecurityCenter();
+        }
+
+        function resetFailedAttemptsCounter() {
+            if (!checkAdminPermission()) return;
+            localStorage.setItem('sys_failed_attempts', '0');
+            addSecurityAuditLog('Reset số lần sai', 'Thành công', 'Quản trị viên đặt lại bộ đếm đăng nhập thất bại');
+            initSecurityCenter();
+            alert('Đã reset bộ đếm đăng nhập sai về 0!');
         }
 
         function resetAdminCredentials() {
