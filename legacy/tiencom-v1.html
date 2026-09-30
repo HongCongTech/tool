@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<!-- ARCHIVED LEGACY VERSION (v1) - Phiên bản cũ lưu trữ tham khảo. Phiên bản chính thức hoạt động tại: apps/tien-com/index.html -->
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Tính Tiền Cơm Đồng Nghiệp</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --success-bg: #e8f8f5;
+            --danger-color: #e74c3c;
+            --danger-bg: #fdeaea;
+            --text-color: #2c3e50;
+            --border-color: #e2e8f0;
+            --bg-color: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            padding: 30px 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 25px; 
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); 
+            position: relative;
+        }
+
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #1e293b; font-size: 24px; }
+        h2 { text-align: left; font-size: 1.2rem; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-top: 30px; margin-bottom: 15px; }
+
+        .top-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .add-colleague-box { display: flex; gap: 8px; }
+
+        input[type="text"], input[type="number"], input[type="password"] { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; background: white; }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus { border-color: var(--primary-color); }
+
+        button { cursor: pointer; padding: 8px 14px; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: #357abd; }
+        .btn-secondary { background-color: #64748b; color: white; }
+        .btn-secondary:hover { background-color: #475569; }
+
+        .colleague-list { display: flex; flex-direction: column; gap: 12px; }
+        .colleague-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: #ffffff; 
+            border: 1px solid var(--border-color); 
+            padding: 12px 15px; 
+            border-radius: 8px; 
+            gap: 15px; 
+        }
+        .colleague-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .colleague-info { flex: 1; }
+        .colleague-name { font-weight: bold; font-size: 16px; color: #334155; }
+        .colleague-balance { font-size: 13px; margin-top: 2px; }
+        .balance-debt { color: var(--danger-color); font-weight: 600; }
+        .balance-clear { color: #64748b; }
+        .balance-add { color: var(--success-color); font-weight: 600; }
+
+        .colleague-actions { display: flex; align-items: center; gap: 8px; }
+        .btn-delete { background-color: transparent; color: #94a3b8; padding: 6px 10px; font-size: 15px; }
+        .btn-delete:hover { color: var(--danger-color); }
+
+        .btn-open-popup { 
+            background-color: var(--primary-color); 
+            color: white; 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            font-size: 20px; 
+            line-height: 1;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            padding: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn-open-popup:hover { background-color: #357abd; transform: scale(1.05); }
+
+        /* MODAL POPUP GENERAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show { display: flex; }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 540px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .modal-title { font-size: 18px; font-weight: bold; color: #1e293b; }
+        .btn-close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; }
+
+        /* DATE BAR - SCROLL RIGHT TO LEFT */
+        .date-bar-wrapper { margin-bottom: 15px; }
+        .date-bar-title { font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 600; }
+        .date-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            flex-direction: row;
+        }
+        .date-chip {
+            flex: 0 0 auto;
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            background: #f1f5f9;
+            color: #475569;
+            transition: all 0.2s;
+        }
+        .date-chip.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* QUICK OPTIONS (4 OPTIONS) */
+        .quick-options-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #334155; }
+        .quick-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .btn-quick-opt {
+            background: #ffffff;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .btn-quick-opt:hover { background: #eff6ff; }
+        .btn-quick-opt .opt-name { font-weight: bold; font-size: 13px; display: block; }
+        .btn-quick-opt .opt-price { font-size: 12px; color: #64748b; }
+
+        /* CUSTOM OPTION & ACTIONS */
+        .custom-section { border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px; }
+        .custom-row { display: flex; gap: 8px; margin-top: 8px; }
+        .custom-row input { flex: 1; }
+
+        .modal-footer-btns { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-add-action { flex: 1; background-color: var(--success-color); color: white; padding: 10px; }
+        .btn-add-action:hover { background-color: #27ae60; }
+        .btn-pay-action { flex: 1; background-color: var(--danger-color); color: white; padding: 10px; }
+        .btn-pay-action:hover { background-color: #c0392b; }
+
+        /* LOG IN POPUP BY DATE */
+        .day-logs-box { margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 10px; }
+        .day-logs-title { font-size: 12px; font-weight: bold; color: #64748b; margin-bottom: 8px; }
+        .day-log-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; border: 1px solid #e2e8f0; }
+        .day-log-actions button { padding: 2px 6px; font-size: 11px; margin-left: 4px; }
+
+        /* LOG TABLE MAIN */
+        .log-container { margin-top: 15px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; max-height: 320px; overflow-y: auto; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        .log-table th { background-color: #e2e8f0; color: #334155; padding: 10px; position: sticky; top: 0; z-index: 1; }
+        .log-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+        .log-add { color: #27ae60; font-weight: 500; }
+        .log-pay { color: #c0392b; font-weight: 500; }
+        .empty-state { text-align: center; color: #94a3b8; padding: 20px; font-style: italic; }
+
+        /* MENU EDIT FORM */
+        .menu-edit-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .menu-edit-row { display: flex; gap: 8px; align-items: center; }
+        .menu-edit-row label { width: 60px; font-size: 13px; font-weight: bold; color: #475569; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-area">
+            <h1>Tính Tiền Cơm Đồng Nghiệp 🍚</h1>
+            <div class="top-actions">
+                <button class="btn-secondary" onclick="openMenuModal()">⚙️ Sửa Menu</button>
+                <button class="btn-secondary" onclick="openChangePassModal()">🔑 Đổi Mật Khẩu</button>
+                <div class="add-colleague-box">
+                    <input type="text" id="colleagueNameInput" placeholder="Thêm tên đồng nghiệp...">
+                    <button class="btn-primary" onclick="addColleague()">Thêm</button>
+                </div>
+            </div>
+        </div>
+
+        <h2>Danh Sách Đồng Nghiệp</h2>
+        <div class="colleague-list" id="colleagueList"></div>
+
+        <h2>Lịch Sử Giao Dịch Tổng</h2>
+        <div class="log-container">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Đồng nghiệp</th>
+                        <th>Hành động</th>
+                        <th>Món / Lý do</th>
+                        <th>Số tiền</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody"></tbody>
+            </table>
+            <div id="logEmptyState" class="empty-state">Chưa có lịch sử giao dịch.</div>
+        </div>
+    </div>
+
+    <!-- POPUP 1: GIAO DỊCH THÊM / TRẢ TIỀN -->
+    <div class="modal-overlay" id="actionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalColleagueName">Tên Đồng Nghiệp</div>
+                <button class="btn-close-modal" onclick="closeModal('actionModal')">✕</button>
+            </div>
+
+            <!-- THANH CHỌN NGÀY -->
+            <div class="date-bar-wrapper">
+                <div class="date-bar-title">Chọn ngày giao dịch (Hiện tại bên phải ➔ Quá khứ bên trái):</div>
+                <div class="date-bar" id="dateBarContainer"></div>
+            </div>
+
+            <!-- 4 TÙY CHỌN BẤM NHANH -->
+            <div class="quick-options-title">Chọn nhanh 4 món từ Menu chung:</div>
+            <div class="quick-options-grid" id="quickOptionsGrid"></div>
+
+            <!-- OPTION TÙY CHỌN -->
+            <div class="custom-section">
+                <div class="quick-options-title">Nhập món / Giá tiền tùy chọn:</div>
+                <div class="custom-row">
+                    <input type="text" id="customItemName" placeholder="Tên món / Nội dung">
+                    <input type="number" id="customItemAmount" placeholder="Số tiền (.000đ)">
+                </div>
+                <div class="modal-footer-btns">
+                    <button class="btn-add-action" onclick="submitTransaction('ADD')">+ Thêm Nợ</button>
+                    <button class="btn-pay-action" onclick="submitTransaction('PAY')">- Trả Tiền</button>
+                </div>
+            </div>
+
+            <!-- DANH SÁCH LỊCH SỬ ĂN UỐNG THEO NGÀY ĐANG CHỌN (CHO PHÉP SỬA/XÓA) -->
+            <div class="day-logs-box">
+                <div class="day-logs-title">Lịch sử ăn/trả của <span id="dayLogColleagueName" style="color:var(--primary-color)"></span> vào ngày <span id="dayLogDateLabel"></span>:</div>
+                <div id="dayLogListContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP 2: SỬA MENU CỐ ĐỊNH -->
+    <div class="modal-overlay" id="menuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ Cấu hình Menu chung (Dùng cho tất cả ngày)</div>
+                <button class="btn-close-modal" onclick="closeModal('menuModal')">✕</button>
+            </div>
+            <p style="font-size:12px; color:#64748b; margin-bottom:12px;">Nhập số tiền theo hàng nghìn (Ví dụ: 30 tương đương 30.000đ)</p>
+            <div class="menu-edit-grid">
+                <div class="menu-edit-row">
+                    <label>Món 1:</label>
+                    <input type="text" id="editMName1" placeholder="Tên món">
+                    <input type="number" id="editMVal1" placeholder="Giá (k)" style="width: 100px;">
+                </div>
+                <div class="menu-edit-row">
+                    <label>Món 2:</label>
+                    <input type="text" id="editMName2" placeholder="Tên món">
+                    <input type="number" id="editMVal2" placeholder="Giá (k)" style="width: 100px;">
+                </div>
+                <div class="menu-edit-row">
+                    <label>Món 3:</label>
+                    <input type="text" id="editMName3" placeholder="Tên món">
+                    <input type="number" id="editMVal3" placeholder="Giá (k)" style="width: 100px;">
+                </div>
+                <div class="menu-edit-row">
+                    <label>Món 4:</label>
+                    <input type="text" id="editMName4" placeholder="Tên món">
+                    <input type="number" id="editMVal4" placeholder="Giá (k)" style="width: 100px;">
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn-secondary" onclick="closeModal('menuModal')">Hủy</button>
+                <button class="btn-primary" onclick="saveGlobalMenu()">Lưu Menu Cố Định</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP 3: ĐỔI MẬT KHẨU -->
+    <div class="modal-overlay" id="changePassModal">
+        <div class="modal-content" style="max-width: 360px;">
+            <div class="modal-header">
+                <div class="modal-title">🔑 Đổi Mật Khẩu</div>
+                <button class="btn-close-modal" onclick="closeModal('changePassModal')">✕</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <input type="password" id="oldPassInput" placeholder="Mật khẩu hiện tại">
+                <input type="password" id="newPassInput" placeholder="Mật khẩu mới">
+                <input type="password" id="confirmPassInput" placeholder="Xác nhận mật khẩu mới">
+                <button class="btn-primary" style="margin-top:5px;" onclick="handleChangePassword()">Đổi Mật Khẩu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let colleagues = JSON.parse(localStorage.getItem('lunch_colleagues')) || [];
+        let logs = JSON.parse(localStorage.getItem('lunch_logs')) || [];
+        let appPassword = localStorage.getItem('lunch_app_password') || '1111'; // Mặc định 1111
+        
+        // Menu cố định lưu chung cho tất cả
+        let globalMenu = JSON.parse(localStorage.getItem('lunch_global_menu')) || [
+            { name: 'Cơm', val: 30 },
+            { name: 'Nước', val: 15 },
+            { name: 'Cơm đặc biệt', val: 40 },
+            { name: 'Món khác', val: 20 }
+        ];
+
+        let currentSelectedColleagueId = null;
+        let currentSelectedDateStr = getFormattedDate(new Date());
+
+        function getFormattedDate(d) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDisplayDate(dateStr) {
+            if(!dateStr) return '';
+            const parts = dateStr.split('-');
+            return `${parts[2]}/${parts[1]}`;
+        }
+
+        function saveLunchData() {
+            localStorage.setItem('lunch_colleagues', JSON.stringify(colleagues));
+            localStorage.setItem('lunch_logs', JSON.stringify(logs));
+            localStorage.setItem('lunch_global_menu', JSON.stringify(globalMenu));
+            localStorage.setItem('lunch_app_password', appPassword);
+        }
+
+        function verifyPassword() {
+            const input = prompt("Nhập mật khẩu để tiếp tục:");
+            if (input === null) return false;
+            if (input === appPassword) {
+                return true;
+            } else {
+                alert("Mật khẩu không chính xác!");
+                return false;
+            }
+        }
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        function formatDateTime(dateStr) {
+            const d = new Date(dateStr);
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        /* --- XỬ LÝ ĐỒNG NGHIỆP --- */
+        function addColleague() {
+            const nameInput = document.getElementById('colleagueNameInput');
+            const name = nameInput.value.trim();
+            if (!name) { alert('Vui lòng nhập tên đồng nghiệp!'); return; }
+            if (colleagues.some(c => c.name.toLowerCase() === name.toLowerCase())) { alert('Tên này đã tồn tại!'); return; }
+
+            colleagues.push({ id: Date.now().toString(), name: name, balance: 0 });
+            nameInput.value = '';
+            saveLunchData();
+            renderColleagues();
+        }
+
+        function deleteColleague(id) {
+            if (!verifyPassword()) return;
+            if (confirm('Xóa đồng nghiệp này khỏi danh sách?')) {
+                colleagues = colleagues.filter(c => c.id !== id);
+                recalculateBalances();
+                saveLunchData();
+                renderColleagues();
+                renderLunchLogs();
+            }
+        }
+
+        function renderColleagues() {
+            const listContainer = document.getElementById('colleagueList');
+            listContainer.innerHTML = '';
+            if (colleagues.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">Chưa có đồng nghiệp nào. Hãy thêm ở trên!</div>';
+                return;
+            }
+
+            colleagues.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'colleague-item';
+
+                let balanceClass = 'balance-clear', balanceText = 'Đã sạch nợ 🎉';
+                if (c.balance > 0) {
+                    balanceClass = 'balance-debt'; balanceText = `Còn nợ: ${formatMoney(c.balance)}`;
+                } else if (c.balance < 0) {
+                    balanceClass = 'balance-add'; balanceText = `Trả dư: ${formatMoney(Math.abs(c.balance))}`;
+                }
+
+                item.innerHTML = `
+                    <div class="colleague-left">
+                        <div class="colleague-info">
+                            <div class="colleague-name">${c.name}</div>
+                            <div class="colleague-balance ${balanceClass}">${balanceText}</div>
+                        </div>
+                    </div>
+                    <div class="colleague-actions">
+                        <button class="btn-delete" title="Xóa đồng nghiệp" onclick="deleteColleague('${c.id}')">🗑️</button>
+                        <button class="btn-open-popup" title="Thêm / Trả tiền" onclick="openActionModal('${c.id}')">+</button>
+                    </div>
+                `;
+
+                listContainer.appendChild(item);
+            });
+        }
+
+        /* --- XỬ LÝ MENU CỐ ĐỊNH --- */
+        function openMenuModal() {
+            if (!verifyPassword()) return;
+            document.getElementById('editMName1').value = globalMenu[0].name;
+            document.getElementById('editMVal1').value = globalMenu[0].val;
+            document.getElementById('editMName2').value = globalMenu[1].name;
+            document.getElementById('editMVal2').value = globalMenu[1].val;
+            document.getElementById('editMName3').value = globalMenu[2].name;
+            document.getElementById('editMVal3').value = globalMenu[2].val;
+            document.getElementById('editMName4').value = globalMenu[3].name;
+            document.getElementById('editMVal4').value = globalMenu[3].val;
+
+            document.getElementById('menuModal').classList.add('show');
+        }
+
+        function saveGlobalMenu() {
+            globalMenu = [
+                { name: document.getElementById('editMName1').value.trim() || 'Món 1', val: parseInt(document.getElementById('editMVal1').value) || 0 },
+                { name: document.getElementById('editMName2').value.trim() || 'Món 2', val: parseInt(document.getElementById('editMVal2').value) || 0 },
+                { name: document.getElementById('editMName3').value.trim() || 'Món 3', val: parseInt(document.getElementById('editMVal3').value) || 0 },
+                { name: document.getElementById('editMName4').value.trim() || 'Món 4', val: parseInt(document.getElementById('editMVal4').value) || 0 }
+            ];
+            saveLunchData();
+            closeModal('menuModal');
+            alert('Đã cập nhật Menu cố định thành công!');
+        }
+
+        /* --- XỬ LÝ GIAO DỊCH POPUP --- */
+        function openActionModal(colleagueId) {
+            currentSelectedColleagueId = colleagueId;
+            const colleague = colleagues.find(c => c.id === colleagueId);
+            if (!colleague) return;
+
+            document.getElementById('modalColleagueName').innerText = `Giao dịch với: ${colleague.name}`;
+            document.getElementById('dayLogColleagueName').innerText = colleague.name;
+            currentSelectedDateStr = getFormattedDate(new Date());
+
+            renderDateBar();
+            loadQuickOptions();
+            renderDayLogs();
+
+            document.getElementById('customItemName').value = '';
+            document.getElementById('customItemAmount').value = '';
+            document.getElementById('actionModal').classList.add('show');
+        }
+
+        function renderDateBar() {
+            const container = document.getElementById('dateBarContainer');
+            container.innerHTML = '';
+
+            const dates = [];
+            const today = new Date();
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                dates.push(getFormattedDate(d));
+            }
+
+            dates.forEach(dateStr => {
+                const chip = document.createElement('div');
+                chip.className = `date-chip ${dateStr === currentSelectedDateStr ? 'active' : ''}`;
+                chip.innerText = dateStr === getFormattedDate(today) ? `Hôm nay (${formatDisplayDate(dateStr)})` : formatDisplayDate(dateStr);
+                chip.onclick = () => {
+                    currentSelectedDateStr = dateStr;
+                    renderDateBar();
+                    renderDayLogs();
+                };
+                container.appendChild(chip);
+            });
+
+            setTimeout(() => { container.scrollLeft = container.scrollWidth; }, 50);
+        }
+
+        function loadQuickOptions() {
+            const optionsContainer = document.getElementById('quickOptionsGrid');
+            optionsContainer.innerHTML = '';
+            globalMenu.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-quick-opt';
+                btn.innerHTML = `
+                    <span class="opt-name">${item.name}</span>
+                    <span class="opt-price">${item.val ? item.val + '.000đ' : '0đ'}</span>
+                `;
+                btn.onclick = () => {
+                    document.getElementById('customItemName').value = item.name;
+                    document.getElementById('customItemAmount').value = item.val;
+                };
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function submitTransaction(type) {
+            const colleague = colleagues.find(c => c.id === currentSelectedColleagueId);
+            if (!colleague) return;
+
+            const itemName = document.getElementById('customItemName').value.trim() || (type === 'ADD' ? 'Cơm/Nước' : 'Trả tiền');
+            let rawAmount = parseInt(document.getElementById('customItemAmount').value);
+
+            if (isNaN(rawAmount) || rawAmount <= 0) {
+                alert('Vui lòng nhập số tiền hợp lệ!');
+                return;
+            }
+
+            const parsedAmount = rawAmount * 1000;
+
+            const now = new Date();
+            // Lấy giờ phút hiện tại kết hợp với ngày được chọn
+            const targetDateObj = new Date(currentSelectedDateStr + 'T' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':00');
+
+            logs.unshift({ 
+                id: Date.now().toString(),
+                timestamp: targetDateObj.toISOString(), 
+                dateStr: currentSelectedDateStr,
+                colleagueId: colleague.id,
+                name: colleague.name, 
+                action: type === 'ADD' ? 'Thêm tiền' : 'Trả tiền', 
+                itemName: itemName,
+                amount: parsedAmount 
+            });
+
+            recalculateBalances();
+            saveLunchData();
+            renderColleagues();
+            renderLunchLogs();
+            renderDayLogs();
+
+            document.getElementById('customItemName').value = '';
+            document.getElementById('customItemAmount').value = '';
+        }
+
+        /* --- HIỂN THỊ VÀ SỬA/XÓA LOG THEO NGÀY CỤ THỂ --- */
+        function renderDayLogs() {
+            document.getElementById('dayLogDateLabel').innerText = formatDisplayDate(currentSelectedDateStr);
+            const container = document.getElementById('dayLogListContainer');
+            container.innerHTML = '';
+
+            const filteredLogs = logs.filter(l => l.colleagueId === currentSelectedColleagueId && l.dateStr === currentSelectedDateStr);
+
+            if (filteredLogs.length === 0) {
+                container.innerHTML = '<div style="font-size:11px; color:#94a3b8; font-style:italic;">Không có giao dịch trong ngày này.</div>';
+                return;
+            }
+
+            filteredLogs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'day-log-item';
+                const actionColor = log.action === 'Thêm tiền' ? '#27ae60' : '#c0392b';
+                
+                item.innerHTML = `
+                    <div>
+                        <strong style="color:${actionColor}">[${log.action}]</strong> ${log.itemName}: <strong>${formatMoney(log.amount)}</strong>
+                    </div>
+                    <div class="day-log-actions">
+                        <button class="btn-secondary" onclick="editLogItem('${log.id}')">✏️ Sửa</button>
+                        <button class="btn-secondary" style="background:var(--danger-color)" onclick="deleteLogItem('${log.id}')">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function editLogItem(logId) {
+            if (!verifyPassword()) return;
+            const log = logs.find(l => l.id === logId);
+            if (!log) return;
+
+            const newName = prompt("Sửa tên món / nội dung:", log.itemName);
+            if (newName === null) return;
+
+            const newAmountK = prompt("Sửa số tiền (đơn vị nghìn, ví dụ: 30):", log.amount / 1000);
+            if (newAmountK === null) return;
+
+            const parsedAmount = parseInt(newAmountK) * 1000;
+            if (isNaN(parsedAmount) || parsedAmount <= 0) {
+                alert("Số tiền không hợp lệ!");
+                return;
+            }
+
+            log.itemName = newName.trim() || log.itemName;
+            log.amount = parsedAmount;
+
+            recalculateBalances();
+            saveLunchData();
+            renderColleagues();
+            renderLunchLogs();
+            renderDayLogs();
+        }
+
+        function deleteLogItem(logId) {
+            if (!verifyPassword()) return;
+            if (confirm("Bạn có chắc chắn muốn xóa lịch sử giao dịch này?")) {
+                logs = logs.filter(l => l.id !== logId);
+                recalculateBalances();
+                saveLunchData();
+                renderColleagues();
+                renderLunchLogs();
+                renderDayLogs();
+            }
+        }
+
+        /* --- TÍNH LẠI CÂN BẰNG TIỀN DỰA TRÊN LOGS --- */
+        function recalculateBalances() {
+            colleagues.forEach(c => c.balance = 0);
+            logs.forEach(log => {
+                const c = colleagues.find(item => item.id === log.colleagueId || item.name === log.name);
+                if (c) {
+                    if (log.action === 'Thêm tiền') {
+                        c.balance += log.amount;
+                    } else if (log.action === 'Trả tiền') {
+                        c.balance -= log.amount;
+                    }
+                }
+            });
+        }
+
+        /* --- XỬ LÝ BẢNG LOG TỔNG --- */
+        function renderLunchLogs() {
+            const tableBody = document.getElementById('logTableBody');
+            const emptyState = document.getElementById('logEmptyState');
+            tableBody.innerHTML = '';
+
+            if (logs.length === 0) {
+                emptyState.style.display = 'block'; 
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                const actionClass = log.action === 'Thêm tiền' ? 'log-add' : 'log-pay';
+                const actionSymbol = log.action === 'Thêm tiền' ? '+' : '-';
+
+                tr.innerHTML = `
+                    <td>${formatDateTime(log.timestamp)}</td>
+                    <td><strong>${log.name}</strong></td>
+                    <td class="${actionClass}">${log.action}</td>
+                    <td>${log.itemName || '-'}</td>
+                    <td class="${actionClass}">${actionSymbol}${formatMoney(log.amount)}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        /* --- MẬT KHẨU --- */
+        function openChangePassModal() {
+            document.getElementById('oldPassInput').value = '';
+            document.getElementById('newPassInput').value = '';
+            document.getElementById('confirmPassInput').value = '';
+            document.getElementById('changePassModal').classList.add('show');
+        }
+
+        function handleChangePassword() {
+            const oldPass = document.getElementById('oldPassInput').value;
+            const newPass = document.getElementById('newPassInput').value;
+            const confirmPass = document.getElementById('confirmPassInput').value;
+
+            if (oldPass !== appPassword) {
+                alert('Mật khẩu hiện tại không chính xác!');
+                return;
+            }
+            if (!newPass) {
+                alert('Vui lòng nhập mật khẩu mới!');
+                return;
+            }
+            if (newPass !== confirmPass) {
+                alert('Mật khẩu xác nhận không trùng khớp!');
+                return;
+            }
+
+            appPassword = newPass;
+            saveLunchData();
+            closeModal('changePassModal');
+            alert('Đổi mật khẩu thành công!');
+        }
+
+        // Đóng popup khi nhấn ra bên ngoài
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('show');
+            }
+        });
+
+        // KHỞI CHẠY HỆ THỐNG
+        recalculateBalances();
+        renderColleagues();
+        renderLunchLogs();
+    </script>
+</body>
+</html>

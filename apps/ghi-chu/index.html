@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghi Chú & Đếm Ngược - Workspace Pro</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Supabase Database Storage Adapter -->
+    <script src="../../assets/js/db-storage.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --primary-border: #c7d2fe;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748b;
+            --slate-400: #94a3b8;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --slate-50: #f8fafc;
+            --todo-bg: #fffdf5;
+            --todo-border: #fef08a;
+            --urgent-bg: #fef2f2;
+            --urgent-border: #fecaca;
+            --done-bg: #f0fdf4;
+            --done-border: #bbf7d0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: #e2e8f0;
+            --card-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--slate-50);
+            color: var(--slate-800);
+            min-height: 100vh;
+            padding: 20px 16px 60px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .main-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1540px;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* SIDEBARS */
+        .countdown-sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: sticky;
+            top: 20px;
+        }
+        .sidebar-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--slate-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--slate-200);
+        }
+
+        .mini-note {
+            background: #ffffff;
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .mini-note:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-border);
+        }
+        .mini-note.urgent {
+            background: var(--urgent-bg);
+            border-left: 4px solid var(--danger);
+        }
+        .mini-note-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--slate-900);
+            line-height: 1.4;
+            margin-bottom: 20px;
+            word-break: break-word;
+        }
+        .mini-note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .mini-countdown {
+            color: var(--danger);
+            background: #ffffff;
+            padding: 2px 7px;
+            border-radius: 12px;
+            border: 1px solid var(--danger);
+        }
+        .mini-time { color: var(--slate-500); }
+        .mini-delete-btn {
+            position: absolute; top: 8px; right: 8px; background: none; border: none;
+            color: var(--slate-400); cursor: pointer; font-size: 13px; font-weight: bold;
+        }
+        .mini-delete-btn:hover { color: var(--danger); }
+
+        /* CENTER CONTENT */
+        .center-content {
+            flex: 1;
+            max-width: 980px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        /* HEADER DASHBOARD */
+        .header-dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            background: var(--slate-900);
+            padding: 22px 28px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+            border: 1px solid var(--slate-800);
+            color: #ffffff;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header-title-box h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-clock-calendar {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .widget-time {
+            font-size: 2.8rem;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            font-family: 'Courier New', Courier, monospace;
+            color: #60a5fa;
+            text-shadow: 0 0 12px rgba(96, 165, 250, 0.4);
+        }
+        .widget-date {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--slate-400);
+        }
+        .lunar-text {
+            color: #34d399;
+            font-weight: 800;
+            margin-left: 6px;
+        }
+
+        /* ADMIN BADGE */
+        .admin-badge {
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--slate-800);
+            color: var(--slate-400);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid var(--slate-700);
+            margin-top: 6px;
+        }
+        body.is-admin .admin-badge {
+            background: #064e3b;
+            color: #6ee7b7;
+            border-color: #059669;
+        }
+
+        .view-only-banner {
+            width: 100%;
+            background: var(--primary-light);
+            border: 1px solid var(--primary-border);
+            color: var(--primary-hover);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        body.is-admin .view-only-banner { display: none !important; }
+        body:not(.is-admin) .input-container { display: none !important; }
+
+        /* INPUT PANEL */
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: #ffffff;
+            padding: 18px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+        }
+        .main-input-row {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .main-input-row textarea {
+            flex: 2;
+            min-width: 220px;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            outline: none;
+            font-family: inherit;
+            resize: none;
+            height: 52px;
+            transition: all 0.2s ease;
+            background-color: var(--slate-50);
+        }
+        .main-input-row textarea:focus {
+            border-color: var(--primary);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+
+        .input-controls-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex: 1.6;
+            min-width: 280px;
+        }
+        .date-picker-wrapper { flex: 1.2; }
+        .date-picker-wrapper input[type="date"] {
+            width: 100%;
+            padding: 0 10px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.88rem;
+            outline: none;
+            height: 52px;
+            background-color: var(--slate-50);
+            color: var(--slate-800);
+            font-weight: 600;
+        }
+        .hour-input-wrapper { flex: 0.8; }
+        .hour-input-wrapper input[type="text"] {
+            width: 100%;
+            padding: 0 8px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            outline: none;
+            height: 52px;
+            text-align: center;
+            background-color: var(--slate-50);
+            color: var(--slate-800);
+            font-weight: 600;
+        }
+
+        .toggle-mode-container {
+            display: flex;
+            align-items: center;
+            background: var(--slate-100);
+            padding: 3px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            height: 52px;
+            flex: 1.1;
+        }
+        .toggle-mode-label {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--slate-600);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            user-select: none;
+            white-space: nowrap;
+        }
+        input[name="noteMode"] { display: none; }
+        input[name="noteMode"]:checked + .toggle-mode-label {
+            background-color: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .add-btn {
+            padding: 0 20px;
+            height: 52px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+            white-space: nowrap;
+        }
+        .add-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .shortcut-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border);
+            align-items: center;
+        }
+        .shortcut-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--slate-500);
+            margin-right: 4px;
+        }
+        .shortcut-btn {
+            padding: 5px 12px;
+            background-color: var(--slate-100);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--slate-700);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .shortcut-btn:hover { background-color: var(--slate-200); }
+        .shortcut-btn.active {
+            background-color: var(--primary-light);
+            border-color: var(--primary-border);
+            color: var(--primary);
+        }
+
+        /* SEARCH & FILTER BAR */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #ffffff;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--card-shadow);
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 220px;
+        }
+        .search-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 0.88rem;
+            font-family: inherit;
+            background: transparent;
+        }
+        .filter-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--slate-700);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .filter-tab.active {
+            background: var(--slate-900);
+            color: #ffffff;
+            border-color: var(--slate-900);
+        }
+
+        /* BOARD & COLUMNS */
+        .board {
+            display: flex;
+            width: 100%;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .column {
+            flex: 1;
+            width: 50%;
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            min-height: 480px;
+            border: 1px solid var(--border);
+        }
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--slate-100);
+        }
+        .column-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .column-count {
+            background: var(--slate-100);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--slate-600);
+        }
+
+        /* NOTE CARDS */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .note {
+            background-color: #ffffff;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .note:hover {
+            box-shadow: 0 8px 18px -4px rgba(0,0,0,0.08);
+            border-color: var(--primary-border);
+            transform: translateY(-2px);
+        }
+        .note.urgent {
+            background-color: var(--urgent-bg);
+            border-left: 5px solid var(--danger);
+        }
+        .done-column .note {
+            background-color: var(--done-bg);
+            border-left: 5px solid var(--success);
+        }
+        .done-column .note .note-text {
+            text-decoration: line-through;
+            color: var(--slate-500);
+        }
+
+        .countdown-tag {
+            align-self: flex-start;
+            background-color: #ffffff;
+            color: var(--danger);
+            border: 1.5px solid var(--danger);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .note-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--slate-900);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-bottom: 14px;
+        }
+
+        .note-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--slate-100);
+            padding-top: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .deadline-text {
+            font-size: 0.75rem;
+            color: var(--slate-500);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .completed-text {
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .btn-action-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-icon-btn {
+            background: var(--slate-100);
+            border: none;
+            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: var(--slate-600);
+            transition: all 0.15s;
+        }
+        .action-icon-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .action-icon-btn.delete:hover {
+            background: var(--urgent-bg);
+            color: var(--danger);
+        }
+
+        /* ADMIN VISIBILITY */
+        .admin-only { display: none !important; }
+        body.is-admin .admin-only { display: inline-flex !important; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+            z-index: 9999;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 460px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
+        }
+        .modal-box h3 {
+            margin-top: 0;
+            color: var(--slate-900);
+            font-size: 1.15rem;
+            margin-bottom: 16px;
+            font-weight: 800;
+        }
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .modal-field label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--slate-700);
+        }
+        .modal-field textarea, .modal-field input {
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            outline: none;
+            font-family: inherit;
+            background-color: var(--slate-50);
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-btn {
+            padding: 9px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-cancel { background: var(--slate-100); color: var(--slate-700); }
+        .btn-save { background: var(--primary); color: white; }
+
+        @media (max-width: 1200px) {
+            .countdown-sidebar { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .header-dashboard { flex-direction: column; text-align: center; }
+            .widget-clock-calendar { text-align: center; }
+            .widget-time { font-size: 2.2rem; }
+            .board { flex-direction: column; }
+            .column { width: 100%; min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <!-- LEFT COUNTDOWN SIDEBAR -->
+        <div class="countdown-sidebar" id="leftSidebar">
+            <div class="sidebar-title"><i class="fa-solid fa-bell"></i> Sự Kiện Nhóm A</div>
+            <div id="leftMiniList"></div>
+        </div>
+
+        <!-- CENTER MAIN WORKSPACE -->
+        <div class="center-content">
+            
+            <!-- HEADER DASHBOARD WIDGET -->
+            <div class="header-dashboard">
+                <div class="header-title-box">
+                    <h1><i class="fa-solid fa-note-sticky"></i> Sticky Notes Pro</h1>
+                    <span class="admin-badge" id="adminStatusBadge">
+                        <i class="fa-solid fa-eye"></i> Chế độ xem
+                    </span>
+                </div>
+                <div class="widget-clock-calendar">
+                    <div class="widget-time" id="liveClock">00:00:00</div>
+                    <div class="widget-date" id="liveCalendar">Đang tải lịch...</div>
+                </div>
+            </div>
+
+            <!-- VIEW ONLY NOTICE -->
+            <div class="view-only-banner" id="viewOnlyBanner">
+                <i class="fa-solid fa-lock"></i>
+                <span><strong>Chế độ xem (Chỉ đọc):</strong> Bạn đang xem danh sách ghi chú & đếm ngược. Đăng nhập Quản trị viên trên thanh Menu hệ thống để thêm hoặc sửa đổi dữ liệu.</span>
+            </div>
+
+            <!-- INPUT PANEL (ADMIN ONLY) -->
+            <div class="input-container">
+                <div class="main-input-row">
+                    <textarea id="taskInput" placeholder="Nhập nhiệm vụ hoặc nội dung sự kiện..."></textarea>
+                    <div class="input-controls-group">
+                        <div class="date-picker-wrapper">
+                            <input type="date" id="dateInput">
+                        </div>
+                        <div class="hour-input-wrapper">
+                            <input type="text" id="hourInput" placeholder="Giờ (18:30)">
+                        </div>
+                        <div class="toggle-mode-container">
+                            <input type="radio" id="modeTodo" name="noteMode" value="todo" checked>
+                            <label for="modeTodo" class="toggle-mode-label">Todo</label>
+                            <input type="radio" id="modeCountdown" name="noteMode" value="countdown">
+                            <label for="modeCountdown" class="toggle-mode-label">Đếm ngược</label>
+                        </div>
+                    </div>
+                    <button class="add-btn" onclick="addTask()">
+                        <i class="fa-solid fa-plus"></i> Thêm việc
+                    </button>
+                </div>
+
+                <div class="shortcut-row">
+                    <span class="shortcut-label">Hạn nhanh:</span>
+                    <button type="button" class="shortcut-btn" id="shortcut-0" onclick="applyShortcut(0)">Hôm nay</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-1" onclick="applyShortcut(1)">Ngày mai</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-2" onclick="applyShortcut(2)">2 ngày</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-3" onclick="applyShortcut(3)">3 ngày</button>
+                    <button type="button" class="shortcut-btn" id="shortcut-5" onclick="applyShortcut(5)">5 ngày</button>
+                </div>
+            </div>
+
+            <!-- FILTER & SEARCH BAR -->
+            <div class="filter-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass" style="color:var(--slate-400);"></i>
+                    <input type="text" id="noteSearchInput" class="search-input" placeholder="Tìm kiếm nhanh ghi chú theo từ khóa..." oninput="filterNotes()">
+                </div>
+                <div class="filter-group">
+                    <button type="button" class="filter-tab active" onclick="setNoteCategoryFilter('all', this)">Tất cả</button>
+                    <button type="button" class="filter-tab" onclick="setNoteCategoryFilter('todo', this)">🟡 Cần làm</button>
+                    <button type="button" class="filter-tab" onclick="setNoteCategoryFilter('warning', this)">🔴 Khẩn cấp</button>
+                    <button type="button" class="filter-tab" onclick="setNoteCategoryFilter('done', this)">🟢 Đã xong</button>
+                </div>
+            </div>
+
+            <!-- KANBAN BOARD -->
+            <div class="board">
+                <div class="column" id="todoColumn">
+                    <div class="column-header">
+                        <div class="column-title"><i class="fa-regular fa-calendar-check" style="color:var(--primary);"></i> Việc Phải Làm</div>
+                        <span class="column-count" id="todoCount">0</span>
+                    </div>
+                    <div class="notes-list"></div>
+                </div>
+
+                <div class="column done-column" id="doneColumn">
+                    <div class="column-header">
+                        <div class="column-title"><i class="fa-solid fa-circle-check" style="color:var(--success);"></i> Đã Hoàn Thành</div>
+                        <span class="column-count" id="doneCount">0</span>
+                    </div>
+                    <div class="notes-list"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COUNTDOWN SIDEBAR -->
+        <div class="countdown-sidebar" id="rightSidebar">
+            <div class="sidebar-title"><i class="fa-solid fa-cake-candles"></i> Sự Kiện Nhóm B</div>
+            <div id="rightMiniList"></div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT NOTE -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <h3><i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Ghi Chú</h3>
+            <input type="hidden" id="editNoteId">
+            <div class="modal-field">
+                <label>Nội dung công việc:</label>
+                <textarea id="editTaskText" rows="3"></textarea>
+            </div>
+            <div class="modal-field">
+                <label>Thời gian tới hạn:</label>
+                <input type="datetime-local" id="editTaskDeadline">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal()">Hủy</button>
+                <button class="modal-btn btn-save" onclick="saveModalChanges()"><i class="fa-solid fa-check"></i> Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // System Admin Auth Integration
+        let isAdmin = localStorage.getItem('sys_is_admin') === 'true';
+
+        function updateAdminUI() {
+            document.body.classList.toggle('is-admin', isAdmin);
+            const badge = document.getElementById('adminStatusBadge');
+            if (badge) {
+                if (isAdmin) {
+                    badge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Quản trị viên (Toàn quyền)';
+                } else {
+                    badge.innerHTML = '<i class="fa-solid fa-eye"></i> Chế độ xem (Chỉ đọc)';
+                }
+            }
+        }
+
+        function checkAdminPermission() {
+            if (!isAdmin) {
+                alert('🔒 Thao tác bị từ chối: Bạn đang ở chế độ xem (Chỉ đọc).\nVui lòng đăng nhập Quản trị viên trên thanh Menu hệ thống để thực hiện thay đổi dữ liệu.');
+                return false;
+            }
+            return true;
+        }
+
+        try {
+            const adminChannel = new BroadcastChannel('system_admin_auth');
+            adminChannel.onmessage = (event) => {
+                if (event.data && event.data.type === 'ADMIN_STATUS_CHANGED') {
+                    isAdmin = !!event.data.isAdmin;
+                    updateAdminUI();
+                }
+            };
+        } catch (e) {}
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'ADMIN_STATUS_CHANGED') {
+                isAdmin = !!event.data.isAdmin;
+                updateAdminUI();
+            }
+        });
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'sys_is_admin') {
+                isAdmin = e.newValue === 'true';
+                updateAdminUI();
+            }
+        });
+
+        let notesData = [];
+        let lastHourlyAlertHour = -1; 
+        let lastExactAlertTime = 0;
+
+        // Lunar Calendar calculations (2025 - 2030)
+        const LUNAR_INFO = {
+            2025: [30,29,30,29,29,30,29,30,29,30,30,30,0],
+            2026: [29,30,29,29,30,29,29,30,30,29,30,30,0],
+            2027: [29,30,30,29,29,30,29,29,30,29,30,30,0],
+            2028: [30,29,30,30,29,29,30,29,29,30,29,30,0],
+            2029: [30,30,29,30,29,30,29,30,29,29,30,29,0],
+            2030: [30,30,29,30,30,29,30,29,30,29,29,30,0]
+        };
+        const LUNAR_NEW_YEARS = {
+            2025: new Date(2025, 0, 29),
+            2026: new Date(2026, 1, 17),
+            2027: new Date(2027, 1, 6),
+            2028: new Date(2028, 0, 26),
+            2029: new Date(2029, 1, 13),
+            2030: new Date(2030, 1, 3)
+        };
+
+        function getLunarDate(date) {
+            const year = date.getFullYear();
+            if (year < 2025 || year > 2030) return "";
+            
+            let baseDate = LUNAR_NEW_YEARS[year];
+            let diffTime = date - baseDate;
+            let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+                const prevYear = year - 1;
+                if (prevYear < 2025) return "";
+                baseDate = LUNAR_NEW_YEARS[prevYear];
+                diffDays = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
+                return calculateLunarFromOffset(diffDays, prevYear);
+            }
+            return calculateLunarFromOffset(diffDays, year);
+        }
+
+        function calculateLunarFromOffset(offsetDays, lunarYear) {
+            const months = LUNAR_INFO[lunarYear];
+            let lunarMonth = 1;
+            let lunarDay = offsetDays + 1;
+
+            for (let i = 0; i < months.length; i++) {
+                if (lunarDay <= months[i]) break;
+                lunarDay -= months[i];
+                lunarMonth++;
+            }
+            return ` (Âm lịch: ${lunarDay}/${lunarMonth})`;
+        }
+
+        function updateClockAndCalendar() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const liveClockEl = document.getElementById('liveClock');
+            if (liveClockEl) liveClockEl.innerText = `${hours}:${minutes}:${seconds}`;
+            
+            const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            const dayName = daysOfWeek[now.getDay()];
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            
+            const solarText = `${dayName}, ${day}/${month}/${year}`;
+            const lunarText = getLunarDate(now);
+            
+            const liveCalEl = document.getElementById('liveCalendar');
+            if (liveCalEl) liveCalEl.innerHTML = `${solarText} <span class="lunar-text">${lunarText}</span>`;
+        }
+        setInterval(updateClockAndCalendar, 1000);
+
+        function formatDateToYYYYMMDD(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function applyShortcut(daysOffset) {
+            const dateInput = document.getElementById('dateInput');
+            const hourInput = document.getElementById('hourInput');
+            
+            document.querySelectorAll('.shortcut-btn').forEach(btn => btn.classList.remove('active'));
+            const targetBtn = document.getElementById(`shortcut-${daysOffset}`);
+            if (targetBtn) targetBtn.classList.add('active');
+
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + daysOffset);
+            
+            dateInput.value = formatDateToYYYYMMDD(targetDate);
+            hourInput.value = "18:30"; 
+        }
+
+        function initDefaultDateTime() { applyShortcut(0); }
+
+        function loadNotes() {
+            const savedNotes = localStorage.getItem('sticky_notes_data');
+            if (savedNotes) {
+                notesData = JSON.parse(savedNotes);
+                autoCleanOldDoneNotes();
+                renderAllNotes();
+            }
+        }
+
+        function saveNotesToStorage() { localStorage.setItem('sticky_notes_data', JSON.stringify(notesData)); }
+
+        function autoCleanOldDoneNotes() {
+            const nowMs = new Date().getTime();
+            const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+            const filteredNotes = notesData.filter(noteObj => {
+                if (noteObj.status === 'done' && noteObj.completedAt) {
+                    return (nowMs - noteObj.completedAt) < twoDaysInMs;
+                }
+                return true;
+            });
+            if (filteredNotes.length !== notesData.length) {
+                notesData = filteredNotes;
+                saveNotesToStorage();
+            }
+        }
+
+        function getCountdownText(deadlineMs) {
+            const nowMs = new Date().getTime();
+            const diffMs = deadlineMs - nowMs;
+            if (diffMs <= 0) return "Quá hạn!";
+
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            if (diffHours < 24) {
+                return `Còn: ${diffHours} giờ`;
+            } else {
+                const days = Math.floor(diffHours / 24);
+                const hours = diffHours % 24;
+                return `Còn: ${days}ngày ${hours}g`;
+            }
+        }
+
+        // Search & Category Filters
+        let currentSearchKeyword = '';
+        let currentCategoryFilter = 'all';
+
+        function filterNotes() {
+            currentSearchKeyword = document.getElementById('noteSearchInput').value.trim().toLowerCase();
+            renderAllNotes();
+        }
+
+        function setNoteCategoryFilter(category, btn) {
+            currentCategoryFilter = category;
+            document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAllNotes();
+        }
+
+        function copyNoteText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("📋 Đã sao chép nội dung ghi chú!");
+            });
+        }
+
+        function renderAllNotes() {
+            document.querySelector('#todoColumn .notes-list').innerHTML = '';
+            document.querySelector('#doneColumn .notes-list').innerHTML = '';
+            document.getElementById('leftMiniList').innerHTML = '';
+            document.getElementById('rightMiniList').innerHTML = '';
+
+            let todoAndDoneNotes = notesData.filter(n => n.type !== 'countdown');
+            let countdownNotes = notesData.filter(n => n.type === 'countdown');
+
+            // Search filter
+            if (currentSearchKeyword) {
+                todoAndDoneNotes = todoAndDoneNotes.filter(n => n.text.toLowerCase().includes(currentSearchKeyword));
+                countdownNotes = countdownNotes.filter(n => n.text.toLowerCase().includes(currentSearchKeyword));
+            }
+
+            // Category filter
+            if (currentCategoryFilter === 'todo') {
+                todoAndDoneNotes = todoAndDoneNotes.filter(n => n.status === 'todo');
+            } else if (currentCategoryFilter === 'done') {
+                todoAndDoneNotes = todoAndDoneNotes.filter(n => n.status === 'done');
+            } else if (currentCategoryFilter === 'warning') {
+                const nowMs = Date.now();
+                todoAndDoneNotes = todoAndDoneNotes.filter(n => (n.deadline - nowMs <= 24 * 3600 * 1000) && n.status === 'todo');
+                countdownNotes = countdownNotes.filter(n => (n.deadline - nowMs <= 24 * 3600 * 1000));
+            }
+
+            let todoCount = 0;
+            let doneCount = 0;
+
+            todoAndDoneNotes.sort((a, b) => a.deadline - b.deadline);
+            todoAndDoneNotes.forEach(noteObj => {
+                const deadlineDate = new Date(noteObj.deadline);
+                const formattedDate = deadlineDate.toLocaleString('vi-VN', {
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                });
+
+                const note = document.createElement('div');
+                note.className = 'note';
+                note.dataset.id = noteObj.id;
+                note.dataset.deadline = noteObj.deadline;
+
+                const isTodo = noteObj.status === 'todo';
+                if (isTodo) todoCount++;
+                else doneCount++;
+
+                let countdownHtml = isTodo ? `<div class="countdown-tag"><i class="fa-solid fa-stopwatch"></i> ${getCountdownText(noteObj.deadline)}</div>` : '';
+
+                let completedTimeHtml = '';
+                if (!isTodo && noteObj.completedAt) {
+                    const compDate = new Date(noteObj.completedAt);
+                    completedTimeHtml = `<span class="completed-text"><i class="fa-solid fa-check"></i> Xong: ${compDate.getHours()}:${String(compDate.getMinutes()).padStart(2, '0')} - ${compDate.getDate()}/${compDate.getMonth()+1}</span>`;
+                }
+
+                note.innerHTML = `
+                    ${countdownHtml}
+                    <div class="note-text">${noteObj.text}</div>
+                    
+                    <div class="note-actions">
+                        <button class="action-icon-btn admin-only" style="visibility: ${isTodo ? 'hidden' : 'visible'};" onclick="moveLeft(this)" title="Chuyển về Chưa xong">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="deadline-text"><i class="fa-regular fa-clock"></i> ${formattedDate}</span>
+                            ${completedTimeHtml}
+                        </div>
+                        <div class="btn-action-group">
+                            <button class="action-icon-btn" onclick="copyNoteText(\`${noteObj.text.replace(/`/g, '\\`')}\`)" title="Sao chép nội dung">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                            <button class="action-icon-btn admin-only" onclick="openEditModal('${noteObj.id}')" title="Sửa ghi chú">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button class="action-icon-btn delete admin-only" onclick="deleteNoteById('${noteObj.id}')" title="Xóa ghi chú">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            <button class="action-icon-btn admin-only" style="visibility: ${isTodo ? 'visible' : 'hidden'};" onclick="moveRight(this)" title="Đánh dấu Hoàn thành">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                if (isTodo) {
+                    document.querySelector('#todoColumn .notes-list').appendChild(note);
+                } else {
+                    document.querySelector('#doneColumn .notes-list').appendChild(note);
+                }
+            });
+
+            document.getElementById('todoCount').innerText = todoCount;
+            document.getElementById('doneCount').innerText = doneCount;
+
+            // Render Countdown mini notes
+            countdownNotes.sort((a, b) => a.deadline - b.deadline);
+            countdownNotes.forEach((noteObj, idx) => {
+                const deadlineDate = new Date(noteObj.deadline);
+                const nowMs = new Date().getTime();
+                const isUrgent = (noteObj.deadline - nowMs) <= (24 * 60 * 60 * 1000);
+                
+                const miniNote = document.createElement('div');
+                miniNote.className = `mini-note ${isUrgent ? 'urgent' : ''}`;
+                const miniTimeText = `${deadlineDate.getDate()}/${deadlineDate.getMonth()+1} lúc ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}`;
+                
+                miniNote.innerHTML = `
+                    <button class="mini-delete-btn admin-only" onclick="deleteNoteById('${noteObj.id}')">✕</button>
+                    <div class="mini-note-text">${noteObj.text}</div>
+                    <div class="mini-note-meta">
+                        <span class="mini-time"><i class="fa-regular fa-clock"></i> ${miniTimeText}</span>
+                        <span class="mini-countdown" data-mini-deadline="${noteObj.deadline}">${getCountdownText(noteObj.deadline)}</span>
+                    </div>
+                `;
+
+                if (idx % 2 === 0) {
+                    document.getElementById('leftMiniList').appendChild(miniNote);
+                } else {
+                    document.getElementById('rightMiniList').appendChild(miniNote);
+                }
+            });
+
+            checkTimeAndAlerts();
+        }
+
+        function validateAndParseTime(hourStr) {
+            const cleanStr = hourStr.trim().replace('h', ':');
+            const timeRegex = /^([0-1]?[0-9]|2[0-3])(:[0-5][0-9])?$/;
+            if (!timeRegex.test(cleanStr)) {
+                alert("❌ SAI ĐỊNH DẠNG GIỜ!\nVui lòng nhập đúng định dạng 24h (Ví dụ: 9, 13:15, 18:30).");
+                return null;
+            }
+            let hours = 0, minutes = 0;
+            if (cleanStr.includes(':')) {
+                const parts = cleanStr.split(':');
+                hours = parseInt(parts[0]);
+                minutes = parseInt(parts[1]);
+            } else {
+                hours = parseInt(cleanStr);
+                minutes = 0;
+            }
+            return { hours, minutes };
+        }
+
+        function addTask() {
+            if (!checkAdminPermission()) return;
+            const taskInput = document.getElementById('taskInput');
+            const dateInput = document.getElementById('dateInput');
+            const hourInput = document.getElementById('hourInput');
+            
+            const selectedMode = document.querySelector('input[name="noteMode"]:checked').value;
+            const taskText = taskInput.value.trim();
+            const dateValue = dateInput.value;
+
+            if (taskText === "" || dateValue === "") {
+                alert("Vui lòng nhập nội dung và chọn ngày!");
+                return;
+            }
+
+            const timeObj = validateAndParseTime(hourInput.value);
+            if (timeObj === null) return; 
+
+            const dateParts = dateValue.split('-'); 
+            const deadlineDate = new Date(
+                parseInt(dateParts[0]),
+                parseInt(dateParts[1]) - 1,
+                parseInt(dateParts[2]),
+                timeObj.hours,
+                timeObj.minutes,
+                0, 0
+            );
+
+            if (deadlineDate.getTime() < new Date().getTime()) {
+                alert("❌ THỜI GIAN LÀ QUÁ KHỨ!\nHạn định không được nhỏ hơn thời gian hiện tại.");
+                return;
+            }
+
+            notesData.push({
+                id: Date.now().toString(),
+                text: taskText,
+                deadline: deadlineDate.getTime(),
+                status: 'todo',
+                type: selectedMode,
+                completedAt: null
+            });
+            saveNotesToStorage();
+            renderAllNotes();
+
+            taskInput.value = "";
+            initDefaultDateTime(); 
+        }
+
+        function openEditModal(id) {
+            if (!checkAdminPermission()) return;
+            const noteObj = notesData.find(n => n.id === id);
+            if (!noteObj) return;
+
+            document.getElementById('editNoteId').value = id;
+            document.getElementById('editTaskText').value = noteObj.text;
+
+            const d = new Date(noteObj.deadline);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('editTaskDeadline').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('editModal').classList.remove('active'); }
+
+        function saveModalChanges() {
+            if (!checkAdminPermission()) return;
+            const id = document.getElementById('editNoteId').value;
+            const newText = document.getElementById('editTaskText').value.trim();
+            const newDeadlineValue = document.getElementById('editTaskDeadline').value;
+
+            if (newText === "" || newDeadlineValue === "") {
+                alert("Nội dung và thời gian không được để trống!");
+                return;
+            }
+
+            const newDeadlineDate = new Date(newDeadlineValue);
+            if (isNaN(newDeadlineDate.getTime())) { alert("Thời gian không hợp lệ!"); return; }
+            if (newDeadlineDate.getTime() < new Date().getTime()) { alert("❌ THỜI GIAN LÀ QUÁ KHỨ!"); return; }
+
+            const noteObj = notesData.find(n => n.id === id);
+            if (noteObj) {
+                noteObj.text = newText;
+                noteObj.deadline = newDeadlineDate.getTime();
+                saveNotesToStorage();
+                renderAllNotes();
+                closeModal();
+            }
+        }
+
+        function checkTimeAndAlerts() {
+            const nowMs = new Date().getTime();
+            const oneDayInMs = 24 * 60 * 60 * 1000; 
+            autoCleanOldDoneNotes();
+
+            const todoNotes = document.querySelectorAll('#todoColumn .note');
+            todoNotes.forEach(note => {
+                const deadline = parseInt(note.dataset.deadline);
+                const timeLeft = deadline - nowMs;
+                const tag = note.querySelector('.countdown-tag');
+                if (tag) tag.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${getCountdownText(deadline)}`;
+
+                if (timeLeft <= 0 || timeLeft <= oneDayInMs) {
+                    note.classList.add('urgent');
+                } else {
+                    note.classList.remove('urgent');
+                }
+            });
+
+            const miniCountdowns = document.querySelectorAll('[data-mini-deadline]');
+            miniCountdowns.forEach(miniTag => {
+                const deadline = parseInt(miniTag.dataset.miniDeadline);
+                miniTag.innerText = getCountdownText(deadline);
+                const miniNoteCard = miniTag.closest('.mini-note');
+                if (miniNoteCard) {
+                    if (deadline - nowMs <= 0 || deadline - nowMs <= oneDayInMs) {
+                        miniNoteCard.classList.add('urgent');
+                    } else {
+                        miniNoteCard.classList.remove('urgent');
+                    }
+                }
+            });
+        }
+        setInterval(checkTimeAndAlerts, 10000);
+
+        function moveRight(button) {
+            if (!checkAdminPermission()) return;
+            const note = button.closest('.note');
+            const noteObj = notesData.find(n => n.id === note.dataset.id);
+            if (noteObj) { noteObj.status = 'done'; noteObj.completedAt = new Date().getTime(); }
+            saveNotesToStorage();
+            renderAllNotes();
+        }
+
+        function moveLeft(button) {
+            if (!checkAdminPermission()) return;
+            const note = button.closest('.note');
+            const noteObj = notesData.find(n => n.id === note.dataset.id);
+            if (noteObj) { noteObj.status = 'todo'; noteObj.completedAt = null; }
+            saveNotesToStorage();
+            renderAllNotes();
+        }
+
+        function deleteNoteById(id) {
+            if (!checkAdminPermission()) return;
+            if (confirm("Bạn có chắc chắn muốn xóa ghi chú này không?")) {
+                notesData = notesData.filter(n => n.id !== id);
+                saveNotesToStorage();
+                renderAllNotes();
+            }
+        }
+
+        // Initialize App
+        updateAdminUI();
+        updateClockAndCalendar();
+        initDefaultDateTime();
+        loadNotes();
+    </script>
+</body>
+</html>

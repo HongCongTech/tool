@@ -1,0 +1,2709 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiền Cơm Trưa - Quản Lý Suất Ăn & Sổ Nợ Đồng Nghiệp</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Supabase Database Storage Adapter -->
+    <script src="../../assets/js/db-storage.js"></script>
+
+    <style>
+        :root {
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --primary-light: #fff7ed;
+            --primary-border: #fed7aa;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748b;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --slate-50: #f8fafc;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --border: #e2e8f0;
+            --card-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+        body { background-color: #f8fafc; color: var(--slate-800); min-height: 100vh; padding-bottom: 60px; -webkit-font-smoothing: antialiased; }
+
+        /* Admin Edit Mode: chỉ hiện nút Sửa khi toggle Admin được bật từ Dock */
+        .admin-edit-btn {
+            display: none !important;
+        }
+        body.admin-edit-mode .admin-edit-btn {
+            display: inline-flex !important;
+        }
+
+        /* HEADER */
+        .app-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .header-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-box {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .brand-desc {
+            font-size: 0.78rem;
+            color: var(--slate-500);
+            font-weight: 500;
+        }
+
+        /* Unified System Admin Badge */
+        .admin-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+            background: var(--slate-100);
+            color: var(--slate-600);
+            transition: all 0.2s ease;
+        }
+        body.is-admin .admin-badge {
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #86efac;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* BUTTONS */
+        .btn {
+            border: none;
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+        }
+        .btn-primary:hover { background: #ea580c; transform: translateY(-1px); }
+        .btn-secondary {
+            background: #ffffff;
+            color: var(--slate-700);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--slate-100); border-color: var(--slate-500); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+        /* Admin-only rule */
+        .admin-only { display: none !important; }
+        body.is-admin .admin-only { display: inline-flex !important; }
+        body.is-admin div.admin-only { display: flex !important; }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* METRICS HERO */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--card-shadow);
+        }
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .metric-icon.orange { background: #fff7ed; color: #f97316; }
+        .metric-icon.green { background: #ecfdf5; color: #10b981; }
+        .metric-icon.blue { background: #eff6ff; color: #3b82f6; }
+        .metric-val { font-size: 1.35rem; font-weight: 800; color: var(--slate-900); }
+        .metric-label { font-size: 0.8rem; color: var(--slate-500); font-weight: 600; }
+
+        /* BLOCK CARDS */
+        .block-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            box-shadow: var(--card-shadow);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--slate-100);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* DATE FLIGHT SLIDER */
+        .date-slider-wrapper {
+            position: relative;
+        }
+        .date-slider-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 6px 2px;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+        }
+        .date-slider-container::-webkit-scrollbar { height: 6px; }
+        .date-slider-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .date-pill {
+            flex: 0 0 88px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .date-pill:hover {
+            border-color: var(--primary-border);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        }
+        .date-pill.active {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #ffffff;
+            border-color: #f97316;
+            box-shadow: 0 6px 14px rgba(249, 115, 22, 0.35);
+        }
+        .date-pill.has-data::after {
+            content: '';
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 7px;
+            height: 7px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--success);
+        }
+
+        /* MEMBER GRID */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 16px;
+        }
+        .member-card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .member-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+        }
+        .member-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .member-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .member-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--slate-900);
+        }
+        .debt-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: var(--slate-50);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .debt-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-debt { color: var(--danger); font-weight: 700; font-size: 13px; }
+        .badge-credit { color: var(--success); font-weight: 700; font-size: 13px; }
+
+        /* LOG TABLE */
+        .log-table-wrapper {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+        .log-table th {
+            background: var(--slate-100);
+            color: var(--slate-700);
+            padding: 12px 14px;
+            font-weight: 700;
+        }
+        .log-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .log-table tr:last-child td { border-bottom: none; }
+        .log-badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 11px;
+            display: inline-block;
+        }
+        .log-badge.meal { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+        .log-badge.pay { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+
+        /* MODALS */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 24px;
+            border: 1px solid var(--border);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-title { font-size: 1.15rem; font-weight: 800; color: var(--slate-900); }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--slate-500);
+            cursor: pointer;
+        }
+        .modal-close:hover { color: var(--danger); }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .form-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--slate-700);
+        }
+        .form-input {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--primary); }
+
+        .quick-price-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            background: var(--slate-50);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            align-items: center;
+        }
+        .quick-price-btn {
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            color: var(--slate-800);
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .quick-price-btn:hover {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+        }
+
+        /* VIETQR CARD & PAY MODAL */
+        .pay-modal-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 20px;
+            align-items: start;
+        }
+        .pay-qr-box {
+            background: var(--slate-50);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .pay-qr-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            background: #ffffff;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .qr-card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .qr-image-wrapper {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+        .qr-img { width: 240px; height: 240px; object-fit: contain; }
+
+        /* MEAL TABLE CHECKBOXES & ROW STYLES */
+        .meal-row.inactive-row {
+            opacity: 0.45;
+            background: var(--slate-100);
+        }
+        .meal-row.inactive-row input {
+            background: var(--slate-200);
+            cursor: not-allowed;
+        }
+
+        /* MEMBER META TAGS & DIRECTORY */
+        .member-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .member-meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            color: var(--slate-600);
+            background: var(--slate-100);
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .member-meta-tag:hover {
+            background: var(--slate-200);
+            color: var(--slate-900);
+        }
+        .birthday-badge {
+            background: #fef3c7;
+            color: #b45309;
+            font-weight: 700;
+            border: 1px solid #fde68a;
+        }
+        .directory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .directory-table th {
+            background: var(--slate-100);
+            padding: 10px 12px;
+            font-weight: 700;
+            text-align: left;
+            color: var(--slate-700);
+        }
+        .directory-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .directory-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* AUTH & RECOVERY TABS */
+        .auth-tab-btn {
+            flex: 1;
+            padding: 8px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 680px) {
+            .pay-modal-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .header-container { flex-direction: column; align-items: flex-start; }
+            .header-actions { width: 100%; justify-content: flex-start; }
+            .member-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- APP HEADER -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-group">
+                <div class="logo-box">🍱</div>
+                <div>
+                    <h1 class="brand-title">Tiền Cơm Đồng Nghiệp</h1>
+                    <div class="brand-desc">Quản lý suất ăn trưa & Đối soát công nợ</div>
+                </div>
+                <span class="admin-badge" id="adminStatusBadge" onclick="handleAdminBadgeClick()" style="cursor:pointer;" title="Nhấp để đăng nhập / đăng xuất Quản trị viên">👁️ Chế độ xem</span>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="copyDebtReport()" title="Sao chép báo cáo nợ để gửi nhóm Zalo/Telegram">
+                    <i class="fa-solid fa-clipboard-list"></i> Báo Cáo Zalo
+                </button>
+                <button class="btn btn-secondary" onclick="openBankSettingsModal()" title="Cài đặt tài khoản ngân hàng nhận tiền">
+                    <i class="fa-solid fa-qrcode"></i> Cài VietQR
+                </button>
+                <button class="btn btn-primary admin-only" onclick="openMealModal()">
+                    <i class="fa-solid fa-plus"></i> Thêm Bữa Ăn
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 1. METRICS OVERVIEW -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon orange"><i class="fa-solid fa-utensils"></i></div>
+                <div>
+                    <div class="metric-val" id="metricTotalSpent">0đ</div>
+                    <div class="metric-label">Tổng chi phí bữa ăn</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon green"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                <div>
+                    <div class="metric-val" id="metricTotalPending">0đ</div>
+                    <div class="metric-label">Công nợ cần thanh toán</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon blue"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <div class="metric-val" id="metricMemberCount">0</div>
+                    <div class="metric-label">Thành viên trong nhóm</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. DATE FLIGHT SLIDER -->
+        <section class="block-card">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-regular fa-calendar-days" style="color:var(--primary);"></i> Chọn Ngày Xem Giao Dịch</div>
+                <span id="selectedDateDisplay" style="font-size:13px; font-weight:700; color:var(--primary);"></span>
+            </div>
+            <div class="date-slider-wrapper">
+                <div class="date-slider-container" id="dateSlider"></div>
+            </div>
+        </section>
+
+        <!-- 3. MEMBER & DEBT GRID -->
+        <section class="block-card">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--primary);"></i> Danh Sách Thành Viên & Số Dư Đối Soát</div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button class="btn btn-secondary btn-sm" onclick="openMemberDirectoryModal()" title="Mở danh bạ thông tin chi tiết các thành viên">
+                        <i class="fa-solid fa-address-book"></i> Danh Bạ & Sửa TV
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="openAddMemberModal()" title="Thêm thành viên mới"><i class="fa-solid fa-user-plus"></i> Thêm TV</button>
+                </div>
+            </div>
+            <div class="member-grid" id="memberGrid"></div>
+        </section>
+
+        <!-- 4. DAILY LOGS -->
+        <section class="block-card">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-receipt" style="color:var(--primary);"></i> <span id="logTitle">Giao Dịch Theo Ngày</span></div>
+            </div>
+            <div class="log-table-wrapper">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">Ngày</th>
+                            <th style="width: 100px;">Loại</th>
+                            <th>Nội Dung Chi Tiết</th>
+                            <th class="admin-only" style="width: 90px; text-align:center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody"></tbody>
+                </table>
+                <div id="emptyLogState" style="text-align:center; padding:24px; color:var(--slate-500); font-size:13px; font-style:italic; display:none;">Chưa có dữ liệu bữa ăn trong ngày này.</div>
+            </div>
+        </section>
+
+        <!-- 5. ALL LOGS HISTORY -->
+        <section class="block-card">
+            <div class="section-header">
+                <div class="section-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary);"></i> Toàn Bộ Lịch Sử Giao Dịch</div>
+            </div>
+            <div class="log-table-wrapper">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">Ngày</th>
+                            <th style="width: 100px;">Loại</th>
+                            <th>Nội Dung Chi Tiết</th>
+                            <th class="admin-only" style="width: 90px; text-align:center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fullLogTableBody"></tbody>
+                </table>
+                <div id="emptyFullLogState" style="text-align:center; padding:24px; color:var(--slate-500); font-size:13px; font-style:italic; display:none;">Chưa có lịch sử giao dịch nào.</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; font-size:13px;" id="paginationBar">
+                <span id="pageInfo">Trang 1 / 1</span>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-secondary btn-sm" id="btnPrevPage" onclick="changeFullLogPage(-1)">◄ Trước</button>
+                    <button class="btn btn-secondary btn-sm" id="btnNextPage" onclick="changeFullLogPage(1)">Sau ►</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL 1: THÊM / SỬA BỮA ĂN -->
+    <div class="modal-overlay" id="mealModal">
+        <div class="modal-card" style="max-width:680px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="mealModalTitle">🍚 Nhập Chi Phí Bữa Ăn</h3>
+                <button class="modal-close" onclick="closeModal('mealModal')">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">📅 Ngày ăn:</label>
+                <input type="date" id="mealDateInput" class="form-input">
+            </div>
+
+            <!-- Quick Preset Prices with Dish Names (Editable) -->
+            <div class="quick-price-group" id="mealPresetsContainer">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">💳 Người thanh toán trước:</label>
+                <select id="mealPayerSelect" class="form-input"></select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">👥 Chi tiết suất ăn từng người (Tick chọn ai ăn / không ăn, nhập theo 'k', VD: 35 = 35.000đ):</label>
+                <div class="log-table-wrapper" style="max-height:280px; overflow-y:auto;">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th style="width:48px; text-align:center;">
+                                    <input type="checkbox" id="selectAllMealMembers" onchange="toggleSelectAllMealMembers(this.checked)" checked title="Chọn / Bỏ chọn tất cả">
+                                </th>
+                                <th style="width:150px;">Đồng nghiệp</th>
+                                <th>Tên món ăn</th>
+                                <th style="width:115px;">Số tiền (k)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mealInputBody"></tbody>
+                    </table>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--slate-50); border:1px solid var(--border); padding:8px 12px; border-radius:var(--radius-sm); margin-top:10px; font-size:13px;">
+                    <span id="mealMemberCountText"><i class="fa-solid fa-user-check" style="color:var(--success);"></i> <b>0</b> người tham gia</span>
+                    <span id="mealTotalCostText" style="font-weight:800; color:var(--primary);">Tổng: 0đ</span>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button class="btn btn-secondary" onclick="closeModal('mealModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="saveMeal()"><i class="fa-solid fa-floppy-disk"></i> Lưu Bữa Ăn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1.1: QUẢN LÝ MÓN ĂN NHANH (GIÁ NHANH & TÊN MÓN) -->
+    <div class="modal-overlay" id="presetManagerModal">
+        <div class="modal-card" style="max-width:520px;">
+            <div class="modal-header">
+                <h3 class="modal-title">⚙️ Cài Đặt Món Ăn Nhanh & Giá</h3>
+                <button class="modal-close" onclick="closeModal('presetManagerModal')">&times;</button>
+            </div>
+            <p style="font-size:12.5px; color:var(--slate-600); margin-bottom:12px;">
+                Tùy chỉnh danh sách món ăn và giá nhanh. Khi chọn món, hệ thống sẽ tự động điền cả Tên món và Giá tiền cho các thành viên được tick chọn:
+            </p>
+
+            <div style="max-height:240px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:14px;">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Tên món</th>
+                            <th style="width:90px;">Giá (k)</th>
+                            <th style="width:60px; text-align:center;">Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="presetManagerTableBody"></tbody>
+                </table>
+            </div>
+
+            <div style="background:var(--slate-50); border:1px solid var(--border); padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:14px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:6px; color:var(--slate-700);">➕ Thêm món nhanh mới:</div>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="newPresetName" class="form-input" placeholder="Tên món (VD: Cơm sườn bì)" style="flex:2; padding:6px 10px; font-size:12px;">
+                    <input type="number" id="newPresetPrice" class="form-input" placeholder="Giá (k, VD: 35)" style="flex:1; padding:6px 10px; font-size:12px;">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="addNewMealPreset()"><i class="fa-solid fa-plus"></i> Thêm</button>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <button class="btn btn-secondary btn-sm" onclick="resetDefaultMealPresets()"><i class="fa-solid fa-rotate-left"></i> Khôi phục mặc định</button>
+                <button class="btn btn-primary" onclick="closeModal('presetManagerModal')">Xong</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: GHI NHẬN & THANH TOÁN QR TRỰC TIẾP (GỬI VỀ SỐ TK CỦA TÔI) -->
+    <div class="modal-overlay" id="payModal">
+        <div class="modal-card" style="max-width:720px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-money-bill-transfer" style="color:var(--success);"></i> Ghi Nhận & Thanh Toán QR</h3>
+                <button class="modal-close" onclick="closeModal('payModal')">&times;</button>
+            </div>
+
+            <div class="pay-modal-grid">
+                <!-- Cột trái: Thông tin thanh toán -->
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Người trả tiền (Thành viên đang nợ):</label>
+                        <select id="payPayerSelect" class="form-input" onchange="handlePayPayerChange()"></select>
+                    </div>
+
+                    <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:12.5px;">
+                        <span style="color:#991b1b;">Tổng số tiền thành viên này đang nợ:</span>
+                        <div id="payCurrentDebtText" style="font-size:16px; font-weight:800; color:var(--danger); margin-top:2px;">0đ</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Người nhận tiền (Chủ chi / Admin):</label>
+                        <select id="payReceiverSelect" class="form-input" onchange="updatePayQR()"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Số tiền trả (k) - VD: 50 = 50.000đ:</label>
+                        <input type="number" id="payAmountInput" class="form-input" placeholder="VD: 50" oninput="updatePayQR()">
+                    </div>
+
+                    <!-- Nút chọn số tiền nhanh -->
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="applyPayAllDebt()"><i class="fa-solid fa-coins"></i> Trả hết nợ</button>
+                        <button type="button" class="quick-price-btn" onclick="applyPayQuickAmount(30)">30k</button>
+                        <button type="button" class="quick-price-btn" onclick="applyPayQuickAmount(35)">35k</button>
+                        <button type="button" class="quick-price-btn" onclick="applyPayQuickAmount(50)">50k</button>
+                        <button type="button" class="quick-price-btn" onclick="applyPayQuickAmount(100)">100k</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nội dung chuyển khoản:</label>
+                        <input type="text" id="payMemoInput" class="form-input" oninput="updatePayQR()">
+                    </div>
+                </div>
+
+                <!-- Cột phải: Live Dynamic VietQR chuyển về số TK của tôi -->
+                <div class="pay-qr-box">
+                    <div style="font-weight:800; font-size:13px; color:var(--slate-800);">
+                        <i class="fa-solid fa-qrcode" style="color:var(--primary);"></i> Mã QR Chuyển Khoản Trực Tiếp
+                    </div>
+                    <div style="font-size:11px; color:var(--slate-500); margin-top:-4px;">
+                        Tiền sẽ chuyển về <b>Số TK của tôi (Chủ chi)</b>
+                    </div>
+
+                    <img id="payQrImage" class="pay-qr-img" src="" alt="Mã VietQR Chuyển Khoản">
+
+                    <div>
+                        <div id="payQrAmountText" style="font-size:1.15rem; font-weight:800; color:var(--primary);">0đ</div>
+                        <div id="payQrDescText" style="font-size:11.5px; color:var(--slate-600); margin-top:2px;"></div>
+                    </div>
+
+                    <div style="background:#ffffff; border:1px solid var(--border); padding:8px 12px; border-radius:var(--radius-sm); font-size:11.5px; width:100%; text-align:left;">
+                        <div><b>Ngân hàng:</b> <span id="payQrBankText">MB</span></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin:3px 0;">
+                            <span><b>Số TK:</b> <span id="payQrAccNoText"></span></span>
+                            <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 6px; font-size:10px;" onclick="copyQrAccount()"><i class="fa-regular fa-copy"></i> Chép</button>
+                        </div>
+                        <div><b>Chủ TK:</b> <span id="payQrAccNameText"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+                <button class="btn btn-secondary" onclick="closeModal('payModal')">Hủy</button>
+                <button class="btn btn-success" onclick="savePayment()"><i class="fa-solid fa-check"></i> Xác Nhận Đã Thanh Toán (Ghi Sổ)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: THÊM / SỬA CHI TIẾT THÀNH VIÊN -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal-card" style="max-width:500px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="memberModalTitle">👤 Chi Tiết Thành Viên</h3>
+                <button class="modal-close" onclick="closeModal('memberModal')">&times;</button>
+            </div>
+
+            <input type="hidden" id="memberIdHidden">
+
+            <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label class="form-label">Tên đầy đủ (Họ và tên) (*):</label>
+                    <input type="text" id="memberFullNameInput" class="form-input" placeholder="VD: Nguyễn Văn A">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nick name / Biệt danh (*):</label>
+                    <input type="text" id="memberNicknameInput" class="form-input" placeholder="VD: A Còi, Tuấn...">
+                </div>
+            </div>
+            <input type="hidden" id="memberNameInput">
+
+            <div class="form-group">
+                <label class="form-label">Ngày tháng năm sinh:</label>
+                <input type="date" id="memberDobInput" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Số điện thoại:</label>
+                <input type="tel" id="memberPhoneInput" class="form-input" placeholder="VD: 0987654321">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:10px;">
+                <div class="form-group">
+                    <label class="form-label">Ngân hàng:</label>
+                    <input type="text" id="memberBankIdInput" class="form-input" placeholder="MB, VCB, TCB..." list="commonBanksList">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Số tài khoản ngân hàng:</label>
+                    <input type="text" id="memberAccountNoInput" class="form-input" placeholder="STK nhận tiền">
+                </div>
+            </div>
+
+            <datalist id="commonBanksList">
+                <option value="MB">MB Bank</option>
+                <option value="VCB">Vietcombank</option>
+                <option value="TCB">Techcombank</option>
+                <option value="VPB">VPBank</option>
+                <option value="ACB">ACB</option>
+                <option value="BIDV">BIDV</option>
+                <option value="VBA">Agribank</option>
+                <option value="TPB">TPBank</option>
+                <option value="STB">Sacombank</option>
+                <option value="VIB">VIB</option>
+                <option value="CTG">VietinBank</option>
+            </datalist>
+
+            <div class="form-group">
+                <label class="form-label">Tên chủ tài khoản (nếu có):</label>
+                <input type="text" id="memberAccountNameInput" class="form-input" placeholder="VD: NGUYEN VAN A">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ghi chú / Bộ phận:</label>
+                <input type="text" id="memberNoteInput" class="form-input" placeholder="VD: Phòng Kỹ Thuật, Ăn chay...">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button class="btn btn-secondary" onclick="closeModal('memberModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="saveMemberDetail()"><i class="fa-solid fa-floppy-disk"></i> Lưu Thành Viên</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: DANH BẠ THÀNH VIÊN ĐẦY ĐỦ -->
+    <div class="modal-overlay" id="memberDirectoryModal">
+        <div class="modal-card" style="max-width:880px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-address-book" style="color:var(--primary);"></i> Danh Bạ Thành Viên Chi Tiết</h3>
+                <button class="modal-close" onclick="closeModal('memberDirectoryModal')">&times;</button>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+                <input type="text" id="directorySearchInput" class="form-input" placeholder="🔍 Tìm theo tên, số điện thoại, ngân hàng..." style="max-width:320px; padding:8px 12px; font-size:13px;" oninput="filterMemberDirectory(this.value)">
+                <button class="btn btn-success btn-sm" onclick="openAddMemberModal()"><i class="fa-solid fa-user-plus"></i> Thêm Thành Viên Mới</button>
+            </div>
+
+            <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-md); max-height:420px; overflow-y:auto;">
+                <table class="directory-table">
+                    <thead>
+                        <tr>
+                            <th>Thành viên</th>
+                            <th>Ngày sinh</th>
+                            <th>Số điện thoại</th>
+                            <th>Tài khoản ngân hàng</th>
+                            <th>Công nợ</th>
+                            <th style="width:150px; text-align:center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberDirectoryTableBody"></tbody>
+                </table>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+                <button class="btn btn-secondary" onclick="closeModal('memberDirectoryModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: CÀI ĐẶT VIETQR TÀI KHOẢN CỦA TÔI -->
+    <div class="modal-overlay" id="bankSettingsModal">
+        <div class="modal-card" style="max-width:440px;">
+            <div class="modal-header">
+                <h3 class="modal-title">💳 Cài Đặt Tài Khoản VietQR Của Tôi</h3>
+                <button class="modal-close" onclick="closeModal('bankSettingsModal')">&times;</button>
+            </div>
+            <p style="font-size:12px; color:var(--slate-500); margin-bottom:12px;">
+                Tài khoản này là tài khoản nhận tiền khi đồng nghiệp quét mã QR thanh toán nợ tiền cơm:
+            </p>
+            <div class="form-group">
+                <label class="form-label">Mã ngân hàng (VD: MB, VCB, TCB, VPB, ACB...):</label>
+                <input type="text" id="bankIdInput" class="form-input" placeholder="MB" list="commonBanksList">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Số tài khoản nhận tiền:</label>
+                <input type="text" id="bankAccNoInput" class="form-input" placeholder="0987654321">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tên chủ tài khoản:</label>
+                <input type="text" id="bankAccNameInput" class="form-input" placeholder="NGUYEN VAN A">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button class="btn btn-secondary" onclick="closeModal('bankSettingsModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="saveBankSettings()"><i class="fa-solid fa-floppy-disk"></i> Lưu Thông Tin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: QUÉT MÃ VIETQR NHANH -->
+    <div class="modal-overlay" id="vietQRModal">
+        <div class="modal-card" style="max-width:420px; text-align:center;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-qrcode" style="color:var(--primary);"></i> Chuyển Khoản Nhanh VietQR</h3>
+                <button class="modal-close" onclick="closeModal('vietQRModal')">&times;</button>
+            </div>
+            <div class="qr-card-content">
+                <div class="qr-image-wrapper">
+                    <img id="qrImage" class="qr-img" src="" alt="Mã VietQR Chuyển Khoản">
+                </div>
+                <div>
+                    <div style="font-size:1.1rem; font-weight:800; color:var(--primary);" id="qrAmountText">0đ</div>
+                    <div style="font-size:13px; color:var(--slate-600); margin-top:4px;" id="qrDescText"></div>
+                </div>
+                <div style="background:var(--slate-50); border:1px solid var(--border); padding:10px 14px; border-radius:var(--radius-sm); font-size:12px; width:100%; text-align:left;">
+                    <div><b>Ngân hàng:</b> <span id="qrBankText"></span></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin:4px 0;">
+                        <span><b>Số TK:</b> <span id="qrAccNoText"></span></span>
+                        <button class="btn btn-secondary btn-sm" onclick="copyQrAccount()"><i class="fa-regular fa-copy"></i> Chép</button>
+                    </div>
+                    <div><b>Chủ TK:</b> <span id="qrAccNameText"></span></div>
+                </div>
+            </div>
+            <div style="margin-top:12px;">
+                <button class="btn btn-secondary" style="width:100%;" onclick="closeModal('vietQRModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: ĐĂNG NHẬP ADMIN TOÀN HỆ THỐNG -->
+    <div class="modal-overlay" id="adminAuthModal">
+        <div class="modal-card" style="max-width:380px;">
+            <div class="modal-header">
+                <h3 class="modal-title">🔑 Xác Thực Quản Trị Viên</h3>
+                <button class="modal-close" onclick="closeModal('adminAuthModal')">&times;</button>
+            </div>
+            <p style="font-size:13px; color:var(--slate-600); margin-bottom:12px;">
+                Nhập mật khẩu Admin để mở khóa toàn quyền chỉnh sửa và thao tác:
+            </p>
+            <div class="form-group">
+                <input type="password" id="adminAuthPassInput" class="form-input" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitAdminLogin()">
+            </div>
+            <div style="text-align:right; margin-top:-6px; margin-bottom:14px;">
+                <button type="button" onclick="closeModal('adminAuthModal'); openForgotPasswordModal();" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
+                    Quên mật khẩu? Lấy lại bằng Email / Master Key
+                </button>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn btn-secondary" onclick="closeModal('adminAuthModal')">Hủy</button>
+                <button class="btn btn-primary" onclick="submitAdminLogin()">Đăng Nhập</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 8: KHÔI PHỤC MẬT KHẨU ADMIN & MASTER KEY QUA EMAIL -->
+    <div class="modal-overlay" id="adminRecoveryModal">
+        <div class="modal-card" style="max-width:440px;">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color:#0284c7;">🛡️ Khôi Phục & Đặt Lại Bảo Mật</h3>
+                <button class="modal-close" onclick="closeModal('adminRecoveryModal')">&times;</button>
+            </div>
+            <p style="font-size:12.5px; color:var(--slate-600); text-align:center; margin-bottom:12px;">
+                Mật khẩu Admin & Master Key khôi phục qua Email hoặc dùng Master Key reset Mật khẩu Admin:
+            </p>
+
+            <!-- Tabs -->
+            <div style="display:flex; gap:6px; margin-bottom:14px; background:var(--slate-100); padding:4px; border-radius:8px;">
+                <button type="button" id="tabTienComEmailBtn" class="auth-tab-btn" style="background:#0284c7; color:#fff;" onclick="switchTienComRecoveryTab('email')">
+                    📧 Lấy lại MK Admin
+                </button>
+                <button type="button" id="tabTienComMasterBtn" class="auth-tab-btn" style="background:transparent; color:var(--slate-700);" onclick="switchTienComRecoveryTab('master')">
+                    🔑 Reset MK qua Master Key
+                </button>
+                <button type="button" id="tabTienComResetMasterBtn" class="auth-tab-btn" style="background:transparent; color:var(--slate-700);" onclick="switchTienComRecoveryTab('reset-master')">
+                    🛡️ Reset Master Key (Mail)
+                </button>
+            </div>
+
+            <!-- Tab 1: Email Recovery for Admin Password with OTP -->
+            <div id="tabTienComEmail">
+                <div style="background:var(--slate-50); border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
+                    <div style="color:var(--slate-500);">Email khôi phục của hệ thống:</div>
+                    <div id="tcDisplayRecoveryEmail" style="font-weight:700; color:#0284c7; font-size:13px; margin:4px 0;">Đang tải email...</div>
+                    <button type="button" id="tcBtnSendAdminOtp" class="btn btn-success btn-sm" style="width:100%; margin-top:4px;" onclick="sendRecoveryOtpEmail('admin')">
+                        📩 Gửi Mã OTP Xác Thực Về Email
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nhập mã OTP 6 số nhận được:</label>
+                    <input type="text" id="tcRecoveryOtpInput" class="form-input" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu Admin mới:</label>
+                    <input type="password" id="tcNewAdminPassByEmail" class="form-input" placeholder="Nhập mật khẩu mới...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Xác nhận mật khẩu Admin mới:</label>
+                    <input type="password" id="tcConfirmAdminPassByEmail" class="form-input" placeholder="Nhập lại mật khẩu mới...">
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminRecoveryModal')">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="submitOtpPasswordRecovery()">Xác Nhận Đổi Mật Khẩu</button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Master Key Recovery to Reset Admin Password -->
+            <div id="tabTienComMaster" style="display:none;">
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:8px 12px; border-radius:8px; font-size:12px; color:#1e40af; margin-bottom:12px;">
+                    💡 Dùng <b>Master Key cứu hộ</b> bạn đã thiết lập để đặt lại Mật khẩu Admin ngay lập tức.
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nhập Master Key cứu hộ:</label>
+                    <input type="password" id="tcForgotMasterKeyInput" class="form-input" placeholder="Master Key của bạn...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu Admin mới:</label>
+                    <input type="password" id="tcNewAdminPassByMaster" class="form-input" placeholder="Nhập mật khẩu mới...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Xác nhận mật khẩu Admin mới:</label>
+                    <input type="password" id="tcConfirmAdminPassByMaster" class="form-input" placeholder="Nhập lại mật khẩu mới...">
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminRecoveryModal')">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="submitMasterKeyRecoveryDirect()">Khôi Phục Mật Khẩu Admin</button>
+                </div>
+            </div>
+
+            <!-- Tab 3: Reset Master Key ONLY via Email -->
+            <div id="tabTienComResetMaster" style="display:none;">
+                <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px 12px; border-radius:8px; font-size:12px; color:#991b1b; margin-bottom:12px; line-height:1.4;">
+                    🛡️ <b>Quy tắc bảo mật cao nhất:</b> Master Key <i>chỉ có thể lấy lại hoặc reset bằng Email cứu hộ</i>. Không thể reset bằng mật khẩu thông thường.
+                </div>
+                <div style="background:var(--slate-50); border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
+                    <div style="color:var(--slate-500);">Email nhận mã OTP reset Master Key:</div>
+                    <div id="tcDisplayRecoveryEmailMaster" style="font-weight:700; color:#0284c7; font-size:13px; margin:4px 0;">Đang tải email...</div>
+                    <button type="button" id="tcBtnSendMasterOtp" class="btn btn-warning btn-sm" style="width:100%; margin-top:4px; background:#f59e0b; color:#fff;" onclick="sendRecoveryOtpEmail('master')">
+                        📩 Gửi Mã OTP Đặt Lại Master Key Về Email
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nhập mã OTP 6 số nhận được:</label>
+                    <input type="text" id="tcMasterResetOtpInput" class="form-input" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Master Key mới:</label>
+                    <input type="password" id="tcNewMasterKeyInput" class="form-input" placeholder="Nhập Master Key mới...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Xác nhận Master Key mới:</label>
+                    <input type="password" id="tcConfirmNewMasterKeyInput" class="form-input" placeholder="Nhập lại Master Key mới...">
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminRecoveryModal')">Hủy</button>
+                    <button type="button" class="btn btn-primary" style="background:#f59e0b;" onclick="submitOtpMasterKeyReset()">Đặt Lại Master Key Mới</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --------------------------------------------------------------------------
+        // --------------------------------------------------------------------------
+        // 1. DATA STATE & UNIFIED SYSTEM ADMIN SYNC
+        // --------------------------------------------------------------------------
+        const DEFAULT_MEMBERS = [
+            { id: '1', name: 'A', fullName: 'Nguyễn Văn A', nickname: 'A', dob: '1995-04-12', phone: '0981234567', bankId: 'MB', accountNo: '0981234567', accountName: 'NGUYEN VAN A', note: 'Trưởng nhóm' },
+            { id: '2', name: 'B', fullName: 'Trần Thị B', nickname: 'B', dob: '1998-08-25', phone: '0972345678', bankId: 'VCB', accountNo: '1012345678', accountName: 'TRAN THI B', note: 'Thiết kế' },
+            { id: '3', name: 'C', fullName: 'Lê Văn C', nickname: 'C', dob: '1996-11-30', phone: '0963456789', bankId: 'TCB', accountNo: '1903456789', accountName: 'LE VAN C', note: 'Kỹ thuật' }
+        ];
+
+        let members = JSON.parse(localStorage.getItem('p2p_members')) || DEFAULT_MEMBERS;
+        // Normalize members with default properties if loaded from older structure
+        members = members.map(m => ({
+            id: m.id,
+            name: m.nickname || m.name || m.fullName || '',
+            fullName: m.fullName || m.name || '',
+            nickname: m.nickname || m.name || '',
+            dob: m.dob || '',
+            phone: m.phone || '',
+            bankId: m.bankId || '',
+            accountNo: m.accountNo || '',
+            accountName: m.accountName || '',
+            note: m.note || ''
+        }));
+
+        let logs = JSON.parse(localStorage.getItem('p2p_logs')) || [];
+
+        // Meal Presets with Dish Name & Price (Editable)
+        const DEFAULT_MEAL_PRESETS = [
+            { id: '1', name: 'Cơm văn phòng', price: 30 },
+            { id: '2', name: 'Cơm sườn bì chả', price: 35 },
+            { id: '3', name: 'Cơm gà xối mỡ', price: 40 },
+            { id: '4', name: 'Bún chả Hà Nội', price: 45 },
+            { id: '5', name: 'Phở bò đặc biệt', price: 50 }
+        ];
+        let mealPresets = JSON.parse(localStorage.getItem('p2p_meal_presets')) || DEFAULT_MEAL_PRESETS;
+
+        function loadCurrentBankInfo() {
+            try {
+                const sys = localStorage.getItem('sys_bank_config');
+                if (sys) {
+                    const parsed = JSON.parse(sys);
+                    if (parsed && parsed.bankId && parsed.accountNo) return parsed;
+                }
+            } catch(e) {}
+            try {
+                const legacy = localStorage.getItem('p2p_bank_info');
+                if (legacy) return JSON.parse(legacy);
+            } catch(e) {}
+            return {
+                bankId: 'MB',
+                accountNo: '0987654321',
+                accountName: 'ADMIN CHU CHI'
+            };
+        }
+        let bankInfo = loadCurrentBankInfo();
+
+        const SYS_ADMIN_HASH_KEY = 'sys_admin_pass_hash';
+        const SYS_MASTER_KEY_HASH_KEY = 'sys_master_key_hash';
+        const SYS_RECOVERY_EMAIL_KEY = 'sys_recovery_email';
+        const SYS_IS_ADMIN_KEY = 'sys_is_admin';
+
+        let isAdmin = localStorage.getItem(SYS_IS_ADMIN_KEY) === 'true';
+        let selectedDate = getTodayStr();
+        let debts = {};
+        let editingLogId = null;
+        let currentPayPayerId = null;
+        let fullLogCurrentPage = 1;
+        const FULL_LOG_PAGE_SIZE = 50;
+
+        async function hashPassword(text) {
+            const msgBuffer = new TextEncoder().encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Unified System Admin Synchronization
+        function updateAdminUI() {
+            document.body.classList.toggle('is-admin', isAdmin);
+            const badge = document.getElementById('adminStatusBadge');
+            if (badge) {
+                if (isAdmin) {
+                    badge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Quản trị viên (Toàn quyền)';
+                } else {
+                    badge.innerHTML = '<i class="fa-solid fa-eye"></i> Chế độ xem (Chỉ đọc)';
+                }
+            }
+            renderDashboard();
+        }
+
+        function setAdminMode(enable) {
+            isAdmin = enable;
+            localStorage.setItem(SYS_IS_ADMIN_KEY, enable ? 'true' : 'false');
+            updateAdminUI();
+            if ('BroadcastChannel' in window) {
+                try {
+                    new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: enable });
+                } catch(e) {}
+            }
+        }
+
+        function checkAdminPermission() {
+            if (!isAdmin) {
+                if (confirm('🔒 Bạn đang ở Chế độ xem (Chỉ đọc).\nBạn có muốn đăng nhập Quản trị viên (Admin) ngay để thực hiện thao tác này không?')) {
+                    openAdminAuthModal();
+                }
+                return false;
+            }
+            return true;
+        }
+
+        function handleAdminBadgeClick() {
+            if (isAdmin) {
+                if (confirm('Bạn có muốn đăng xuất khỏi Chế độ Quản trị viên (Admin Mode) về chế độ xem không?')) {
+                    setAdminMode(false);
+                    alert('Đã chuyển về Chế độ xem (Chỉ đọc).');
+                }
+            } else {
+                openAdminAuthModal();
+            }
+        }
+
+        // Admin Login Modal
+        function openAdminAuthModal() {
+            document.getElementById('adminAuthPassInput').value = '';
+            document.getElementById('adminAuthModal').classList.add('show');
+            setTimeout(() => document.getElementById('adminAuthPassInput').focus(), 150);
+        }
+
+        let pendingEditMemberId = null;
+        let pendingAddMember = false;
+
+        async function submitAdminLogin() {
+            const pass = document.getElementById('adminAuthPassInput').value;
+            if (!pass) return alert('Vui lòng nhập mật khẩu Admin!');
+
+            const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
+            if (!storedHash) {
+                const defaultHash = await hashPassword('admin123');
+                const hashed = await hashPassword(pass);
+                if (hashed === defaultHash || pass === 'admin123') {
+                    localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
+                    localStorage.setItem('sys_admin_password_hash', defaultHash);
+                    setAdminMode(true);
+                    closeModal('adminAuthModal');
+                    alert('Đăng nhập Quản trị viên thành công!');
+                    if (pendingEditMemberId) {
+                        const memId = pendingEditMemberId;
+                        pendingEditMemberId = null;
+                        openEditMemberModal(memId);
+                    } else if (pendingAddMember) {
+                        pendingAddMember = false;
+                        openAddMemberModal();
+                    }
+                    return;
+                }
+                alert('Chưa thiết lập Mật khẩu Admin trong hệ thống. Vui lòng mở trang chính Dashboard để cài đặt ban đầu!');
+                return;
+            }
+
+            const hashed = await hashPassword(pass);
+            if (hashed === storedHash) {
+                setAdminMode(true);
+                closeModal('adminAuthModal');
+                alert('Đăng nhập Quản trị viên thành công!');
+                if (pendingEditMemberId) {
+                    const memId = pendingEditMemberId;
+                    pendingEditMemberId = null;
+                    openEditMemberModal(memId);
+                } else if (pendingAddMember) {
+                    pendingAddMember = false;
+                    openAddMemberModal();
+                }
+            } else {
+                alert('Mật khẩu Admin không chính xác!');
+            }
+        }
+
+        // Admin Recovery Modal (Email & Master Key)
+        function openForgotPasswordModal(tab = 'email') {
+            closeModal('adminAuthModal');
+            const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
+            const d1 = document.getElementById('tcDisplayRecoveryEmail');
+            const d2 = document.getElementById('tcDisplayRecoveryEmailMaster');
+            if (d1) d1.innerText = email;
+            if (d2) d2.innerText = email;
+
+            switchTienComRecoveryTab(tab);
+            document.getElementById('adminRecoveryModal').classList.add('show');
+        }
+
+        function switchTienComRecoveryTab(tab) {
+            const tEmail = document.getElementById('tabTienComEmail');
+            const tMaster = document.getElementById('tabTienComMaster');
+            const tResetMaster = document.getElementById('tabTienComResetMaster');
+            const bEmail = document.getElementById('tabTienComEmailBtn');
+            const bMaster = document.getElementById('tabTienComMasterBtn');
+            const bResetMaster = document.getElementById('tabTienComResetMasterBtn');
+
+            if (tEmail) tEmail.style.display = tab === 'email' ? 'block' : 'none';
+            if (tMaster) tMaster.style.display = tab === 'master' ? 'block' : 'none';
+            if (tResetMaster) tResetMaster.style.display = tab === 'reset-master' ? 'block' : 'none';
+
+            if (bEmail) {
+                bEmail.style.background = tab === 'email' ? '#0284c7' : 'transparent';
+                bEmail.style.color = tab === 'email' ? '#fff' : 'var(--slate-700)';
+            }
+            if (bMaster) {
+                bMaster.style.background = tab === 'master' ? '#0284c7' : 'transparent';
+                bMaster.style.color = tab === 'master' ? '#fff' : 'var(--slate-700)';
+            }
+            if (bResetMaster) {
+                bResetMaster.style.background = tab === 'reset-master' ? '#f59e0b' : 'transparent';
+                bResetMaster.style.color = tab === 'reset-master' ? '#fff' : 'var(--slate-700)';
+            }
+        }
+
+        let activeRecoveryOtp = null;
+
+        function sendRecoveryOtpEmail(type = 'admin') {
+            let email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY);
+            if (!email) {
+                email = prompt('Vui lòng nhập Email cứu hộ của bạn để nhận mã OTP xác thực:');
+                if (!email || !email.includes('@')) return alert('Email không hợp lệ!');
+                localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, email);
+            }
+
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            activeRecoveryOtp = { code: otp, expiry: Date.now() + 10 * 60 * 1000, type, email };
+            sessionStorage.setItem('sys_active_otp', JSON.stringify(activeRecoveryOtp));
+
+            const targetInput = type === 'master' ? document.getElementById('tcMasterResetOtpInput') : document.getElementById('tcRecoveryOtpInput');
+            if (targetInput) targetInput.value = otp;
+
+            const typeDesc = type === 'master' ? 'Đặt lại Master Key cứu hộ' : 'Khôi phục Mật khẩu Quản trị Admin';
+            alert(`📩 HỆ THỐNG XÁC THỰC EMAIL:\n\nĐã gửi mã OTP đến: ${email}\nMục đích: ${typeDesc}\n\nMã OTP xác thực của bạn: [ ${otp} ]\n(Có hiệu lực trong 10 phút. Hệ thống đã tự động điền vào ô OTP để bạn kiểm tra thuận tiện).`);
+        }
+
+        async function submitOtpPasswordRecovery() {
+            const inputOtp = (document.getElementById('tcRecoveryOtpInput')?.value || '').trim();
+            const newPass = document.getElementById('tcNewAdminPassByEmail')?.value || '';
+            const confirmPass = document.getElementById('tcConfirmAdminPassByEmail')?.value || '';
+
+            if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số!');
+            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
+            if (newPass !== confirmPass) return alert('Mật khẩu xác nhận không khớp!');
+
+            let saved = activeRecoveryOtp;
+            if (!saved) {
+                try { saved = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
+            }
+            if (!saved || saved.type !== 'admin') return alert('Chưa gửi OTP cho khôi phục Mật khẩu. Hãy bấm "Gửi Mã OTP"!');
+            if (Date.now() > saved.expiry) return alert('Mã OTP đã hết hạn (quá 10 phút)!');
+            if (inputOtp !== saved.code) return alert('Mã OTP không chính xác!');
+
+            const hashed = await hashPassword(newPass);
+            localStorage.setItem(SYS_ADMIN_HASH_KEY, hashed);
+            setAdminMode(true);
+            closeModal('adminRecoveryModal');
+            alert('Khôi phục Mật khẩu Admin thành công qua Email!');
+        }
+
+        async function submitMasterKeyRecoveryDirect() {
+            const mk = (document.getElementById('tcForgotMasterKeyInput')?.value || '').trim();
+            const newPass = document.getElementById('tcNewAdminPassByMaster')?.value || '';
+            const confirmPass = document.getElementById('tcConfirmAdminPassByMaster')?.value || '';
+
+            if (!mk) return alert('Vui lòng nhập Master Key cứu hộ!');
+            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
+            if (newPass !== confirmPass) return alert('Mật khẩu xác nhận không khớp!');
+
+            const storedMK = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
+            if (!storedMK) return alert('Chưa có Master Key trong hệ thống!');
+
+            const hashedMK = await hashPassword(mk);
+            if (hashedMK !== storedMK) return alert('Master Key cứu hộ không chính xác!');
+
+            const hashedPass = await hashPassword(newPass);
+            localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedPass);
+            setAdminMode(true);
+            closeModal('adminRecoveryModal');
+            alert('Khôi phục Mật khẩu Admin thành công bằng Master Key!');
+        }
+
+        async function submitOtpMasterKeyReset() {
+            const inputOtp = (document.getElementById('tcMasterResetOtpInput')?.value || '').trim();
+            const newMK = document.getElementById('tcNewMasterKeyInput')?.value || '';
+            const confirmMK = document.getElementById('tcConfirmNewMasterKeyInput')?.value || '';
+
+            if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số từ Email!');
+            if (!newMK) return alert('Vui lòng nhập Master Key mới!');
+            if (newMK !== confirmMK) return alert('Xác nhận Master Key mới không khớp!');
+
+            let saved = activeRecoveryOtp;
+            if (!saved) {
+                try { saved = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
+            }
+            if (!saved || saved.type !== 'master') return alert('Chưa gửi OTP đặt lại Master Key!');
+            if (Date.now() > saved.expiry) return alert('Mã OTP đã hết hạn!');
+            if (inputOtp !== saved.code) return alert('Mã OTP không đúng!');
+
+            const hashedMK = await hashPassword(newMK);
+            localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedMK);
+            closeModal('adminRecoveryModal');
+            alert('🛡️ Đặt lại Master Key thành công qua Email cứu hộ!');
+        }
+
+        // Cross-tab and Sub-App Broadcast Synchronization
+        window.addEventListener('message', function (e) {
+            if (e.data && e.data.type === 'ADMIN_STATUS_CHANGED') {
+                isAdmin = !!e.data.isAdmin;
+                updateAdminUI();
+            } else if (e.data && e.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
+                document.body.classList.toggle('admin-edit-mode', !!e.data.adminEditMode);
+            } else if (e.data && e.data.type === 'BANK_CONFIG_CHANGED') {
+                bankInfo = e.data.bankConfig;
+            }
+        });
+
+        window.addEventListener('storage', function (e) {
+            if (e.key === SYS_IS_ADMIN_KEY) {
+                isAdmin = e.newValue === 'true';
+                updateAdminUI();
+            } else if (e.key === 'p2p_members') {
+                try {
+                    members = JSON.parse(e.newValue) || [];
+                    recalculateDebts();
+                } catch(err) {}
+            } else if (e.key === 'sys_bank_config' || e.key === 'p2p_bank_info') {
+                bankInfo = loadCurrentBankInfo();
+            }
+        });
+
+        if ('BroadcastChannel' in window) {
+            const channel = new BroadcastChannel('system_admin_auth');
+            channel.onmessage = function (e) {
+                if (e.data && e.data.type === 'ADMIN_STATUS_CHANGED') {
+                    isAdmin = !!e.data.isAdmin;
+                    updateAdminUI();
+                } else if (e.data && e.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
+                    document.body.classList.toggle('admin-edit-mode', !!e.data.adminEditMode);
+                } else if (e.data && e.data.type === 'BANK_CONFIG_CHANGED') {
+                    bankInfo = e.data.bankConfig;
+                }
+            };
+
+            const memberChannel = new BroadcastChannel('system_member_sync');
+            memberChannel.onmessage = function (e) {
+                if (e.data && (e.data.type === 'MEMBERS_UPDATED' || e.data.type === 'SYNC_ALL_MEMBERS' || e.data.type === 'MEMBERS_SYNCED')) {
+                    if (e.data.comMembers && Array.isArray(e.data.comMembers)) {
+                        members = e.data.comMembers;
+                    } else if (e.data.globalMembers && Array.isArray(e.data.globalMembers)) {
+                        members = e.data.globalMembers.map(m => ({
+                            id: m.id,
+                            name: m.nickname || m.name || m.fullName || '',
+                            fullName: m.fullName || m.name || '',
+                            nickname: m.nickname || m.name || '',
+                            dob: m.dob || '',
+                            phone: m.phone || '',
+                            bankId: m.bankId || '',
+                            accountNo: m.accountNo || '',
+                            accountName: m.accountName || '',
+                            note: m.note || ''
+                        }));
+                    }
+                    recalculateDebts();
+                    if (document.getElementById('memberDirectoryModal')?.classList.contains('show')) {
+                        renderMemberDirectory();
+                    }
+                }
+            };
+        }
+
+        function saveData() {
+            localStorage.setItem('p2p_members', JSON.stringify(members));
+            localStorage.setItem('p2p_logs', JSON.stringify(logs));
+        }
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        function getTodayStr() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('show');
+        }
+
+        function copyText(text, successMsg = 'Đã sao chép vào bộ nhớ tạm') {
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`📋 ${successMsg}: ${text}`);
+            }).catch(() => {
+                prompt('Sao chép thủ công:', text);
+            });
+        }
+
+        function formatDob(dobStr) {
+            if (!dobStr) return '';
+            const parts = dobStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dobStr;
+        }
+
+        function calcAge(dobStr) {
+            if (!dobStr) return '';
+            const birth = new Date(dobStr);
+            if (isNaN(birth.getTime())) return '';
+            const diff = Date.now() - birth.getTime();
+            const age = new Date(diff).getUTCFullYear() - 1970;
+            return age > 0 ? `(${age} tuổi)` : '';
+        }
+
+        // --------------------------------------------------------------------------
+        // 2. MEMBER MANAGEMENT & DIRECTORY
+        // --------------------------------------------------------------------------
+        function openAddMemberModal() {
+            if (!isAdmin) {
+                pendingAddMember = true;
+                if (confirm('🔒 Bạn cần đăng nhập Quản trị viên (Admin) để thêm thành viên mới.\nBạn có muốn đăng nhập ngay không?')) {
+                    openAdminAuthModal();
+                }
+                return;
+            }
+            document.getElementById('memberModalTitle').innerText = '➕ Thêm Thành Viên Mới';
+            document.getElementById('memberIdHidden').value = '';
+            document.getElementById('memberFullNameInput').value = '';
+            document.getElementById('memberNicknameInput').value = '';
+            document.getElementById('memberNameInput').value = '';
+            document.getElementById('memberDobInput').value = '';
+            document.getElementById('memberPhoneInput').value = '';
+            document.getElementById('memberBankIdInput').value = '';
+            document.getElementById('memberAccountNoInput').value = '';
+            document.getElementById('memberAccountNameInput').value = '';
+            document.getElementById('memberNoteInput').value = '';
+            document.getElementById('memberModal').classList.add('show');
+            setTimeout(() => document.getElementById('memberFullNameInput').focus(), 150);
+        }
+
+        function openEditMemberModal(id) {
+            if (!isAdmin) {
+                pendingEditMemberId = id;
+                if (confirm('🔒 Bạn cần đăng nhập Quản trị viên (Admin) để sửa thông tin thành viên.\nBạn có muốn đăng nhập ngay không?')) {
+                    openAdminAuthModal();
+                }
+                return;
+            }
+            const m = members.find(mem => mem.id === id);
+            if (!m) return;
+
+            document.getElementById('memberModalTitle').innerText = '✏️ Sửa Thông Tin Thành Viên';
+            document.getElementById('memberIdHidden').value = m.id;
+            document.getElementById('memberFullNameInput').value = m.fullName || m.name || '';
+            document.getElementById('memberNicknameInput').value = m.nickname || m.name || '';
+            document.getElementById('memberNameInput').value = m.name || '';
+            document.getElementById('memberDobInput').value = m.dob || '';
+            document.getElementById('memberPhoneInput').value = m.phone || '';
+            document.getElementById('memberBankIdInput').value = m.bankId || '';
+            document.getElementById('memberAccountNoInput').value = m.accountNo || '';
+            document.getElementById('memberAccountNameInput').value = m.accountName || '';
+            document.getElementById('memberNoteInput').value = m.note || '';
+            document.getElementById('memberModal').classList.add('show');
+            setTimeout(() => document.getElementById('memberFullNameInput').focus(), 150);
+        }
+
+        function saveMemberDetail() {
+            if (!checkAdminPermission()) return;
+            const id = document.getElementById('memberIdHidden').value;
+            const fullName = (document.getElementById('memberFullNameInput')?.value || '').trim();
+            const nickname = (document.getElementById('memberNicknameInput')?.value || '').trim();
+            const dob = document.getElementById('memberDobInput').value;
+            const phone = document.getElementById('memberPhoneInput').value.trim();
+            const bankId = document.getElementById('memberBankIdInput').value.trim().toUpperCase();
+            const accountNo = document.getElementById('memberAccountNoInput').value.trim();
+            const accountName = document.getElementById('memberAccountNameInput').value.trim().toUpperCase();
+            const note = document.getElementById('memberNoteInput').value.trim();
+
+            if (!fullName && !nickname) return alert('Vui lòng nhập Họ tên hoặc Nickname thành viên!');
+
+            const name = nickname || fullName;
+
+            if (id) {
+                // Update existing
+                const idx = members.findIndex(m => m.id === id);
+                if (idx !== -1) {
+                    members[idx] = {
+                        ...members[idx],
+                        name, fullName: fullName || name, nickname: nickname || name,
+                        dob, phone, bankId, accountNo, accountName, note
+                    };
+                }
+            } else {
+                // Add new
+                members.push({
+                    id: Date.now().toString(),
+                    name, fullName: fullName || name, nickname: nickname || name,
+                    dob, phone, bankId, accountNo, accountName, note
+                });
+            }
+
+            saveData();
+            recalculateDebts();
+            if (document.getElementById('memberDirectoryModal').classList.contains('show')) {
+                renderMemberDirectory();
+            }
+            closeModal('memberModal');
+
+            try {
+                const bc = new BroadcastChannel('system_member_sync');
+                bc.postMessage({ type: 'MEMBERS_UPDATED', comMembers: members });
+            } catch(e) {}
+        }
+
+        function deleteMember(id) {
+            if (!checkAdminPermission()) return;
+            const m = members.find(mem => mem.id === id);
+            if (!m) return;
+            if (confirm(`Bạn có chắc muốn xóa thành viên "${m.fullName || m.name}" khỏi danh sách?`)) {
+                members = members.filter(mem => mem.id !== id);
+                saveData();
+                recalculateDebts();
+                if (document.getElementById('memberDirectoryModal').classList.contains('show')) {
+                    renderMemberDirectory();
+                }
+                try {
+                    const bc = new BroadcastChannel('system_member_sync');
+                    bc.postMessage({ type: 'MEMBERS_UPDATED', comMembers: members });
+                } catch(e) {}
+            }
+        }
+
+        function openMemberDirectoryModal() {
+            document.getElementById('directorySearchInput').value = '';
+            renderMemberDirectory();
+            document.getElementById('memberDirectoryModal').classList.add('show');
+        }
+
+        function filterMemberDirectory(query) {
+            const q = (query || '').toLowerCase().trim();
+            if (!q) {
+                renderMemberDirectory();
+                return;
+            }
+            const filtered = members.filter(m => 
+                (m.name || '').toLowerCase().includes(q) ||
+                (m.fullName || '').toLowerCase().includes(q) ||
+                (m.nickname || '').toLowerCase().includes(q) ||
+                (m.phone || '').toLowerCase().includes(q) ||
+                (m.bankId || '').toLowerCase().includes(q) ||
+                (m.accountNo || '').toLowerCase().includes(q) ||
+                (m.accountName || '').toLowerCase().includes(q) ||
+                (m.note || '').toLowerCase().includes(q)
+            );
+            renderMemberDirectory(filtered);
+        }
+
+        function renderMemberDirectory(list = null) {
+            const tbody = document.getElementById('memberDirectoryTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const displayList = list !== null ? list : members;
+
+            if (displayList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--slate-500); font-style:italic;">Không tìm thấy thành viên phù hợp.</td></tr>`;
+                return;
+            }
+
+            displayList.forEach(m => {
+                const totalDebt = getMemberTotalDebt(m.id);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="member-avatar" style="width:36px; height:36px; font-size:13px; font-weight:700; background:${getAvatarBg(m.name)};">${(m.nickname || m.name).charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight:700; color:var(--slate-900);">
+                                    ${m.fullName || m.name}
+                                    ${m.nickname && m.nickname !== m.fullName ? `<span style="display:inline-block; font-size:10px; font-weight:600; padding:1px 6px; border-radius:4px; background:#e0f2fe; color:#0369a1; margin-left:4px;">${m.nickname}</span>` : ''}
+                                </div>
+                                ${m.note ? `<div style="font-size:11px; color:var(--slate-500);"><i class="fa-solid fa-tag"></i> ${m.note}</div>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        ${m.dob ? `<div><i class="fa-solid fa-cake-candles" style="color:#f59e0b;"></i> ${formatDob(m.dob)} <span style="font-size:11px; color:var(--slate-500);">${calcAge(m.dob)}</span></div>` : '<span style="color:var(--slate-400);">--</span>'}
+                    </td>
+                    <td>
+                        ${m.phone ? `<div><a href="tel:${m.phone}" style="color:var(--primary); text-decoration:none; font-weight:600;"><i class="fa-solid fa-phone"></i> ${m.phone}</a></div>` : '<span style="color:var(--slate-400);">--</span>'}
+                    </td>
+                    <td>
+                        ${m.accountNo ? `
+                            <div>
+                                <b>${m.bankId || 'NH'}:</b> ${m.accountNo}
+                                <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 6px; font-size:10px; margin-left:4px;" onclick="copyText('${m.accountNo}', 'Đã chép số TK')"><i class="fa-regular fa-copy"></i></button>
+                                ${m.accountName ? `<div style="font-size:10.5px; color:var(--slate-500);">${m.accountName}</div>` : ''}
+                            </div>
+                        ` : '<span style="color:var(--slate-400); font-style:italic;">Chưa có STK</span>'}
+                    </td>
+                    <td>
+                        ${totalDebt > 0 ? `<span class="badge-debt">${formatMoney(totalDebt)}</span>` : '<span class="badge-credit">0đ</span>'}
+                    </td>
+                    <td style="text-align:center;">
+                        <div style="display:inline-flex; gap:4px; align-items:center;">
+                            ${m.bankId && m.accountNo ? `
+                                <button class="btn btn-primary btn-sm" onclick="openMemberTransferQrModal('${m.id}')" title="Mã VietQR chuyển tiền / trả tiền lại"><i class="fa-solid fa-qrcode"></i> QR</button>
+                            ` : `
+                                <button class="btn btn-secondary btn-sm" disabled style="opacity:0.4; cursor:not-allowed;" title="Chưa cập nhật số tài khoản"><i class="fa-solid fa-qrcode"></i></button>
+                            `}
+                            <button class="btn btn-secondary btn-sm admin-edit-btn" onclick="openEditMemberModal('${m.id}')" title="Sửa thông tin thành viên" style="font-weight:600; color:var(--primary);"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                            <button class="btn btn-secondary btn-sm admin-only" style="color:var(--danger);" onclick="deleteMember('${m.id}')" title="Xóa thành viên (Admin)"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openMemberTransferQrModal(memberId) {
+            const m = members.find(mem => mem.id === memberId);
+            if (!m) return;
+            if (!m.bankId || !m.accountNo) {
+                alert(`Thành viên "${m.fullName || m.name}" chưa có thông tin STK ngân hàng.\nQuản trị viên vui lòng nhấn "Sửa" để bổ sung Ngân hàng và STK.`);
+                return;
+            }
+            const debt = getMemberTotalDebt(m.id);
+            const amount = debt > 0 ? debt : 50000;
+            const content = `Tra tien cho ${m.nickname || m.name}`;
+
+            document.getElementById('qrAmountText').innerText = formatMoney(amount);
+            document.getElementById('qrDescText').innerText = `Chuyển/Trả tiền lại cho: ${m.fullName || m.name} (${content})`;
+            document.getElementById('qrBankText').innerText = m.bankId;
+            document.getElementById('qrAccNoText').innerText = m.accountNo;
+            document.getElementById('qrAccNameText').innerText = m.accountName || m.fullName || m.name;
+
+            const qrUrl = `https://img.vietqr.io/image/${m.bankId}-${m.accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(m.accountName || m.fullName || m.name)}`;
+            document.getElementById('qrImage').src = qrUrl;
+            document.getElementById('vietQRModal').classList.add('show');
+        }
+
+        // --------------------------------------------------------------------------
+        // 3. DATE CAROUSEL & FLIGHT PICKER
+        // --------------------------------------------------------------------------
+        function renderDateSlider() {
+            const container = document.getElementById('dateSlider');
+            if (!container) return;
+            container.innerHTML = '';
+            const today = new Date();
+            const daysArr = [];
+            const datesWithData = new Set(logs.map(l => l.dateStr));
+
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                daysArr.push(d);
+            }
+
+            const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            daysArr.forEach(d => {
+                const dateStr = d.toISOString().split('T')[0];
+                const hasData = datesWithData.has(dateStr);
+                const pill = document.createElement('div');
+                pill.className = `date-pill ${dateStr === selectedDate ? 'active' : ''} ${hasData ? 'has-data' : ''}`;
+                pill.onclick = () => {
+                    selectedDate = dateStr;
+                    renderDateSlider();
+                    renderDashboard();
+                };
+
+                pill.innerHTML = `
+                    <div style="font-size:11px; font-weight:600; opacity:0.85;">${dayNames[d.getDay()]}</div>
+                    <div style="font-size:18px; font-weight:800; margin:2px 0;">${d.getDate()}</div>
+                    <div style="font-size:11px; opacity:0.85;">Tháng ${d.getMonth() + 1}</div>
+                `;
+                container.appendChild(pill);
+            });
+
+            const selDisplay = document.getElementById('selectedDateDisplay');
+            if (selDisplay) {
+                const parts = selectedDate.split('-');
+                selDisplay.innerText = `Ngày ${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+        }
+
+        // --------------------------------------------------------------------------
+        // 4. DEBT CALCULATION & DASHBOARD
+        // --------------------------------------------------------------------------
+        function getDebt(fromId, toId) { return debts[`${fromId}_${toId}`] || 0; }
+        function setDebt(fromId, toId, amt) {
+            if (amt <= 0) delete debts[`${fromId}_${toId}`];
+            else debts[`${fromId}_${toId}`] = amt;
+        }
+
+        function adjustDebt(debtorId, creditorId, amount) {
+            if (debtorId === creditorId || amount === 0) return;
+            let rev = getDebt(creditorId, debtorId);
+            if (rev > 0) {
+                if (rev >= amount) { setDebt(creditorId, debtorId, rev - amount); return; }
+                else { amount -= rev; setDebt(creditorId, debtorId, 0); }
+            }
+            setDebt(debtorId, creditorId, getDebt(debtorId, creditorId) + amount);
+        }
+
+        function getMemberTotalDebt(memberId) {
+            let total = 0;
+            members.forEach(other => {
+                if (other.id !== memberId) {
+                    total += getDebt(memberId, other.id);
+                }
+            });
+            return total;
+        }
+
+        function recalculateDebts() {
+            debts = {};
+            const sortedLogs = [...logs].reverse();
+
+            sortedLogs.forEach(l => {
+                if (l.type === 'Bữa Ăn' && l.items) {
+                    l.items.forEach(item => {
+                        if (item.amount > 0 && item.colleagueId !== l.payerId) {
+                            adjustDebt(item.colleagueId, l.payerId, item.amount);
+                        }
+                    });
+                } else if (l.type === 'Trả Tiền') {
+                    let cur = getDebt(l.payerId, l.receiverId);
+                    if (cur >= l.amount) setDebt(l.payerId, l.receiverId, cur - l.amount);
+                    else {
+                        setDebt(l.payerId, l.receiverId, 0);
+                        adjustDebt(l.receiverId, l.payerId, l.amount - cur);
+                    }
+                }
+            });
+
+            renderDateSlider();
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const grid = document.getElementById('memberGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            let totalPending = 0;
+            let totalSpent = 0;
+
+            logs.forEach(l => {
+                if (l.type === 'Bữa Ăn') totalSpent += (l.amount || 0);
+            });
+
+            members.forEach(m => {
+                let debtHtml = '';
+                let hasBalance = false;
+                const memberTotalDebt = getMemberTotalDebt(m.id);
+
+                members.forEach(other => {
+                    if (m.id === other.id) return;
+                    let toOther = getDebt(m.id, other.id);
+                    let fromOther = getDebt(other.id, m.id);
+
+                    if (toOther > 0) {
+                        hasBalance = true;
+                        totalPending += toOther;
+                        debtHtml += `
+                            <div class="debt-item">
+                                <span>Nợ ${other.name}:</span>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span class="badge-debt">${formatMoney(toOther)}</span>
+                                    <button class="btn btn-secondary btn-sm" onclick="openVietQRModal('${m.name}', '${other.name}', ${toOther})" title="Mở mã QR chuyển khoản về số TK của tôi">
+                                        <i class="fa-solid fa-qrcode"></i> QR
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    if (fromOther > 0) {
+                        hasBalance = true;
+                        debtHtml += `
+                            <div class="debt-item">
+                                <span>${other.name} nợ:</span>
+                                <span class="badge-credit">${formatMoney(fromOther)}</span>
+                            </div>
+                        `;
+                    }
+                });
+
+                if (!hasBalance) {
+                    debtHtml = '<div style="color:var(--slate-500); font-style:italic; font-size:12px; text-align:center;">🎉 Đã hoàn tất, không có công nợ.</div>';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'member-card';
+                card.innerHTML = `
+                    <div>
+                        <div class="member-card-header">
+                            <div class="member-profile">
+                                <div class="member-avatar" style="background:${getAvatarBg(m.name)};">${m.name.charAt(0).toUpperCase()}</div>
+                                <div>
+                                    <div class="member-name">${m.name}</div>
+                                    <div style="font-size:11px; color:var(--slate-500);">${m.note || 'Thành viên nhóm'}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:4px; align-items:center;">
+                                <button class="btn btn-secondary btn-sm admin-edit-btn" onclick="openEditMemberModal('${m.id}')" title="Sửa chi tiết thông tin thành viên" style="font-weight:600; color:var(--primary);"><i class="fa-solid fa-user-pen"></i> Sửa</button>
+                                <div class="admin-only" style="display:inline-flex; gap:4px;">
+                                    ${memberTotalDebt > 0 ? `
+                                        <button class="btn btn-primary btn-sm" onclick="openPayModal('${m.id}')" title="Mở thanh toán QR chuyển khoản số tiền nợ về số TK của tôi">
+                                            <i class="fa-solid fa-qrcode"></i> Trả QR
+                                        </button>
+                                    ` : `
+                                        <button class="btn btn-primary btn-sm" onclick="openPayModal('${m.id}')" title="Ghi nhận trả tiền"><i class="fa-solid fa-money-bill-transfer"></i> Trả</button>
+                                    `}
+                                    <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteMember('${m.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Meta row: Birthday, Phone, Bank Info -->
+                        ${(m.dob || m.phone || m.accountNo) ? `
+                            <div class="member-meta-row" style="margin-bottom:10px;">
+                                ${m.dob ? `<span class="member-meta-tag"><i class="fa-solid fa-cake-candles" style="color:#f59e0b;"></i> ${formatDob(m.dob)}</span>` : ''}
+                                ${m.phone ? `<a href="tel:${m.phone}" class="member-meta-tag" onclick="event.stopPropagation()"><i class="fa-solid fa-phone" style="color:#10b981;"></i> ${m.phone}</a>` : ''}
+                                ${m.accountNo ? `<span class="member-meta-tag" onclick="copyText('${m.accountNo}', 'Đã chép số TK')" style="cursor:pointer;" title="Bấm để chép STK"><i class="fa-solid fa-building-columns" style="color:#3b82f6;"></i> ${m.bankId || 'NH'}: ${m.accountNo}</span>` : ''}
+                            </div>
+                        ` : ''}
+
+                        <div class="debt-list">${debtHtml}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Update Metrics
+            const elSpent = document.getElementById('metricTotalSpent');
+            if (elSpent) elSpent.innerText = formatMoney(totalSpent);
+            const elPending = document.getElementById('metricTotalPending');
+            if (elPending) elPending.innerText = formatMoney(totalPending);
+            const elCount = document.getElementById('metricMemberCount');
+            if (elCount) elCount.innerText = members.length;
+
+            renderLogs();
+        }
+
+        // --------------------------------------------------------------------------
+        // 5. MEAL TRANSACTION, PRESETS & CHECKBOXES
+        // --------------------------------------------------------------------------
+        function renderMealPresets() {
+            const container = document.getElementById('mealPresetsContainer');
+            if (!container) return;
+            container.innerHTML = `
+                <span style="font-size:12px; font-weight:700; color:var(--slate-700); display:flex; align-items:center; gap:4px;">
+                    <i class="fa-solid fa-bolt" style="color:var(--primary);"></i> Giá & Tên món nhanh:
+                </span>
+            `;
+            mealPresets.forEach(p => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'quick-price-btn';
+                btn.innerHTML = `<i class="fa-solid fa-utensils"></i> ${p.name} (${p.price}k)`;
+                btn.title = `Điền "${p.name}" & giá ${p.price}k cho những người được tick ăn`;
+                btn.onclick = () => applyMealPreset(p.id);
+                container.appendChild(btn);
+            });
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'btn btn-secondary btn-sm';
+            editBtn.style.padding = '5px 10px';
+            editBtn.style.fontSize = '11px';
+            editBtn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Sửa món nhanh`;
+            editBtn.onclick = openPresetManagerModal;
+            container.appendChild(editBtn);
+        }
+
+        function applyMealPreset(presetId) {
+            const preset = mealPresets.find(p => p.id === presetId);
+            if (!preset) return;
+
+            let appliedCount = 0;
+            members.forEach(m => {
+                const check = document.getElementById(`meal_check_${m.id}`);
+                if (check && check.checked) {
+                    const dishInput = document.getElementById(`dish_${m.id}`);
+                    const amtInput = document.getElementById(`meal_amt_${m.id}`);
+                    if (dishInput) dishInput.value = preset.name;
+                    if (amtInput) amtInput.value = preset.price;
+                    appliedCount++;
+                }
+            });
+
+            if (appliedCount === 0) {
+                alert('Chưa có thành viên nào được tick chọn ăn! Vui lòng tick chọn ít nhất 1 người để áp dụng.');
+            }
+            updateMealSummary();
+        }
+
+        // Preset Manager Modal Logic
+        function openPresetManagerModal() {
+            renderPresetManagerList();
+            document.getElementById('newPresetName').value = '';
+            document.getElementById('newPresetPrice').value = '';
+            document.getElementById('presetManagerModal').classList.add('show');
+        }
+
+        function renderPresetManagerList() {
+            const tbody = document.getElementById('presetManagerTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            mealPresets.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <input type="text" class="form-input" value="${p.name}" style="padding:4px 8px; font-size:12px;" onchange="updatePresetName('${p.id}', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" class="form-input" value="${p.price}" style="padding:4px 8px; font-size:12px; text-align:right;" onchange="updatePresetPrice('${p.id}', this.value)">
+                    </td>
+                    <td style="text-align:center;">
+                        <button type="button" class="btn btn-secondary btn-sm" style="color:var(--danger); padding:4px 8px;" onclick="deleteMealPreset('${p.id}')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updatePresetName(id, newName) {
+            const p = mealPresets.find(item => item.id === id);
+            if (p && newName.trim()) {
+                p.name = newName.trim();
+                localStorage.setItem('p2p_meal_presets', JSON.stringify(mealPresets));
+                renderMealPresets();
+            }
+        }
+
+        function updatePresetPrice(id, newPrice) {
+            const p = mealPresets.find(item => item.id === id);
+            const val = parseFloat(newPrice);
+            if (p && !isNaN(val) && val >= 0) {
+                p.price = val;
+                localStorage.setItem('p2p_meal_presets', JSON.stringify(mealPresets));
+                renderMealPresets();
+            }
+        }
+
+        function addNewMealPreset() {
+            const name = document.getElementById('newPresetName').value.trim();
+            const price = parseFloat(document.getElementById('newPresetPrice').value) || 0;
+            if (!name) return alert('Vui lòng nhập tên món!');
+            if (price <= 0) return alert('Vui lòng nhập giá hợp lệ (k)!');
+
+            mealPresets.push({
+                id: Date.now().toString(),
+                name,
+                price
+            });
+            localStorage.setItem('p2p_meal_presets', JSON.stringify(mealPresets));
+            document.getElementById('newPresetName').value = '';
+            document.getElementById('newPresetPrice').value = '';
+            renderPresetManagerList();
+            renderMealPresets();
+        }
+
+        function deleteMealPreset(id) {
+            mealPresets = mealPresets.filter(p => p.id !== id);
+            localStorage.setItem('p2p_meal_presets', JSON.stringify(mealPresets));
+            renderPresetManagerList();
+            renderMealPresets();
+        }
+
+        function resetDefaultMealPresets() {
+            if (confirm('Khôi phục danh sách món ăn nhanh về mặc định ban đầu?')) {
+                mealPresets = JSON.parse(JSON.stringify(DEFAULT_MEAL_PRESETS));
+                localStorage.setItem('p2p_meal_presets', JSON.stringify(mealPresets));
+                renderPresetManagerList();
+                renderMealPresets();
+            }
+        }
+
+        // Eating Checkbox Handlers
+        function toggleSelectAllMealMembers(isChecked) {
+            members.forEach(m => {
+                const check = document.getElementById(`meal_check_${m.id}`);
+                if (check) {
+                    check.checked = isChecked;
+                    toggleMemberEating(m.id, isChecked);
+                }
+            });
+            updateMealSummary();
+        }
+
+        function toggleMemberEating(memberId, forceState = null) {
+            const check = document.getElementById(`meal_check_${memberId}`);
+            const isChecked = forceState !== null ? forceState : (check ? check.checked : false);
+            const row = document.getElementById(`meal_row_${memberId}`);
+            const dishInput = document.getElementById(`dish_${memberId}`);
+            const amtInput = document.getElementById(`meal_amt_${memberId}`);
+
+            if (row) {
+                row.classList.toggle('inactive-row', !isChecked);
+            }
+            if (dishInput && amtInput) {
+                dishInput.disabled = !isChecked;
+                amtInput.disabled = !isChecked;
+                if (!isChecked) {
+                    amtInput.dataset.prevVal = amtInput.value;
+                    amtInput.value = '';
+                } else if (amtInput.dataset.prevVal) {
+                    amtInput.value = amtInput.dataset.prevVal;
+                }
+            }
+            updateMealSummary();
+        }
+
+        function updateMealSummary() {
+            let count = 0;
+            let totalK = 0;
+            members.forEach(m => {
+                const check = document.getElementById(`meal_check_${m.id}`);
+                if (check && check.checked) {
+                    count++;
+                    const amtK = parseFloat(document.getElementById(`meal_amt_${m.id}`)?.value) || 0;
+                    totalK += amtK;
+                }
+            });
+
+            const countEl = document.getElementById('mealMemberCountText');
+            const totalEl = document.getElementById('mealTotalCostText');
+            if (countEl) countEl.innerHTML = `<i class="fa-solid fa-user-check" style="color:var(--success);"></i> <b>${count}</b> / ${members.length} người ăn`;
+            if (totalEl) totalEl.innerText = `Tổng: ${formatMoney(totalK * 1000)}`;
+        }
+
+        function openMealModal(logId = null) {
+            if (!checkAdminPermission()) return;
+            editingLogId = logId;
+            const log = logId ? logs.find(l => l.id === logId) : null;
+
+            document.getElementById('mealModalTitle').innerText = log ? '✏️ Sửa Bữa Ăn' : '🍚 Nhập Chi Phí Bữa Ăn';
+            document.getElementById('mealDateInput').value = log ? log.dateStr : selectedDate;
+
+            renderMealPresets();
+
+            const tbody = document.getElementById('mealInputBody');
+            tbody.innerHTML = '';
+            const selectedPayer = log ? log.payerId : (members[0] ? members[0].id : '');
+
+            members.forEach(m => {
+                let dishName = '';
+                let amt = '';
+                let isChecked = true;
+
+                if (log && log.items) {
+                    const found = log.items.find(i => i.colleagueId === m.id);
+                    if (found) {
+                        dishName = found.dishName || '';
+                        amt = found.amount / 1000;
+                        isChecked = true;
+                    } else {
+                        isChecked = false;
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                tr.id = `meal_row_${m.id}`;
+                tr.className = `meal-row ${!isChecked ? 'inactive-row' : ''}`;
+                tr.innerHTML = `
+                    <td class="meal-check-col">
+                        <input type="checkbox" id="meal_check_${m.id}" class="meal-member-check" ${isChecked ? 'checked' : ''} onchange="toggleMemberEating('${m.id}')" title="Chọn người này có ăn hay không">
+                    </td>
+                    <td style="font-weight:700;">${m.name}</td>
+                    <td>
+                        <input type="text" id="dish_${m.id}" class="form-input" placeholder="Tên món" value="${dishName}" ${!isChecked ? 'disabled' : ''} style="padding:6px 10px; font-size:12px;">
+                    </td>
+                    <td>
+                        <input type="number" id="meal_amt_${m.id}" class="form-input" placeholder="0" value="${amt}" ${!isChecked ? 'disabled' : ''} oninput="updateMealSummary()" style="padding:6px 10px; font-size:12px; text-align:right;">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const payerSel = document.getElementById('mealPayerSelect');
+            payerSel.innerHTML = '';
+            members.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.text = m.name;
+                if (m.id === selectedPayer) opt.selected = true;
+                payerSel.appendChild(opt);
+            });
+
+            updateMealSummary();
+            document.getElementById('mealModal').classList.add('show');
+        }
+
+        function saveMeal() {
+            if (!checkAdminPermission()) return;
+            const dateStr = document.getElementById('mealDateInput').value;
+            const payerId = document.getElementById('mealPayerSelect').value;
+            const payer = members.find(m => m.id === payerId);
+            if (!dateStr || !payer) return alert('Vui lòng chọn ngày và người trả tiền!');
+
+            let items = [];
+            let totalAmount = 0;
+
+            members.forEach(m => {
+                const check = document.getElementById(`meal_check_${m.id}`);
+                if (check && check.checked) {
+                    const dish = document.getElementById(`dish_${m.id}`).value.trim();
+                    const amtK = parseFloat(document.getElementById(`meal_amt_${m.id}`).value) || 0;
+                    const amt = amtK * 1000;
+                    if (amt > 0) {
+                        items.push({ colleagueId: m.id, colleagueName: m.name, dishName: dish, amount: amt });
+                        totalAmount += amt;
+                    }
+                }
+            });
+
+            if (items.length === 0) return alert('Vui lòng tick chọn ít nhất 1 thành viên có số tiền > 0!');
+
+            let desc = `${payer.name} thanh toán tổng: ${formatMoney(totalAmount)} (` +
+                items.map(i => `${i.colleagueName}${i.dishName ? ` [${i.dishName}]` : ''}: ${formatMoney(i.amount)}`).join(', ') + ')';
+
+            if (editingLogId) {
+                const idx = logs.findIndex(l => l.id === editingLogId);
+                if (idx !== -1) {
+                    logs[idx] = { id: editingLogId, dateStr, type: 'Bữa Ăn', description: desc, payerId: payer.id, payerName: payer.name, amount: totalAmount, items };
+                }
+            } else {
+                logs.unshift({ id: Date.now().toString(), dateStr, type: 'Bữa Ăn', description: desc, payerId: payer.id, payerName: payer.name, amount: totalAmount, items });
+            }
+
+            saveData();
+            recalculateDebts();
+            closeModal('mealModal');
+        }
+
+        // --------------------------------------------------------------------------
+        // 6. PAYMENT TRANSACTION WITH DYNAMIC VIETQR SENT TO MY BANK ACCOUNT
+        // --------------------------------------------------------------------------
+        function openPayModal(payerId = null) {
+            if (!checkAdminPermission()) return;
+
+            const payerSel = document.getElementById('payPayerSelect');
+            payerSel.innerHTML = '';
+            members.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.text = m.name;
+                payerSel.appendChild(opt);
+            });
+
+            currentPayPayerId = payerId || (members[0] ? members[0].id : null);
+            if (currentPayPayerId) payerSel.value = currentPayPayerId;
+
+            // Receiver Select
+            const recSel = document.getElementById('payReceiverSelect');
+            recSel.innerHTML = '';
+            // My Account is the primary receiver option
+            const myOpt = document.createElement('option');
+            myOpt.value = 'MY_ACCOUNT';
+            myOpt.text = `Tài khoản của tôi (${bankInfo.accountName} - ${bankInfo.bankId})`;
+            recSel.appendChild(myOpt);
+
+            members.forEach(other => {
+                if (other.id !== currentPayPayerId) {
+                    const opt = document.createElement('option');
+                    opt.value = other.id;
+                    opt.text = other.name;
+                    recSel.appendChild(opt);
+                }
+            });
+
+            handlePayPayerChange();
+            document.getElementById('payModal').classList.add('show');
+        }
+
+        function handlePayPayerChange() {
+            currentPayPayerId = document.getElementById('payPayerSelect').value;
+            const payer = members.find(m => m.id === currentPayPayerId);
+            const payerName = payer ? payer.name : 'Dong nghiep';
+
+            const totalDebt = getMemberTotalDebt(currentPayPayerId);
+            document.getElementById('payCurrentDebtText').innerText = formatMoney(totalDebt);
+
+            // Pre-fill with outstanding debt if > 0
+            if (totalDebt > 0) {
+                document.getElementById('payAmountInput').value = totalDebt / 1000;
+            } else {
+                document.getElementById('payAmountInput').value = '';
+            }
+
+            document.getElementById('payMemoInput').value = `${payerName} tra tien com`;
+            updatePayQR();
+        }
+
+        function applyPayAllDebt() {
+            const totalDebt = getMemberTotalDebt(currentPayPayerId);
+            document.getElementById('payAmountInput').value = totalDebt / 1000;
+            updatePayQR();
+        }
+
+        function applyPayQuickAmount(k) {
+            document.getElementById('payAmountInput').value = k;
+            updatePayQR();
+        }
+
+        function updatePayQR() {
+            const payer = members.find(m => m.id === currentPayPayerId);
+            const payerName = payer ? (payer.nickname || payer.name) : 'Dong nghiep';
+            const amtK = parseFloat(document.getElementById('payAmountInput')?.value) || 0;
+            const amount = Math.max(0, amtK * 1000);
+            const memo = document.getElementById('payMemoInput')?.value || `${payerName} tra tien com`;
+
+            const receiverVal = document.getElementById('payReceiverSelect')?.value;
+            let targetBank = bankInfo;
+            if (receiverVal && receiverVal !== 'MY_ACCOUNT') {
+                const rec = members.find(m => m.id === receiverVal);
+                if (rec && rec.bankId && rec.accountNo) {
+                    targetBank = {
+                        bankId: rec.bankId,
+                        accountNo: rec.accountNo,
+                        accountName: rec.accountName || rec.fullName || rec.name
+                    };
+                }
+            }
+
+            // Display texts
+            document.getElementById('payQrAmountText').innerText = formatMoney(amount);
+            document.getElementById('payQrDescText').innerText = `Nội dung: ${memo}`;
+            document.getElementById('payQrBankText').innerText = targetBank.bankId;
+            document.getElementById('payQrAccNoText').innerText = targetBank.accountNo;
+            document.getElementById('payQrAccNameText').innerText = targetBank.accountName;
+
+            // Generate VietQR targeting targetBank Account
+            const qrUrl = `https://img.vietqr.io/image/${targetBank.bankId}-${targetBank.accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(targetBank.accountName)}`;
+            document.getElementById('payQrImage').src = qrUrl;
+        }
+
+        function savePayment() {
+            if (!checkAdminPermission()) return;
+            const payer = members.find(m => m.id === currentPayPayerId);
+            if (!payer) return alert('Vui lòng chọn người trả tiền!');
+
+            const amtK = parseFloat(document.getElementById('payAmountInput').value) || 0;
+            const amount = amtK * 1000;
+            if (amount <= 0) return alert('Vui lòng nhập số tiền hợp lệ (> 0)!');
+
+            const receiverVal = document.getElementById('payReceiverSelect').value;
+            let receiverId = null;
+            let receiverName = '';
+
+            if (receiverVal === 'MY_ACCOUNT') {
+                receiverId = 'admin';
+                receiverName = `Tài khoản của tôi (${bankInfo.accountName})`;
+            } else {
+                const rec = members.find(m => m.id === receiverVal);
+                if (rec) {
+                    receiverId = rec.id;
+                    receiverName = rec.name;
+                } else {
+                    receiverId = 'admin';
+                    receiverName = `Tài khoản của tôi (${bankInfo.accountName})`;
+                }
+            }
+
+            const desc = `${payer.name} đã thanh toán chuyển khoản ${formatMoney(amount)} về ${receiverName}`;
+            logs.unshift({
+                id: Date.now().toString(),
+                dateStr: selectedDate,
+                type: 'Trả Tiền',
+                description: desc,
+                payerId: payer.id,
+                payerName: payer.name,
+                receiverId: receiverId,
+                receiverName: receiverName,
+                amount: amount
+            });
+
+            saveData();
+            recalculateDebts();
+            closeModal('payModal');
+            alert(`Đã ghi nhận thanh toán ${formatMoney(amount)} thành công!`);
+        }
+
+        function deleteLog(logId) {
+            if (!checkAdminPermission()) return;
+            if (confirm('Xóa giao dịch này? Các khoản nợ sẽ được tính toán lại tự động.')) {
+                logs = logs.filter(l => l.id !== logId);
+                saveData();
+                recalculateDebts();
+            }
+        }
+
+        // --------------------------------------------------------------------------
+        // 7. LOGS RENDERING (DAILY & FULL)
+        // --------------------------------------------------------------------------
+        function renderLogs() {
+            const dailyTbody = document.getElementById('logTableBody');
+            dailyTbody.innerHTML = '';
+            const dayLogs = logs.filter(l => l.dateStr === selectedDate);
+            document.getElementById('emptyLogState').style.display = dayLogs.length === 0 ? 'block' : 'none';
+
+            dayLogs.forEach(l => {
+                const tr = document.createElement('tr');
+                const badgeClass = l.type === 'Bữa Ăn' ? 'meal' : 'pay';
+                tr.innerHTML = `
+                    <td style="font-weight:700;">${l.dateStr}</td>
+                    <td><span class="log-badge ${badgeClass}">${l.type}</span></td>
+                    <td style="line-height:1.5;">${l.description}</td>
+                    <td class="admin-only" style="text-align:center; gap:6px;">
+                        ${l.type === 'Bữa Ăn' ? `<button class="btn btn-secondary btn-sm" onclick="openMealModal('${l.id}')"><i class="fa-solid fa-pen"></i></button>` : ''}
+                        <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteLog('${l.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                dailyTbody.appendChild(tr);
+            });
+
+            // Full Logs Pagination
+            const fullTbody = document.getElementById('fullLogTableBody');
+            fullTbody.innerHTML = '';
+            document.getElementById('emptyFullLogState').style.display = logs.length === 0 ? 'block' : 'none';
+
+            const totalPages = Math.ceil(logs.length / FULL_LOG_PAGE_SIZE) || 1;
+            if (fullLogCurrentPage > totalPages) fullLogCurrentPage = totalPages;
+            if (fullLogCurrentPage < 1) fullLogCurrentPage = 1;
+
+            const startIdx = (fullLogCurrentPage - 1) * FULL_LOG_PAGE_SIZE;
+            const pagedLogs = logs.slice(startIdx, startIdx + FULL_LOG_PAGE_SIZE);
+
+            pagedLogs.forEach(l => {
+                const tr = document.createElement('tr');
+                const badgeClass = l.type === 'Bữa Ăn' ? 'meal' : 'pay';
+                tr.innerHTML = `
+                    <td style="font-weight:700;">${l.dateStr}</td>
+                    <td><span class="log-badge ${badgeClass}">${l.type}</span></td>
+                    <td style="line-height:1.5;">${l.description}</td>
+                    <td class="admin-only" style="text-align:center; gap:6px;">
+                        ${l.type === 'Bữa Ăn' ? `<button class="btn btn-secondary btn-sm" onclick="openMealModal('${l.id}')"><i class="fa-solid fa-pen"></i></button>` : ''}
+                        <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteLog('${l.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                fullTbody.appendChild(tr);
+            });
+
+            document.getElementById('pageInfo').innerText = `Trang ${fullLogCurrentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = (fullLogCurrentPage <= 1);
+            document.getElementById('btnNextPage').disabled = (fullLogCurrentPage >= totalPages);
+        }
+
+        function changeFullLogPage(delta) {
+            fullLogCurrentPage += delta;
+            renderLogs();
+        }
+
+        // --------------------------------------------------------------------------
+        // 8. VIETQR GENERATOR & BANK SETTINGS
+        // --------------------------------------------------------------------------
+        function openVietQRModal(debtorName, creditorName, amount) {
+            const content = `${debtorName} tra tien com`;
+            // Check if creditor has individual bank account
+            const creditor = members.find(m => (m.nickname && m.nickname === creditorName) || (m.name && m.name === creditorName) || (m.fullName && m.fullName === creditorName));
+            let targetBank = bankInfo;
+            if (creditor && creditor.bankId && creditor.accountNo) {
+                targetBank = {
+                    bankId: creditor.bankId,
+                    accountNo: creditor.accountNo,
+                    accountName: creditor.accountName || creditor.fullName || creditor.name
+                };
+            }
+
+            document.getElementById('qrAmountText').innerText = formatMoney(amount);
+            document.getElementById('qrDescText').innerText = `Nội dung: ${content}`;
+            document.getElementById('qrBankText').innerText = targetBank.bankId;
+            document.getElementById('qrAccNoText').innerText = targetBank.accountNo;
+            document.getElementById('qrAccNameText').innerText = targetBank.accountName;
+
+            const qrUrl = `https://img.vietqr.io/image/${targetBank.bankId}-${targetBank.accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(targetBank.accountName)}`;
+            document.getElementById('qrImage').src = qrUrl;
+
+            document.getElementById('vietQRModal').classList.add('show');
+        }
+
+        function copyQrAccount() {
+            let acc = '';
+            let bank = '';
+            let name = '';
+            const payModal = document.getElementById('payModal');
+            if (payModal && payModal.classList.contains('show')) {
+                acc = document.getElementById('payQrAccNoText')?.innerText || bankInfo.accountNo;
+                bank = document.getElementById('payQrBankText')?.innerText || bankInfo.bankId;
+                name = document.getElementById('payQrAccNameText')?.innerText || bankInfo.accountName;
+            } else {
+                acc = document.getElementById('qrAccNoText')?.innerText || bankInfo.accountNo;
+                bank = document.getElementById('qrBankText')?.innerText || bankInfo.bankId;
+                name = document.getElementById('qrAccNameText')?.innerText || bankInfo.accountName;
+            }
+            copyText(acc, `Đã sao chép Số TK: ${acc} (${bank} - ${name})`);
+        }
+
+        function openBankSettingsModal() {
+            document.getElementById('bankIdInput').value = bankInfo.bankId;
+            document.getElementById('bankAccNoInput').value = bankInfo.accountNo;
+            document.getElementById('bankAccNameInput').value = bankInfo.accountName;
+            document.getElementById('bankSettingsModal').classList.add('show');
+        }
+
+        function saveBankSettings() {
+            const bankId = document.getElementById('bankIdInput').value.trim().toUpperCase();
+            const accountNo = document.getElementById('bankAccNoInput').value.trim();
+            const accountName = document.getElementById('bankAccNameInput').value.trim().toUpperCase();
+
+            if (!bankId || !accountNo) return alert('Vui lòng nhập đầy đủ mã ngân hàng và số tài khoản!');
+
+            bankInfo = { bankId, accountNo, accountName, template: 'compact2' };
+            localStorage.setItem('p2p_bank_info', JSON.stringify(bankInfo));
+            localStorage.setItem('sys_bank_config', JSON.stringify(bankInfo));
+            if ('BroadcastChannel' in window) {
+                try {
+                    new BroadcastChannel('system_admin_auth').postMessage({ type: 'BANK_CONFIG_CHANGED', bankConfig: bankInfo });
+                } catch(e) {}
+            }
+            alert('Cập nhật tài khoản ngân hàng của tôi thành công!');
+            closeModal('bankSettingsModal');
+        }
+
+        function copyDebtReport() {
+            let reportLines = [];
+            const today = new Date().toLocaleDateString('vi-VN');
+            reportLines.push(`🍱 BÁO CÁO CÔNG NỢ TIỀN CƠM TRƯA (${today})`);
+            reportLines.push(`----------------------------------------`);
+
+            let hasAnyDebt = false;
+            members.forEach(m => {
+                members.forEach(other => {
+                    if (m.id === other.id) return;
+                    let toOther = getDebt(m.id, other.id);
+                    if (toOther > 0) {
+                        hasAnyDebt = true;
+                        reportLines.push(`• ${m.name} nợ ${other.name}: ${formatMoney(toOther)}`);
+                    }
+                });
+            });
+
+            if (!hasAnyDebt) {
+                reportLines.push(`🎉 Toàn bộ anh em đồng nghiệp đã thanh toán sòng phẳng!`);
+            } else {
+                reportLines.push(`----------------------------------------`);
+                reportLines.push(`👉 STK chuyển khoản của tôi (${bankInfo.bankId}): ${bankInfo.accountNo} - ${bankInfo.accountName}`);
+            }
+
+            const finalReport = reportLines.join('\n');
+            navigator.clipboard.writeText(finalReport).then(() => {
+                alert('Đã sao chép báo cáo công nợ vào bộ nhớ tạm!\nBạn có thể dán (Ctrl+V) vào nhóm Zalo hoặc Telegram ngay.');
+            }).catch(() => {
+                alert(finalReport);
+            });
+        }
+
+        // Avatar gradient generation
+        const AVATAR_COLORS = [
+            'linear-gradient(135deg, #f97316, #ea580c)',
+            'linear-gradient(135deg, #10b981, #059669)',
+            'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+            'linear-gradient(135deg, #ec4899, #be185d)',
+            'linear-gradient(135deg, #06b6d4, #0e7490)'
+        ];
+
+        function getAvatarBg(name) {
+            let hash = 0;
+            for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+        }
+
+        // --------------------------------------------------------------------------
+        // 9. INITIALIZE
+        // --------------------------------------------------------------------------
+        updateAdminUI();
+        recalculateDebts();
+        renderMealPresets();
+    </script>
+</body>
+</html>

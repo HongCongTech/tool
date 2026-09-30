@@ -3,535 +3,605 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hệ thống macOS Web Dashboard - Trung tâm điều hành các tiện ích văn phòng">
   <title>macOS Dashboard Web</title>
   
+  <!-- PWA Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- Thư viện SortableJS cho phép kéo thả sắp xếp ứng dụng -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
+  <!-- Supabase Database Storage Adapter (Bỏ LocalStorage, kết nối trực tiếp PostgreSQL) -->
+  <script src="assets/js/db-storage.js"></script>
 
-    body {
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
-    }
-
-    /* TOP MENU BAR */
-    .top-bar {
-      width: 100%;
-      height: 30px;
-      background: rgba(15, 23, 42, 0.4);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 16px;
-      font-size: 13px;
-      font-weight: 500;
-      z-index: 1000;
-      user-select: none;
-    }
-
-    .top-bar-left, .top-bar-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .apple-logo { font-size: 15px; cursor: pointer; }
-
-    /* WORKSPACE */
-    .mac-body {
-      flex: 1;
-      height: calc(100% - 30px);
-      display: flex;
-      flex-direction: row;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .mac-desktop {
-      flex: 1;
-      height: 100%;
-      position: relative;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .app-grid-container {
-      width: 100%;
-      height: 100%;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      grid-auto-rows: 110px;
-      gap: 20px;
-      align-content: start;
-      overflow-y: auto;
-    }
-
-    .app-grid-container.hidden { display: none; }
-
-    .app-item {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .app-item:hover { transform: scale(1.1); }
-    .app-item:active { transform: scale(0.95); }
-
-    .app-icon {
-      width: 68px;
-      height: 68px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 34px;
-      margin-bottom: 8px;
-    }
-
-    body.edit-mode .app-item:not(.btn-add-item) {
-      animation: macShake 0.25s infinite alternate ease-in-out;
-    }
-
-    @keyframes macShake {
-      0% { transform: rotate(-2deg); }
-      100% { transform: rotate(2deg); }
-    }
-
-    .delete-btn {
-      display: none;
-      position: absolute;
-      top: -4px; right: 12px;
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: #ff3b30;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      z-index: 10;
-    }
-
-    body.edit-mode .delete-btn { display: flex; }
-
-    .app-label {
-      font-size: 12px;
-      color: #ffffff;
-      text-align: center;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-      font-weight: 500;
-      max-width: 90px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .btn-add-icon {
-      border: 2px dashed rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    /* WINDOW WORKSPACE */
-    .main-workspace {
-      width: 100%; height: 100%;
-      display: none;
-      flex-direction: column;
-      background: rgba(15, 23, 42, 0.95);
-      overflow: hidden;
-      animation: fadeIn 0.2s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .main-workspace.active { display: flex; }
-
-    .window-header {
-      height: 34px;
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      padding: 0 14px;
-      gap: 8px;
-    }
-
-    .traffic-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
-    .btn-close { background-color: #ff5f56; border: 1px solid #e0443e; }
-    .btn-minimize { background-color: #ffbd2e; border: 1px solid #dea123; }
-    .btn-maximize { background-color: #27c93f; border: 1px solid #1aab29; }
-
-    iframe { width: 100%; height: 100%; flex: 1; border: none; background: #ffffff; }
-
-    /* DOCK PHẢI */
-    .dock-container {
-      height: 100%; display: flex; align-items: center;
-      padding-right: 12px; padding-left: 6px; z-index: 1000;
-    }
-
-    .mac-dock {
-      width: 64px; padding: 14px 0;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-    }
-
-    .dock-btn {
-      width: 46px; height: 46px; border-radius: 12px;
-      background: rgba(255, 255, 255, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      display: flex; justify-content: center; align-items: center;
-      font-size: 22px; cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .dock-btn:hover { transform: scale(1.25) translateX(-6px); background: rgba(255, 255, 255, 0.4); }
-
-    .dock-divider { width: 35px; height: 1px; background: rgba(255, 255, 255, 0.25); margin: 4px 0; }
-
-    .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255, 255, 255, 0.25); transition: 0.3s;
-      border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    .slider:before {
-      position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px;
-      background-color: white; transition: 0.3s; border-radius: 50%;
-    }
-    input:checked + .slider { background-color: #34c759; }
-    input:checked + .slider:before { transform: translateX(16px); }
-
-    /* MODAL FORM */
-    .modal-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);
-      justify-content: center; align-items: center; z-index: 2000;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-box {
-      width: 320px; background: rgba(30, 41, 59, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px;
-      padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-      display: flex; flex-direction: column; gap: 14px;
-    }
-    .modal-title { font-size: 16px; font-weight: 600; text-align: center; }
-    .input-group { display: flex; flex-direction: column; gap: 6px; }
-    .input-group label { font-size: 12px; color: #cbd5e1; }
-    .input-group input {
-      padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(0, 0, 0, 0.3); color: #fff; outline: none; font-size: 14px;
-    }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
-    .btn-action { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; }
-    .btn-cancel { background: rgba(255, 255, 255, 0.15); color: white; }
-    .btn-save { background: #007aff; color: white; }
-    .sortable-ghost { opacity: 0.2; }
-  </style>
+  <!-- Giao diện hệ thống Dashboard -->
+  <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 <body>
 
-  <div class="top-bar">
+  <!-- 1. TOP MENU BAR (MACOS STYLE) -->
+  <header class="top-bar">
     <div class="top-bar-left">
-      <span class="apple-logo"></span>
-      <span style="font-weight: 600;">Finder</span>
-      <span>File</span>
-      <span>Edit</span>
-      <span>View</span>
+      <button class="top-bar-btn apple-logo-btn" onclick="toggleAppleMenu(event)" title="Menu hệ thống"></button>
+      <span style="font-weight: 600; padding: 0 4px;">Finder</span>
+      <span class="top-bar-btn admin-only" onclick="openControlPanel()">Cài đặt</span>
+      <span class="top-bar-btn" onclick="openAboutModal()">Giới thiệu</span>
+      <span class="top-bar-btn" onclick="openWallpapersModal()">Hình nền</span>
+      <span class="top-bar-btn admin-only" onclick="openModal()">Cài đặt App</span>
     </div>
+
+    <!-- Dropdown Apple Menu -->
+    <div class="apple-menu-dropdown" id="apple-menu">
+      <div class="menu-item admin-only" onclick="openControlPanel()">
+        <span>Cài đặt hệ thống (Control Panel)</span>
+        <span class="shortcut-hint">⚙️</span>
+      </div>
+      <div class="menu-item" onclick="openAboutModal()">
+        <span>Về Dashboard Web này</span>
+        <span class="shortcut-hint"></span>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item" onclick="openWallpapersModal()">
+        <span>Bộ sưu tập hình nền</span>
+        <span class="shortcut-hint">Ctrl+W</span>
+      </div>
+      <div class="menu-item" onclick="openSpotlight()">
+        <span>Spotlight Search</span>
+        <span class="shortcut-hint">Ctrl+K</span>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item" onclick="backupAllData()">
+        <span>Sao lưu toàn bộ dữ liệu</span>
+        <span class="shortcut-hint">JSON</span>
+      </div>
+      <div class="menu-item admin-only" onclick="triggerRestoreData()">
+        <span>Khôi phục dữ liệu từ file</span>
+        <span class="shortcut-hint">Upload</span>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item" onclick="toggleFullscreen()">
+        <span>Toàn màn hình</span>
+        <span class="shortcut-hint">F11</span>
+      </div>
+      <div class="menu-divider admin-only"></div>
+      <div class="menu-item admin-only" onclick="openChangeAdminPassModal()">
+        <span>🔑 Đổi mật khẩu Admin</span>
+      </div>
+      <div class="menu-item admin-only" onclick="openChangeMasterKeyModal()">
+        <span>🛡️ Đổi Master Key cứu hộ</span>
+      </div>
+      <div class="menu-item admin-only" onclick="resetDefaultApps()">
+        <span style="color:#ff6b6b;">Khôi phục App mặc định</span>
+      </div>
+      <div class="menu-item admin-only" onclick="logoutAdmin()">
+        <span style="color:#ff6b6b;">🔒 Đăng xuất Admin</span>
+      </div>
+    </div>
+
     <div class="top-bar-right">
-      <span id="sync-status" style="font-size:11px; color:#34c759;">☁️ Synced</span>
-      <span id="mac-clock">00:00 AM</span>
-    </div>
-  </div>
+      <!-- Trạng thái Supabase PostgreSQL Database -->
+      <button class="top-bar-btn db-status-badge" id="dbStatusBadge" onclick="openDbStatusModal()" title="Trạng thái kết nối Supabase PostgreSQL Database">
+        <span class="db-pulse-dot" id="dbStatusDot"></span>
+        <span id="dbStatusText">Postgres DB</span>
+      </button>
 
-  <div class="mac-body">
-    <div class="mac-desktop">
-      <div class="app-grid-container" id="app-grid"></div>
-      <div class="main-workspace" id="main-workspace">
-        <div class="window-header">
-          <div class="traffic-btn btn-close" onclick="goHome()"></div>
-          <div class="traffic-btn btn-minimize" onclick="goHome()"></div>
-          <div class="traffic-btn btn-maximize"></div>
-        </div>
-        <iframe id="app-frame" src=""></iframe>
+      <!-- Nút trạng thái Admin toàn hệ thống -->
+      <button class="top-bar-btn admin-badge" id="adminStatusBadge" onclick="handleAdminBadgeClick()" title="Nhấp để đăng nhập / đăng xuất Quản trị viên">
+        <span id="adminBadgeText">👁️ Chế độ xem</span>
+      </button>
+
+      <span id="mac-battery" title="Tình trạng pin thiết bị" style="font-size:12px;">🔋 100%</span>
+      <button class="top-bar-btn admin-only" onclick="openControlPanel()" title="Cài đặt hệ thống & VietQR (Control Panel)">🎛️</button>
+      <button class="top-bar-btn" onclick="openSpotlight()" title="Tìm kiếm Spotlight (Ctrl+K)">🔍</button>
+      <span id="mac-clock" class="top-bar-btn" onclick="toggleCalendar(event)" title="Bấm để xem lịch tháng">00:00</span>
+    </div>
+
+    <!-- Calendar & Control Center Popover -->
+    <div class="calendar-popover" id="calendar-popover"></div>
+  </header>
+
+  <!-- 2. KHUNG CHÍNH (DESKTOP + CỬA SỔ IFRAME + DOCK ĐÁY) -->
+  <main class="mac-body">
+
+    <!-- Desktop Workspace -->
+    <section class="mac-desktop">
+      
+      <!-- Lưới ứng dụng màn hình chính -->
+      <div class="app-grid-container" id="app-grid" aria-label="Danh sách ứng dụng">
+        <!-- Tự động nạp danh sách ứng dụng qua JavaScript -->
       </div>
-    </div>
 
-    <div class="dock-container">
-      <div class="mac-dock">
-        <button class="dock-btn" onclick="goHome()" title="Trang chủ">🏠</button>
+      <!-- Khung chứa đa cửa sổ ứng dụng (macOS Multi-Window Container) -->
+      <div class="windows-container" id="windows-container"></div>
+
+    </section>
+
+    <!-- Bottom Dock (macOS Style Magnification) -->
+    <div class="dock-wrapper">
+      <nav class="mac-dock" aria-label="Thanh Dock ứng dụng">
+        <button class="dock-btn" onclick="goHome()" title="Màn hình chính (Desktop)">🖥️</button>
+        
         <div class="dock-divider"></div>
-        <div class="edit-toggle-wrapper">
-          <label class="switch">
-            <input type="checkbox" id="edit-toggle" onchange="toggleEditMode(this.checked)">
-            <span class="slider"></span>
-          </label>
+
+        <!-- Các app ghim trên Dock -->
+        <div id="dock-apps" style="display:flex; align-items:center; gap:8px;"></div>
+
+        <div class="dock-divider admin-only"></div>
+
+        <!-- Nút Thêm App (Chỉ hiện khi là Admin) -->
+        <button class="dock-btn dock-btn-add admin-only" onclick="openModal()" title="Thêm ứng dụng mới (Admin)">➕</button>
+      </nav>
+    </div>
+  </main>
+
+  <!-- 3. SPOTLIGHT SEARCH OVERLAY (CTRL + K) -->
+  <div class="spotlight-overlay" id="spotlight-overlay" onclick="if(event.target===this) closeSpotlight()">
+    <div class="spotlight-box">
+      <div class="spotlight-header">
+        <span class="spotlight-icon">🔍</span>
+        <input type="text" class="spotlight-input" id="spotlight-input" placeholder="Tìm kiếm ứng dụng, tính nhẩm (VD: 500k/3, 1200*15)..." autocomplete="off">
+        <span class="spotlight-badge">ESC để thoát</span>
+      </div>
+      <div class="spotlight-results" id="spotlight-results"></div>
+    </div>
+  </div>
+
+  <!-- 4. MODAL: BỘ SƯU TẬP HÌNH NỀN -->
+  <div class="modal-overlay" id="wallpapers-modal" onclick="if(event.target===this) closeWallpapersModal()">
+    <div class="modal-box modal-lg">
+      <h2 class="modal-title">🖼️ Tùy Chỉnh Hình Nền Desktop</h2>
+      <div class="wallpaper-grid" id="wallpapers-grid"></div>
+      
+      <div class="input-group">
+        <label for="custom-wallpaper-input">Hoặc nhập link ảnh hình nền bất kỳ:</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="custom-wallpaper-input" placeholder="https://example.com/wallpaper.jpg" style="flex:1;">
+          <button class="btn-action btn-save" onclick="applyCustomWallpaper()">Áp dụng</button>
         </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-action btn-cancel" onclick="closeWallpapersModal()">Đóng</button>
       </div>
     </div>
   </div>
 
-  <div class="modal-overlay" id="app-modal">
+  <!-- 5. MODAL: GIỚI THIỆU HỆ THỐNG (ABOUT) -->
+  <div class="modal-overlay" id="about-modal" onclick="if(event.target===this) closeAboutModal()">
     <div class="modal-box">
-      <div class="modal-title">Thêm Ứng Dụng Mới</div>
+      <div style="text-align:center; font-size:42px; margin-bottom:4px;"></div>
+      <h2 class="modal-title" style="margin-bottom:2px;">macOS Web Dashboard</h2>
+      <p style="font-size:12px; color:#94a3b8; text-align:center; margin-bottom:12px;">Phiên bản 3.0 Pro Enterprise</p>
+      
+      <div style="font-size:13px; color:#cbd5e1; line-height:1.6; background:rgba(0,0,0,0.25); padding:12px; border-radius:10px;">
+        <p>• <b>Kiến trúc:</b> Modular Micro-App / Clean Portal</p>
+        <p>• <b>Bảo mật:</b> Phân quyền Admin toàn hệ thống (SHA-256 + Master Key)</p>
+        <p>• <b>Tiện ích:</b> Chia Bill, Tính Tiền Cơm, Lãi Suất, Sticky Notes</p>
+        <p>• <b>Hỗ trợ PWA:</b> Cài đặt offline và chạy độc lập</p>
+      </div>
+
+      <div class="modal-actions" style="justify-content:center;">
+        <button class="btn-action btn-save" onclick="closeAboutModal()">Hoàn tất</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. MODAL: THÊM / SỬA ỨNG DỤNG & PHÂN QUYỀN (ADMIN ONLY) -->
+  <div class="modal-overlay" id="app-modal" role="dialog" aria-modal="true" aria-labelledby="modal-add-title" onclick="if(event.target===this) closeModal()">
+    <div class="modal-box">
+      <h2 class="modal-title" id="modal-add-title">➕ Thêm Ứng Dụng Mới</h2>
+      <input type="hidden" id="app-id-input">
+      
       <div class="input-group">
-        <label>Tên ứng dụng:</label>
-        <input type="text" id="app-name-input" placeholder="VD: Google Search">
+        <label for="app-name-input">Tên ứng dụng:</label>
+        <input type="text" id="app-name-input" placeholder="VD: Báo Cáo Doanh Thu">
+      </div>
+      
+      <div class="input-group">
+        <label for="app-icon-input">Biểu tượng (Emoji):</label>
+        <input type="text" id="app-icon-input" placeholder="VD: 🌐 hoặc 📊" maxlength="4">
+      </div>
+      
+      <div class="input-group">
+        <label for="app-url-input">Đường dẫn File / URL Web:</label>
+        <input type="text" id="app-url-input" placeholder="VD: apps/my-tool/index.html hoặc https://google.com">
+      </div>
+
+      <div class="input-group">
+        <label for="app-admin-only-select">Chế độ hiển thị & Quyền truy cập:</label>
+        <select id="app-admin-only-select" style="width:100%; padding:10px 12px; border-radius:8px; background:rgba(15,23,42,0.6); color:#f8fafc; border:1px solid rgba(255,255,255,0.25); font-size:13.5px; font-weight:600; outline:none;">
+          <option value="false" style="background:#0f172a; color:#fff;">🌐 Mọi người đều có thể xem (Công khai)</option>
+          <option value="true" style="background:#0f172a; color:#f87171;">🔒 Chỉ hiển thị ở Chế độ Admin (Bảo mật)</option>
+        </select>
+        <small style="color:#94a3b8; font-size:11.5px; margin-top:4px; display:block;">
+          Nếu chọn "Chỉ hiển thị ở Chế độ Admin", ứng dụng sẽ ẩn khỏi màn hình và dock khi ở chế độ xem.
+        </small>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-action btn-cancel" onclick="closeModal()">Hủy</button>
+        <button type="button" class="btn-action btn-save" id="btn-save-app" onclick="saveNewApp()">Lưu Ứng Dụng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. MODAL: THIẾT LẬP ADMIN & MASTER KEY BAN ĐẦU -->
+  <div class="modal-overlay" id="adminSetupModal" onclick="if(event.target===this) closeAdminSetupModal()">
+    <div class="modal-box" style="max-width: 420px;">
+      <h2 class="modal-title">🛠️ Thiết Lập Quản Trị Viên</h2>
+      <p style="font-size:13px; color:#cbd5e1; text-align:center; margin-bottom:14px;">Hệ thống chưa có mật khẩu bảo vệ. Vui lòng thiết lập Mật khẩu Admin và Master Key cứu hộ:</p>
+      
+      <div class="input-group">
+        <label for="setupAdminPass">Mật khẩu Admin mới:</label>
+        <input type="password" id="setupAdminPass" placeholder="Nhập mật khẩu Admin...">
+      </div>
+
+      <div class="input-group">
+        <label for="setupConfirmPass">Xác nhận mật khẩu Admin:</label>
+        <input type="password" id="setupConfirmPass" placeholder="Nhập lại mật khẩu Admin...">
+      </div>
+
+      <div class="input-group">
+        <label for="setupMasterKey">Mã khôi phục Master Key (Cứu hộ khẩn cấp):</label>
+        <input type="password" id="setupMasterKey" placeholder="Nhập Master Key của bạn...">
+      </div>
+
+      <div class="input-group">
+        <label for="setupConfirmMasterKey">Xác nhận Master Key:</label>
+        <input type="password" id="setupConfirmMasterKey" placeholder="Nhập lại Master Key...">
+      </div>
+
+      <div class="input-group">
+        <label for="setupRecoveryEmail">Email cứu hộ (Dùng để nhận OTP lấy lại mật khẩu khi quên):</label>
+        <input type="email" id="setupRecoveryEmail" placeholder="admin@example.com">
+      </div>
+
+      <div style="font-size:12px; color:#94a3b8; background:rgba(0,0,0,0.25); padding:10px; border-radius:8px; line-height:1.4; margin-bottom:14px;">
+        💡 <b>Lưu ý bảo mật:</b> Master Key và Email cứu hộ là 2 phương thức an toàn để lấy lại quyền Admin khi quên mật khẩu. Master Key không thể bị reset về null để tránh nguy cơ mất an toàn dữ liệu.
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-action btn-cancel" onclick="closeAdminSetupModal()">Đóng</button>
+        <button type="button" class="btn-action btn-save" onclick="submitAdminSetup()">Lưu & Kích Hoạt Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. MODAL: ĐĂNG NHẬP ADMIN TOÀN HỆ THỐNG -->
+  <div class="modal-overlay" id="adminAuthModal" onclick="if(event.target===this) closeAdminAuthModal()">
+    <div class="modal-box" style="max-width: 380px;">
+      <h2 class="modal-title" id="adminAuthTitle">🔑 Xác Thực Quản Trị Viên</h2>
+      <p id="adminAuthDesc" style="font-size:13px; color:#cbd5e1; text-align:center;">Vui lòng nhập mật khẩu Admin để mở khóa quyền chỉnh sửa toàn bộ hệ thống:</p>
+      
+      <div class="input-group">
+        <input type="password" id="adminAuthInput" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitAdminAuth()">
+      </div>
+
+      <div style="text-align: right; margin-top: -6px; margin-bottom: 14px;">
+        <button type="button" onclick="openForgotPasswordModal()" style="background:none; border:none; color:#38bdf8; font-size:12px; cursor:pointer; text-decoration:underline;">
+          Quên mật khẩu? Lấy lại bằng Email / Master Key
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-action btn-cancel" onclick="closeAdminAuthModal()">Hủy</button>
+        <button type="button" class="btn-action btn-save" onclick="submitAdminAuth()">Đăng Nhập</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. MODAL: ĐỔI MẬT KHẨU ADMIN -->
+  <div class="modal-overlay" id="adminChangePassModal" onclick="if(event.target===this) closeChangeAdminPassModal()">
+    <div class="modal-box" style="max-width: 380px;">
+      <h2 class="modal-title">🔑 Đổi Mật Khẩu Admin</h2>
+      
+      <div class="input-group">
+        <label for="oldAdminPass">Mật khẩu hiện tại:</label>
+        <input type="password" id="oldAdminPass" placeholder="••••••••">
+      </div>
+
+      <div class="input-group">
+        <label for="newAdminPass">Mật khẩu mới:</label>
+        <input type="password" id="newAdminPass" placeholder="Nhập mật khẩu mới">
+      </div>
+
+      <div class="input-group">
+        <label for="confirmAdminPass">Xác nhận mật khẩu mới:</label>
+        <input type="password" id="confirmAdminPass" placeholder="Nhập lại mật khẩu mới">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-action btn-cancel" onclick="closeChangeAdminPassModal()">Hủy</button>
+        <button type="button" class="btn-action btn-save" onclick="submitChangeAdminPass()">Cập Nhật</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. MODAL: ĐỔI MASTER KEY -->
+  <div class="modal-overlay" id="adminChangeMasterKeyModal" onclick="if(event.target===this) closeChangeMasterKeyModal()">
+    <div class="modal-box" style="max-width: 380px;">
+      <h2 class="modal-title">🛡️ Đổi Master Key Cứu Hộ</h2>
+      <div class="input-group">
+        <label for="currentAdminPassForMK">Xác nhận bằng mật khẩu Admin hiện tại:</label>
+        <input type="password" id="currentAdminPassForMK" placeholder="Mật khẩu Admin...">
       </div>
       <div class="input-group">
-        <label>Biểu tượng (Emoji):</label>
-        <input type="text" id="app-icon-input" placeholder="VD: 🌐" maxlength="4">
+        <label for="newMasterKey">Master Key mới:</label>
+        <input type="password" id="newMasterKey" placeholder="Nhập Master Key mới...">
       </div>
       <div class="input-group">
-        <label>Đường dẫn File / URL Web:</label>
-        <input type="text" id="app-url-input" placeholder="VD: chiabill.html hoặc https://google.com">
+        <label for="confirmNewMasterKey">Xác nhận Master Key mới:</label>
+        <input type="password" id="confirmNewMasterKey" placeholder="Nhập lại Master Key mới...">
       </div>
       <div class="modal-actions">
-        <button class="btn-action btn-cancel" onclick="closeModal()">Hủy</button>
-        <button class="btn-action btn-save" onclick="saveNewApp()">Thêm & Đồng Bộ</button>
+        <button type="button" class="btn-action btn-cancel" onclick="closeChangeMasterKeyModal()">Hủy</button>
+        <button type="button" class="btn-action btn-save" onclick="submitChangeMasterKey()">Cập Nhật</button>
       </div>
     </div>
   </div>
 
-  <script>
-    // === CẤU HÌNH JSONBIN API ===
-    const BIN_ID = '6aa983d6ffd5d160530affa9';
-    const MASTER_KEY = '$2a$10$NDXbbecfe274mcRlsymz6u86Pz/LflJQL6hGTi.QncaFXLpIU4hCS';
-    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
-    let appsList = [];
-    let isEditMode = false;
-
-    // Danh sách mặc định để tự động sửa (fix Cách 2) nếu Bin mới chưa có dữ liệu mảng
-    const defaultApps = [
-      { id: '1', title: 'Chia Bill', icon: '🍻', url: 'chiabill.html' },
-      { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'tiencom.html' },
-      { id: '3', title: 'Lãi Suất', icon: '💵', url: 'laisuat.html' },
-      { id: '4', title: 'Ghi Chú', icon: '📝', url: 'note.html' }
-    ];
-
-    // 1. Tải ứng dụng từ Cloud - Tự động ghi đè danh sách mảng chuẩn nếu phát hiện dữ liệu lỗi
-    async function loadAppsFromCloud() {
-      const syncStatus = document.getElementById('sync-status');
-      if (syncStatus) syncStatus.innerText = '🔄 Loading...';
+  <!-- 11. MODAL: KHÓA HỆ THỐNG / MASTER KEY RECOVERY -->
+  <div class="modal-overlay" id="masterKeyModal" onclick="if(event.target===this) closeMasterKeyModal()">
+    <div class="modal-box" style="max-width: 380px;">
+      <h2 class="modal-title" style="color:#ff6b6b;">🔒 Khóa Hệ Thống</h2>
+      <p style="font-size:13px; color:#cbd5e1; text-align:center;">Bạn đã nhập sai mật khẩu 5 lần! Vui lòng nhập <b>Master Key</b> hoặc khôi phục qua <b>Email</b>:</p>
       
-      try {
-        const res = await fetch(`${API_URL}/latest`, {
-          method: 'GET',
-          headers: { 
-            'X-Master-Key': MASTER_KEY,
-            'X-Bin-Meta': 'false'
-          }
-        });
+      <div class="input-group">
+        <input type="password" id="masterKeyInput" placeholder="Nhập Master Key">
+      </div>
 
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+      <div class="input-group">
+        <label for="masterNewPass">Mật khẩu mới muốn đặt lại:</label>
+        <input type="password" id="masterNewPass" placeholder="Mật khẩu mới">
+      </div>
 
-        const data = await res.json();
-        
-        // Kiểm tra xem dữ liệu trả về có phải là mảng hợp lệ không
-        if (Array.isArray(data) && data.length > 0) {
-          appsList = data;
-        } else {
-          // Nếu bin mới rỗng hoặc sai dạng Object -> Tự khắc phục bằng Cách 2 (ghi đè mảng chuẩn)
-          console.warn('Dữ liệu Cloud không phải dạng mảng. Tiến hành khởi tạo lại Bin...');
-          appsList = defaultApps;
-          await saveAppsToCloud();
-        }
-        
-        renderAppGrid();
-        if (syncStatus) syncStatus.innerText = '☁️ Synced';
-      } catch (err) {
-        console.error('Lỗi khi tải dữ liệu từ Cloud:', err);
-        if (syncStatus) syncStatus.innerText = '⚠️ Sync Error';
-        appsList = defaultApps;
-        renderAppGrid();
-      }
-    }
+      <div style="text-align: center; margin: 10px 0;">
+        <button type="button" onclick="closeMasterKeyModal(); openForgotPasswordModal();" style="background:none; border:none; color:#38bdf8; font-size:12px; cursor:pointer; text-decoration:underline;">
+          Hoặc lấy lại mật khẩu qua Email cứu hộ 📧
+        </button>
+      </div>
 
-    // 2. Lưu danh sách ứng dụng lên JSONBin Cloud bằng lệnh PUT
-    async function saveAppsToCloud() {
-      const syncStatus = document.getElementById('sync-status');
-      if (syncStatus) syncStatus.innerText = '🔄 Saving...';
+      <div class="modal-actions">
+        <button type="button" class="btn-action btn-cancel" onclick="closeMasterKeyModal()">Hủy</button>
+        <button type="button" class="btn-action btn-save" onclick="submitMasterKeyRecovery()">Khôi Phục</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. MODAL: KHÔI PHỤC MẬT KHẨU ADMIN QUA EMAIL HOẶC MASTER KEY -->
+  <div class="modal-overlay" id="forgotPasswordModal" onclick="if(event.target===this) closeForgotPasswordModal()">
+    <div class="modal-box" style="max-width: 440px;">
+      <h2 class="modal-title" style="color:#38bdf8;">🛡️ Khôi Phục & Đặt Lại Bảo Mật</h2>
+      <p style="font-size:13px; color:#cbd5e1; text-align:center; margin-bottom:12px;">Mật khẩu Admin & Master Key khôi phục qua Email hoặc dùng Master Key reset Mật khẩu Admin:</p>
+
+      <!-- Recovery Method Selector Tabs -->
+      <div style="display:flex; gap:6px; margin-bottom:14px; background:rgba(0,0,0,0.3); padding:4px; border-radius:8px;">
+        <button type="button" id="tabRecoveryEmailBtn" class="btn-action" style="flex:1; padding:8px 4px; font-size:11px; background:#0284c7; white-space:nowrap;" onclick="switchRecoveryTab('email')">
+          📧 Lấy lại MK Admin
+        </button>
+        <button type="button" id="tabRecoveryMasterBtn" class="btn-action" style="flex:1; padding:8px 4px; font-size:11px; background:transparent; opacity:0.75; white-space:nowrap;" onclick="switchRecoveryTab('master')">
+          🔑 Reset MK qua Master Key
+        </button>
+        <button type="button" id="tabRecoveryResetMasterBtn" class="btn-action" style="flex:1; padding:8px 4px; font-size:11px; background:transparent; opacity:0.75; white-space:nowrap;" onclick="switchRecoveryTab('reset-master')">
+          🛡️ Reset Master Key (Mail)
+        </button>
+      </div>
+
+      <!-- Tab 1: Email Recovery for Admin Password with OTP -->
+      <div id="recoveryTabEmail">
+        <div style="background:rgba(255,255,255,0.06); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
+          <div style="color:#94a3b8;">Email khôi phục của hệ thống:</div>
+          <div id="displayRecoveryEmail" style="font-weight:700; color:#38bdf8; font-size:13px; margin:4px 0;">Đang tải email...</div>
+          <button type="button" id="btnSendAdminOtp" class="btn-action" style="background:#10b981; font-size:12px; padding:7px 12px; width:100%; margin-top:6px;" onclick="sendRecoveryOtpEmail('admin')">
+            📩 Gửi Mã OTP Xác Thực Về Email
+          </button>
+        </div>
+
+        <div class="input-group">
+          <label for="recoveryOtpInput">Nhập mã OTP 6 số nhận được:</label>
+          <input type="text" id="recoveryOtpInput" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
+        </div>
+
+        <div class="input-group">
+          <label for="newAdminPassByEmail">Mật khẩu Admin mới:</label>
+          <input type="password" id="newAdminPassByEmail" placeholder="Nhập mật khẩu mới...">
+        </div>
+
+        <div class="input-group">
+          <label for="confirmAdminPassByEmail">Xác nhận mật khẩu Admin mới:</label>
+          <input type="password" id="confirmAdminPassByEmail" placeholder="Nhập lại mật khẩu mới...">
+        </div>
+
+        <div class="modal-actions" style="margin-top:14px;">
+          <button type="button" class="btn-action btn-cancel" onclick="closeForgotPasswordModal()">Hủy</button>
+          <button type="button" class="btn-action btn-save" onclick="submitOtpPasswordRecovery()">Xác Nhận Đổi Mật Khẩu</button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Master Key Recovery to Reset Admin Password -->
+      <div id="recoveryTabMaster" style="display:none;">
+        <div style="background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); padding:8px 12px; border-radius:8px; font-size:12px; color:#bae6fd; margin-bottom:12px;">
+          💡 Dùng <b>Master Key cứu hộ</b> bạn đã thiết lập để đặt lại Mật khẩu Admin ngay lập tức.
+        </div>
+        <div class="input-group">
+          <label for="forgotMasterKeyInput">Nhập Master Key cứu hộ:</label>
+          <input type="password" id="forgotMasterKeyInput" placeholder="Master Key của bạn...">
+        </div>
+
+        <div class="input-group">
+          <label for="newAdminPassByMaster">Mật khẩu Admin mới:</label>
+          <input type="password" id="newAdminPassByMaster" placeholder="Nhập mật khẩu mới...">
+        </div>
+
+        <div class="input-group">
+          <label for="confirmAdminPassByMaster">Xác nhận mật khẩu Admin mới:</label>
+          <input type="password" id="confirmAdminPassByMaster" placeholder="Nhập lại mật khẩu mới...">
+        </div>
+
+        <div class="modal-actions" style="margin-top:14px;">
+          <button type="button" class="btn-action btn-cancel" onclick="closeForgotPasswordModal()">Hủy</button>
+          <button type="button" class="btn-action btn-save" onclick="submitMasterKeyRecoveryDirect()">Khôi Phục Mật Khẩu Admin</button>
+        </div>
+      </div>
+
+      <!-- Tab 3: Reset Master Key ONLY via Email -->
+      <div id="recoveryTabResetMaster" style="display:none;">
+        <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); padding:8px 12px; border-radius:8px; font-size:12px; color:#fca5a5; margin-bottom:12px; line-height:1.4;">
+          🛡️ <b>Quy tắc bảo mật cao nhất:</b> Master Key <i>chỉ có thể lấy lại hoặc reset bằng Email cứu hộ</i>. Không thể reset bằng mật khẩu thông thường.
+        </div>
+        <div style="background:rgba(255,255,255,0.06); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
+          <div style="color:#94a3b8;">Email nhận mã OTP reset Master Key:</div>
+          <div id="displayRecoveryEmailMaster" style="font-weight:700; color:#38bdf8; font-size:13px; margin:4px 0;">Đang tải email...</div>
+          <button type="button" id="btnSendMasterOtp" class="btn-action" style="background:#f59e0b; color:#0f172a; font-weight:700; font-size:12px; padding:7px 12px; width:100%; margin-top:6px;" onclick="sendRecoveryOtpEmail('master')">
+            📩 Gửi Mã OTP Đặt Lại Master Key Về Email
+          </button>
+        </div>
+
+        <div class="input-group">
+          <label for="masterResetOtpInput">Nhập mã OTP 6 số nhận được:</label>
+          <input type="text" id="masterResetOtpInput" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
+        </div>
+
+        <div class="input-group">
+          <label for="newMasterKeyInput">Master Key mới:</label>
+          <input type="password" id="newMasterKeyInput" placeholder="Nhập Master Key mới...">
+        </div>
+
+        <div class="input-group">
+          <label for="confirmNewMasterKeyInput">Xác nhận Master Key mới:</label>
+          <input type="password" id="confirmNewMasterKeyInput" placeholder="Nhập lại Master Key mới...">
+        </div>
+
+        <div class="modal-actions" style="margin-top:14px;">
+          <button type="button" class="btn-action btn-cancel" onclick="closeForgotPasswordModal()">Hủy</button>
+          <button type="button" class="btn-action btn-save" style="background:#f59e0b; color:#0f172a;" onclick="submitOtpMasterKeyReset()">Đặt Lại Master Key Mới</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Input ẩn để phục hồi file backup JSON -->
+  <input type="file" id="file-restore-input" accept=".json" style="display:none;" onchange="handleRestoreFile(event)">
+
+  <!-- 13. CONTEXT MENU CHO ICON APP & DESKTOP (CHUỘT PHẢI & LONG-PRESS TRÊN MOBILE) -->
+  <div class="mac-context-backdrop" id="context-backdrop" onclick="closeContextMenu()"></div>
+  <div class="mac-context-menu" id="app-context-menu" style="display:none;" role="menu" aria-label="Menu tác vụ ứng dụng"></div>
+
+  <!-- 14. TOAST THÔNG BÁO HỆ THỐNG -->
+  <div class="mac-toast" id="mac-toast" style="display:none;">
+    <span class="toast-icon" id="toast-icon">ℹ️</span>
+    <span class="toast-msg" id="toast-msg">Thông báo hệ thống</span>
+    <button type="button" class="toast-btn" id="toast-btn" style="display:none;">OK</button>
+  </div>
+
+  <!-- 15. MODAL: THÔNG TIN CHI TIẾT ỨNG DỤNG -->
+  <div class="modal-overlay" id="app-info-modal" onclick="if(event.target===this) closeAppInfoModal()">
+    <div class="modal-box" style="max-width: 440px;">
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
+        <div id="infoAppIcon" style="font-size:38px; width:64px; height:64px; border-radius:16px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.15); box-shadow:0 8px 24px rgba(0,0,0,0.3);">📱</div>
+        <div style="flex:1; overflow:hidden;">
+          <h3 id="infoAppTitle" style="font-size:18px; font-weight:700; color:#f8fafc; margin-bottom:4px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">Tên ứng dụng</h3>
+          <span id="infoAppBadge" class="admin-badge" style="font-size:11px; padding:2px 8px; border-radius:6px; display:inline-block;">Công khai</span>
+        </div>
+      </div>
       
-      try {
-        const res = await fetch(API_URL, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': MASTER_KEY
-          },
-          body: JSON.stringify(appsList)
-        });
+      <div class="info-details-list" style="font-size:13px; color:#cbd5e1; line-height:1.8; background:rgba(0,0,0,0.25); padding:12px 14px; border-radius:10px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.08);">
+        <div>• <b>Đường dẫn (URL):</b> <code id="infoAppUrl" style="word-break:break-all; color:#38bdf8;">apps/...</code></div>
+        <div>• <b>Mã định danh (ID):</b> <span id="infoAppId" style="color:#e2e8f0; font-family:monospace;">1</span></div>
+        <div>• <b>Trạng thái:</b> <span id="infoAppStatus" style="font-weight:600;">Đã đóng</span></div>
+        <div>• <b>Quyền truy cập:</b> <span id="infoAppPermission">Mọi người (Công khai)</span></div>
+      </div>
 
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+      <div class="modal-actions" style="display:flex; justify-content:space-between; width:100%; gap:8px;">
+        <button type="button" class="btn-action" style="background:#0284c7; flex:1;" id="infoBtnOpenApp">🚀 Mở Ứng Dụng</button>
+        <button type="button" class="btn-action btn-cancel" onclick="closeAppInfoModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
 
-        if (syncStatus) syncStatus.innerText = '☁️ Synced';
-      } catch (err) {
-        console.error('Lỗi khi lưu dữ liệu lên Cloud:', err);
-        if (syncStatus) syncStatus.innerText = '⚠️ Save Error';
-      }
-    }
+  <!-- 16. MODAL: TRẠNG THÁI & THIẾT LẬP SUPABASE DATABASE QUAN HỆ -->
+  <div class="modal-overlay" id="db-status-modal" onclick="if(event.target===this) closeDbStatusModal()">
+    <div class="modal-box" style="max-width: 520px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+        <div style="font-size:32px; width:52px; height:52px; border-radius:14px; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); display:flex; align-items:center; justify-content:center;">🗄️</div>
+        <div style="flex:1;">
+          <h3 style="font-size:18px; font-weight:700; color:#f8fafc; margin-bottom:3px;">Cơ Sở Dữ Liệu Quan Hệ (PostgreSQL)</h3>
+          <span id="dbModalStatusTag" style="font-size:11px; padding:2px 8px; border-radius:6px; background:#15803d; color:#dcfce7; font-weight:600;">Đang hoạt động (Online)</span>
+        </div>
+      </div>
+      
+      <div style="font-size:12.5px; color:#cbd5e1; line-height:1.7; background:rgba(0,0,0,0.3); padding:12px 14px; border-radius:10px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.08);">
+        <div>• <b>Máy chủ Supabase:</b> <code id="dbHostText" style="color:#38bdf8; word-break:break-all;">db.wqzwxzwrozbpetbwbgrk.supabase.co:5432</code></div>
+        <div>• <b>Mô hình lưu trữ:</b> <span style="color:#4ade80; font-weight:600;">Bảng quan hệ chuẩn (Relational RDBMS Tables)</span></div>
+        <div>• <b>Ràng buộc toàn vẹn:</b> <span style="color:#a78bfa;">Foreign Keys (REFERENCES & ON DELETE CASCADE)</span></div>
+        <div>• <b>Bảo mật kết nối:</b> <span style="color:#fde047;">TLS 1.3 / SCRAM-SHA-256 Auth</span></div>
+      </div>
 
-    // 3. Render các icon ứng dụng ra màn hình
-    function renderAppGrid() {
-      const grid = document.getElementById('app-grid');
-      grid.innerHTML = '';
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px; font-weight:600; color:#94a3b8; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px;">Bảng Quan Hệ & Số Lượng Dòng (Tables Schema):</div>
+        <div id="dbRelationalTablesList" style="max-height:180px; overflow-y:auto; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; font-size:12px; color:#e2e8f0;">
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>chia_bill_members</b> (Thành viên chia bill)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_chia_bill_members">6 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>chia_bill_meals</b> (Hóa đơn tiệc / nhậu)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_chia_bill_meals">0 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>chia_bill_participants</b> (Người tham gia - N:N)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_chia_bill_participants">0 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>chia_bill_money_logs</b> (Nhật ký thu chi quỹ)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_chia_bill_money_logs">2 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>tien_com_members</b> (Thành viên tiền cơm)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_tien_com_members">2 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>tien_com_orders</b> (Đơn cơm trưa đồng nghiệp)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_tien_com_orders">1 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>tien_com_order_items</b> (Món ăn từng người)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_tien_com_order_items">2 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>tien_com_menu_presets</b> (Thực đơn mẫu)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_tien_com_menu_presets">3 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>dashboard_apps</b> (Ứng dụng macOS)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_dashboard_apps">5 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>bank_accounts</b> (Tài khoản VietQR)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_bank_accounts">2 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span>📁 <b>notes_and_tasks</b> (Ghi chú & Đếm ngược)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_notes_and_tasks">2 dòng</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:3px 0;">
+            <span>📁 <b>system_config</b> (Cấu hình bảo mật Admin)</span>
+            <span style="color:#38bdf8; font-family:monospace;" id="stat_system_config">1 dòng</span>
+          </div>
+        </div>
+      </div>
 
-      appsList.forEach(app => {
-        const item = document.createElement('div');
-        item.className = 'app-item';
-        item.onclick = (e) => handleAppClick(e, app.url);
-        
-        item.innerHTML = `
-          <div class="delete-btn" onclick="deleteApp(event, '${app.id}')">✕</div>
-          <div class="app-icon">${app.icon}</div>
-          <div class="app-label">${app.title}</div>
-        `;
-        grid.appendChild(item);
-      });
+      <div class="modal-actions" style="display:flex; justify-content:space-between; width:100%; gap:8px;">
+        <button type="button" class="btn-action" style="background:#0284c7; flex:1;" onclick="refreshDbStatus(true)">🔄 Làm Mới / Đồng Bộ</button>
+        <button type="button" class="btn-action btn-cancel" onclick="closeDbStatusModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
 
-      const addBtn = document.createElement('div');
-      addBtn.className = 'app-item btn-add-item';
-      addBtn.onclick = openModal;
-      addBtn.innerHTML = `
-        <div class="app-icon btn-add-icon">➕</div>
-        <div class="app-label">Thêm App</div>
-      `;
-      grid.appendChild(addBtn);
-    }
-
-    // Cập nhật đồng hồ Topbar
-    function updateClock() {
-      const now = new Date();
-      const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-      document.getElementById('mac-clock').innerText = now.toLocaleDateString('en-US', options);
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // Cấu hình kéo thả đổi vị trí icon (SortableJS)
-    const appGrid = document.getElementById('app-grid');
-    const sortable = new Sortable(appGrid, {
-      animation: 200,
-      ghostClass: 'sortable-ghost',
-      forceFallback: true,
-      disabled: true,
-      filter: '.btn-add-item',
-      onEnd: async function () {
-        const newOrder = [];
-        const items = appGrid.querySelectorAll('.app-item:not(.btn-add-item)');
-        items.forEach(item => {
-          const title = item.querySelector('.app-label').innerText;
-          const found = appsList.find(a => a.title === title);
-          if (found) newOrder.push(found);
-        });
-        appsList = newOrder;
-        await saveAppsToCloud();
-      }
-    });
-
-    function toggleEditMode(enable) {
-      isEditMode = enable;
-      sortable.option('disabled', !enable);
-      document.body.classList.toggle('edit-mode', enable);
-    }
-
-    function openModal() {
-      if(isEditMode) return;
-      document.getElementById('app-modal').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('app-modal').classList.remove('active');
-      document.getElementById('app-name-input').value = '';
-      document.getElementById('app-icon-input').value = '';
-      document.getElementById('app-url-input').value = '';
-    }
-
-    async function saveNewApp() {
-      const name = document.getElementById('app-name-input').value.trim();
-      const icon = document.getElementById('app-icon-input').value.trim() || '🌐';
-      const url = document.getElementById('app-url-input').value.trim();
-
-      if (!name || !url) {
-        alert('Vui lòng nhập Tên và Đường dẫn!');
-        return;
-      }
-
-      const newApp = { id: Date.now().toString(), title: name, icon: icon, url: url };
-      appsList.push(newApp);
-      renderAppGrid();
-      closeModal();
-      await saveAppsToCloud();
-    }
-
-    async function deleteApp(event, id) {
-      event.stopPropagation();
-      appsList = appsList.filter(app => app.id !== id);
-      renderAppGrid();
-      await saveAppsToCloud();
-    }
-
-    function handleAppClick(event, fileUrl) {
-      if (isEditMode) {
-        event.preventDefault();
-        return;
-      }
-      openApp(fileUrl);
-    }
-
-    function openApp(fileUrl) {
-      document.getElementById('app-frame').src = fileUrl;
-      document.getElementById('app-grid').classList.add('hidden');
-      document.getElementById('main-workspace').classList.add('active');
-    }
-
-    function goHome() {
-      document.getElementById('main-workspace').classList.remove('active');
-      document.getElementById('app-grid').classList.remove('hidden');
-      document.getElementById('app-frame').src = '';
-    }
-
-    // Chạy tải dữ liệu Cloud ngay khi mở trang
-    loadAppsFromCloud();
-  </script>
+  <!-- Controller Logic -->
+  <script src="assets/js/dashboard.js"></script>
 </body>
 </html>

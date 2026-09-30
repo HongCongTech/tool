@@ -1,0 +1,1892 @@
+/**
+ * ==============================================================================
+ * macOS Web Dashboard - Comprehensive Master Stylesheet
+ * Architecture: Component-Based Glassmorphism macOS Simulation
+ * ==============================================================================
+ */
+
+/* --------------------------------------------------------------------------
+   1. RESET & DESIGN TOKENS
+   -------------------------------------------------------------------------- */
+:root {
+  --mac-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --top-bar-bg: rgba(15, 23, 42, 0.45);
+  --top-bar-border: rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.28);
+  --glass-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  --dock-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+  --modal-bg: rgba(30, 41, 59, 0.95);
+  --accent-blue: #007aff;
+  --accent-blue-hover: #0063cc;
+  --danger-red: #ff3b30;
+  --warning-yellow: #ff9f0a;
+  --success-green: #34c759;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--mac-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: #0f172a;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  color: #ffffff;
+  transition: background-image 0.4s ease-in-out;
+  user-select: none;
+}
+
+/* --------------------------------------------------------------------------
+   2. TOP MENU BAR (MACOS STYLE)
+   -------------------------------------------------------------------------- */
+.top-bar {
+  width: 100%;
+  height: 32px;
+  background: var(--top-bar-bg);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid var(--top-bar-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 2000;
+  position: relative;
+}
+
+.top-bar-left,
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.top-bar-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top-bar-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.apple-logo-btn {
+  font-size: 16px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+/* Apple Dropdown Menu */
+.apple-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: 34px;
+  left: 10px;
+  width: 230px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  padding: 6px;
+  z-index: 3000;
+  flex-direction: column;
+  animation: menuFadeIn 0.15s ease-out;
+}
+
+.apple-menu-dropdown.show {
+  display: flex;
+}
+
+@keyframes menuFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menu-item {
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #f1f5f9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.1s ease;
+}
+
+.menu-item:hover {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+.menu-item .shortcut-hint {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 4px 6px;
+}
+
+/* --------------------------------------------------------------------------
+   3. DESKTOP WORKSPACE & APP GRID
+   -------------------------------------------------------------------------- */
+.mac-body {
+  flex: 1;
+  height: calc(100% - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.mac-desktop {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 24px 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* App Grid Container */
+.app-grid-container {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  grid-auto-rows: 115px;
+  gap: 24px;
+  align-content: start;
+  overflow-y: auto;
+  padding-bottom: 90px; /* Leave space for bottom dock */
+}
+
+.app-grid-container.hidden {
+  display: none;
+}
+
+/* Individual App Item */
+.app-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.app-item:hover {
+  transform: scale(1.08);
+}
+
+.app-item:active {
+  transform: scale(0.95);
+}
+
+.app-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 17px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 34px;
+  margin-bottom: 8px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.app-item:hover .app-icon {
+  box-shadow: 0 12px 30px rgba(0, 122, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.app-label {
+  font-size: 12px;
+  color: #ffffff;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  font-weight: 500;
+  max-width: 95px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Edit Mode Jiggle Animation */
+body.edit-mode .app-item:not(.btn-add-item) {
+  animation: macShake 0.25s infinite alternate ease-in-out;
+}
+
+@keyframes macShake {
+  0% { transform: rotate(-2.5deg); }
+  100% { transform: rotate(2.5deg); }
+}
+
+/* Delete Button - Chỉ hiện khi ĐỒNG THỜI bật Admin VÀ gạt công tắc Sắp xếp & Xóa trên Dock */
+.delete-btn {
+  display: none !important;
+  position: absolute;
+  top: -4px;
+  right: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--danger-red);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: bold;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  transition: transform 0.15s ease;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  transform: scale(1.18);
+  background: #dc2626;
+}
+
+body.is-admin.edit-mode .delete-btn {
+  display: flex !important;
+}
+
+body:not(.edit-mode) .delete-btn {
+  display: none !important;
+}
+
+/* Edit App Button - ẩn hoàn toàn, thay bằng context menu */
+.edit-app-btn {
+  display: none !important;
+}
+
+/* App Lock Badge */
+.app-lock-badge {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  font-size: 11px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+/* Add App Button */
+.btn-add-icon {
+  border: 2px dashed rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   4. MACOS MULTI-WINDOW MANAGER
+   -------------------------------------------------------------------------- */
+.windows-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 500;
+}
+
+.mac-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: auto;
+  overflow: hidden;
+  min-width: 340px;
+  min-height: 220px;
+  animation: windowPopOpen 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity, width, height, top, left;
+  user-select: none;
+}
+
+@keyframes windowPopOpen {
+  0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mac-window.focused {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 30px 75px -12px rgba(0, 0, 0, 0.75), 0 0 0 1.5px rgba(255, 255, 255, 0.25);
+}
+
+.mac-window:not(.focused) {
+  opacity: 0.94;
+}
+
+.mac-window:not(.focused) .traffic-btn {
+  filter: grayscale(0.55) opacity(0.7);
+}
+
+.mac-window:not(.focused) .window-title {
+  color: #94a3b8;
+}
+
+/* Window Header */
+.window-header {
+  height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  flex-shrink: 0;
+  user-select: none;
+  cursor: grab;
+}
+
+.window-header:active {
+  cursor: grabbing;
+}
+
+/* Traffic Light Buttons */
+.traffic-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.traffic-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.traffic-btn:hover {
+  transform: scale(1.15);
+}
+
+.btn-close { background-color: #ff5f56; border: 1px solid #e0443e; }
+.btn-minimize { background-color: #ffbd2e; border: 1px solid #dea123; }
+.btn-maximize { background-color: #27c93f; border: 1px solid #1aab29; }
+
+.traffic-btns:hover .btn-close::after {
+  content: '✕';
+  font-size: 8px;
+  color: #580000;
+  font-weight: 900;
+}
+
+.traffic-btns:hover .btn-minimize::after {
+  content: '−';
+  font-size: 11px;
+  color: #633c00;
+  font-weight: 900;
+  margin-top: -2px;
+}
+
+.traffic-btns:hover .btn-maximize::after {
+  content: '+';
+  font-size: 10px;
+  color: #004d00;
+  font-weight: 900;
+}
+
+/* Window Title */
+.window-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+
+.window-title .window-icon {
+  font-size: 15px;
+}
+
+/* Window Actions */
+.window-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-window-action {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-window-action:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Window Body */
+.window-body {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+  background: #ffffff;
+  user-select: auto;
+}
+
+.window-body iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #ffffff;
+  display: block;
+}
+
+.iframe-shield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  display: none;
+  z-index: 100;
+}
+
+body.is-window-dragging .iframe-shield,
+body.is-window-resizing .iframe-shield {
+  display: block !important;
+}
+
+/* 8-Directional Resize Handles */
+.resize-handle {
+  position: absolute;
+  z-index: 120;
+}
+.resize-handle.rh-t { top: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }
+.resize-handle.rh-b { bottom: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }
+.resize-handle.rh-l { top: 8px; left: 0; bottom: 8px; width: 6px; cursor: ew-resize; }
+.resize-handle.rh-r { top: 8px; right: 0; bottom: 8px; width: 6px; cursor: ew-resize; }
+.resize-handle.rh-tl { top: 0; left: 0; width: 14px; height: 14px; cursor: nwse-resize; }
+.resize-handle.rh-tr { top: 0; right: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+.resize-handle.rh-bl { bottom: 0; left: 0; width: 14px; height: 14px; cursor: nesw-resize; }
+.resize-handle.rh-br {
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+/* Maximized State - Desktop Workspace */
+.mac-window.is-maximized {
+  top: 8px !important;
+  left: 10px !important;
+  width: calc(100% - 20px) !important;
+  height: calc(100% - 78px) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.16) !important;
+  transition: top 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              left 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* macOS Minimize Animation into Dock */
+.mac-window.animating-minimize {
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s ease !important;
+  transform: translate(var(--dock-tx, 0px), var(--dock-ty, 500px)) scale(0.06) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.mac-window.is-minimized {
+  display: none !important;
+}
+
+/* macOS Restore Animation from Dock */
+.mac-window.animating-restore-start {
+  transform: translate(var(--dock-tx, 0px), var(--dock-ty, 500px)) scale(0.06) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.mac-window.animating-restore {
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s ease !important;
+  transform: translate(0, 0) scale(1) !important;
+  opacity: 1 !important;
+}
+
+/* Window Close Animation */
+.mac-window.animating-close {
+  transition: transform 0.22s cubic-bezier(0.4, 0, 1, 1), opacity 0.2s ease !important;
+  transform: scale(0.85) translateY(12px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. BOTTOM DOCK (MACOS DOCK WITH MAGNIFICATION)
+   -------------------------------------------------------------------------- */
+.dock-wrapper {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.mac-dock {
+  pointer-events: auto;
+  padding: 8px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(35px);
+  -webkit-backdrop-filter: blur(35px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--dock-shadow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.2s ease;
+}
+
+.dock-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+}
+
+.dock-btn:hover {
+  transform: scale(1.3) translateY(-10px);
+  background: rgba(255, 255, 255, 0.38);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dock-btn.running-app::after,
+.dock-btn.active-app::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+  transition: all 0.2s ease;
+}
+
+.dock-btn.focused-app {
+  background: rgba(255, 255, 255, 0.38);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.dock-btn.is-minimized-app::after {
+  background-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.4);
+}
+
+.dock-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 0 4px;
+}
+
+.edit-toggle-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+/* Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255, 255, 255, 0.25);
+  transition: 0.3s;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--success-green);
+}
+
+input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
+/* Admin toggle - orange/amber color */
+.switch-admin .slider-admin {
+  background-color: rgba(251, 146, 60, 0.3);
+  border-color: rgba(251, 146, 60, 0.5);
+}
+
+.switch-admin input:checked + .slider-admin {
+  background-color: #f97316;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+/* Dock toggle label */
+.dock-toggle-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-right: 3px;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   6. SPOTLIGHT SEARCH MODAL (CMD/CTRL + K)
+   -------------------------------------------------------------------------- */
+.spotlight-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 14vh;
+  z-index: 4000;
+}
+
+.spotlight-overlay.active {
+  display: flex;
+}
+
+.spotlight-box {
+  width: 90%;
+  max-width: 580px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(35px);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: spotlightIn 0.15s ease-out;
+}
+
+@keyframes spotlightIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.spotlight-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 12px;
+}
+
+.spotlight-icon {
+  font-size: 20px;
+  opacity: 0.7;
+}
+
+.spotlight-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 17px;
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.spotlight-input::placeholder {
+  color: #94a3b8;
+}
+
+.spotlight-badge {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 7px;
+  border-radius: 6px;
+  color: #cbd5e1;
+}
+
+.spotlight-results {
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 8px 8px 75px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spotlight-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  gap: 12px;
+  transition: background-color 0.1s ease;
+}
+
+.spotlight-item.active,
+.spotlight-item:hover {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+.spotlight-item-icon {
+  font-size: 22px;
+}
+
+.spotlight-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.spotlight-item-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.spotlight-item-desc {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.spotlight-calc-result {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--success-green);
+}
+
+.spotlight-item.active .spotlight-calc-result {
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   7. CALENDAR & CONTROL CENTER POPOVER
+   -------------------------------------------------------------------------- */
+.calendar-popover {
+  display: none;
+  position: absolute;
+  top: 36px;
+  right: 14px;
+  width: 300px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+  padding: 16px;
+  z-index: 3000;
+  flex-direction: column;
+  gap: 12px;
+  animation: menuFadeIn 0.15s ease-out;
+}
+
+.calendar-popover.show {
+  display: flex;
+}
+
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.cal-day-header {
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 4px 0;
+}
+
+.cal-day {
+  padding: 6px 0;
+  border-radius: 6px;
+  cursor: default;
+}
+
+.cal-day.today {
+  background: var(--accent-blue);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.cal-day.other-month {
+  color: #64748b;
+  opacity: 0.5;
+}
+
+/* --------------------------------------------------------------------------
+   8. WALLPAPERS MODAL & GENERIC MODAL
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  justify-content: center;
+  align-items: center;
+  z-index: 3500;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-box {
+  width: 90%;
+  max-width: 440px;
+  background: var(--modal-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: spotlightIn 0.15s ease-out;
+}
+
+.modal-box.modal-lg {
+  max-width: 620px;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 12px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.input-group input,
+.input-group textarea {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  outline: none;
+  font-size: 14px;
+}
+
+.input-group input:focus,
+.input-group textarea:focus {
+  border-color: var(--accent-blue);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btn-action {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.btn-action:active { transform: scale(0.97); }
+.btn-cancel { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
+.btn-cancel:hover { background: rgba(255, 255, 255, 0.25); }
+.btn-save { background: var(--accent-blue); color: #ffffff; }
+.btn-save:hover { background: var(--accent-blue-hover); }
+
+/* Wallpapers Grid */
+.wallpaper-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.wallpaper-card {
+  height: 90px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+
+.wallpaper-card:hover {
+  transform: scale(1.04);
+}
+
+.wallpaper-card.active {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(0, 122, 255, 0.6);
+}
+
+.wallpaper-card-name {
+  position: absolute;
+  bottom: 4px;
+  left: 6px;
+  right: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sortable-ghost {
+  opacity: 0.25;
+}
+
+/* --------------------------------------------------------------------------
+   9. MOBILE & TABLET & RESPONSIVE LAYOUT
+   -------------------------------------------------------------------------- */
+
+/* ---- Tablet (max 768px) ---- */
+@media (max-width: 768px) {
+  /* Top bar: hide long text items */
+  .top-bar-left > span:not(:nth-child(1)):not(:nth-child(2)) {
+    display: none !important;
+  }
+  .top-bar-left > .admin-only {
+    display: none !important;
+  }
+  .top-bar-right #mac-battery {
+    display: none;
+  }
+
+  /* Desktop grid */
+  .mac-desktop {
+    padding: 12px 12px 80px;
+    align-items: flex-start;
+  }
+
+  .app-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-auto-rows: 100px;
+    gap: 12px;
+    padding-bottom: 80px;
+  }
+
+  .app-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 26px;
+    border-radius: 14px;
+  }
+
+  .app-label {
+    font-size: 11px;
+    max-width: 80px;
+  }
+
+  /* Windows - Tối ưu kích thước & cảm ứng trên Tablet & Mobile */
+  .mac-window {
+    border-radius: 14px;
+    min-width: 260px;
+    min-height: 180px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15);
+  }
+  
+  /* Cửa sổ vừa vặn tuyệt đối với màn hình điện thoại/tablet, không bị tràn viền hay che dock */
+  .mac-window:not(.is-maximized) {
+    width: calc(100% - 12px) !important;
+    height: calc(100% - 74px) !important;
+    left: 6px !important;
+    top: 6px !important;
+    border-radius: 14px !important;
+  }
+
+  /* Khi phóng to trên Mobile: Chiếm trọn không gian làm việc */
+  .mac-window.is-maximized {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: calc(100% - 58px) !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  /* Header cửa sổ tối ưu cho ngón tay chạm */
+  .window-header {
+    height: 42px;
+    padding: 0 12px;
+  }
+
+  .traffic-btns {
+    gap: 10px;
+  }
+
+  /* Nút Traffic Light to hơn và hiển thị icon trực tiếp trên cảm ứng (không cần hover chuột) */
+  .traffic-btn {
+    width: 16px;
+    height: 16px;
+    position: relative;
+  }
+
+  /* Vùng chạm mở rộng 32px x 32px cho ngón tay bấm cực kỳ chuẩn xác */
+  .traffic-btn::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+  }
+
+  .traffic-btn.btn-close::after {
+    content: '✕';
+    font-size: 9px;
+    color: #580000;
+    font-weight: 900;
+    display: block;
+  }
+
+  .traffic-btn.btn-minimize::after {
+    content: '−';
+    font-size: 13px;
+    color: #633c00;
+    font-weight: 900;
+    margin-top: -3px;
+    display: block;
+  }
+
+  .traffic-btn.btn-maximize::after {
+    content: '⤢';
+    font-size: 10px;
+    color: #004d00;
+    font-weight: 900;
+    display: block;
+  }
+
+  /* Ẩn thanh kéo viền resize trên mobile để không cản trở thao tác vuốt cuộn màn hình */
+  .resize-handle {
+    display: none !important;
+  }
+
+  .window-body {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Dock */
+  .mac-dock {
+    padding: 6px 10px;
+    gap: 7px;
+    border-radius: 18px;
+  }
+  
+  .dock-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 19px;
+    border-radius: 11px;
+  }
+
+  .dock-btn:hover {
+    transform: scale(1.2) translateY(-6px);
+  }
+
+  .dock-toggle-label {
+    display: none;
+  }
+
+  /* Modal full-screen */
+  .modal-box {
+    width: 95%;
+    max-width: none;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 16px;
+    gap: 12px;
+    border-radius: 14px;
+  }
+
+  .modal-box.modal-lg {
+    max-width: none;
+  }
+
+  /* Wallpaper grid 2 cols on mobile */
+  .wallpaper-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Spotlight */
+  .spotlight-box {
+    width: 95%;
+    border-radius: 14px;
+  }
+
+  .spotlight-input {
+    font-size: 15px;
+  }
+
+  /* Calendar popover */
+  .calendar-popover {
+    width: 260px;
+    right: 8px;
+  }
+
+  /* Recovery modal tabs scroll */
+  #forgotPasswordModal .modal-box > div:nth-child(3) {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---- Phone portrait (max 480px) ---- */
+@media (max-width: 480px) {
+  .top-bar {
+    padding: 0 10px;
+  }
+
+  .top-bar-right {
+    gap: 6px;
+  }
+
+  .admin-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+
+  .mac-desktop {
+    padding: 8px 8px 75px;
+  }
+
+  .app-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    grid-auto-rows: 92px;
+    gap: 10px;
+  }
+
+  .app-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+    border-radius: 12px;
+  }
+
+  .app-label {
+    font-size: 10.5px;
+  }
+
+  .mac-dock {
+    padding: 5px 8px;
+    gap: 5px;
+    border-radius: 16px;
+    max-width: calc(100vw - 16px);
+    overflow-x: auto;
+  }
+
+  .dock-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+
+  .dock-wrapper {
+    bottom: 6px;
+  }
+
+  .mac-window:not(.is-maximized) {
+    width: calc(100% - 8px) !important;
+    height: calc(100% - 66px) !important;
+    left: 4px !important;
+    top: 4px !important;
+    border-radius: 12px !important;
+  }
+
+  .mac-window.is-maximized {
+    width: 100% !important;
+    height: calc(100% - 52px) !important;
+    left: 0 !important;
+    top: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .window-header {
+    height: 40px;
+    padding: 0 10px;
+  }
+
+  .window-title {
+    font-size: 12.5px;
+  }
+}
+
+/* ---- Very small phones (max 360px) ---- */
+@media (max-width: 360px) {
+  .app-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    grid-auto-rows: 85px;
+    gap: 8px;
+  }
+
+  .app-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+
+  .dock-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+}
+
+/* ---- Horizontal (landscape) mobile ---- */
+@media (max-height: 500px) and (orientation: landscape) {
+  .top-bar {
+    height: 26px;
+  }
+  
+  .mac-desktop {
+    padding: 6px 16px 60px;
+  }
+
+  .app-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    grid-auto-rows: 80px;
+    gap: 8px;
+    padding-bottom: 65px;
+  }
+
+  .mac-window:not(.is-maximized) {
+    width: calc(100% - 12px) !important;
+    height: calc(100% - 50px) !important;
+    left: 6px !important;
+    top: 4px !important;
+  }
+
+  .mac-window.is-maximized {
+    width: 100% !important;
+    height: calc(100% - 44px) !important;
+    left: 0 !important;
+    top: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .dock-wrapper {
+    bottom: 6px;
+  }
+
+  .mac-dock {
+    padding: 4px 8px;
+    gap: 5px;
+  }
+
+  .dock-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+  }
+
+  .dock-btn:hover {
+    transform: scale(1.15) translateY(-4px);
+  }
+
+  .dock-toggle-label {
+    display: none;
+  }
+}
+
+/* ---- Tablet landscape (768-1024px) ---- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .app-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    grid-auto-rows: 108px;
+    gap: 18px;
+  }
+
+  .top-bar-left > span.admin-only {
+    display: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10. SYSTEM-WIDE ADMIN AUTHENTICATION
+   -------------------------------------------------------------------------- */
+.admin-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--glass-border);
+}
+
+.admin-badge:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+body.is-admin .admin-badge {
+  background: rgba(52, 199, 89, 0.25);
+  color: #34c759;
+  border-color: rgba(52, 199, 89, 0.5);
+  box-shadow: 0 0 10px rgba(52, 199, 89, 0.3);
+}
+
+.admin-only {
+  display: none !important;
+}
+
+body.is-admin .admin-only {
+  display: flex !important;
+}
+
+body:not(.is-admin) .btn-add-item {
+  display: none !important;
+}
+
+body:not(.is-admin) .dock-btn-add {
+  display: none !important;
+}
+
+body:not(.is-admin) .edit-toggle-wrapper {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   11. ADMIN EDIT MODE (Toggle "Sửa" & "Phân quyền" buttons)
+   -------------------------------------------------------------------------- */
+
+/* .admin-edit-btn: nút Sửa thành viên trong các sub-app (ẩn mặc định) */
+/* Controlled by toggleAdminEditMode() via postMessage to iframes */
+
+/* Dock toggle glowing when admin-edit is ON */
+body.admin-edit-mode-active #admin-edit-toggle-wrapper .switch-admin .slider-admin {
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.8);
+}
+
+/* Visual indicator on top bar when admin edit mode is active */
+body.admin-edit-mode-active .top-bar::after {
+  content: '✏️ Chế độ Sửa đang bật';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: #f97316;
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  padding: 2px 10px;
+  border-radius: 8px;
+  pointer-events: none;
+  animation: pulseEdit 2s infinite;
+}
+
+@keyframes pulseEdit {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* --------------------------------------------------------------------------
+   12. SMOOTH TRANSITIONS & POLISH
+   -------------------------------------------------------------------------- */
+
+/* Smooth show/hide for admin-only elements */
+body.is-admin .admin-only {
+  animation: fadeInItem 0.2s ease-out;
+}
+
+@keyframes fadeInItem {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Prevent text selection on dock elements */
+.mac-dock * {
+  user-select: none;
+}
+
+/* Improve modal scroll on small screens */
+.modal-overlay {
+  align-items: flex-start;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+@media (min-width: 600px) {
+  .modal-overlay {
+    align-items: center;
+    padding: 0;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .dock-btn {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .app-item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dock-btn:hover {
+    transform: scale(1.15) translateY(-5px);
+  }
+}
+
+/* ==============================================================================
+   10. CONTEXT MENU & MOBILE ACTION SHEET (MENU CHUỘT PHẢI & CHẠM GIỮ)
+   ============================================================================== */
+.mac-context-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99990;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  animation: backdropFadeIn 0.2s ease;
+}
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mac-context-menu {
+  position: fixed;
+  z-index: 99999;
+  min-width: 230px;
+  max-width: 290px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  box-shadow: 0 20px 48px -8px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 6px;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: contextMenuPop 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top left;
+}
+
+@keyframes contextMenuPop {
+  0% { opacity: 0; transform: scale(0.92) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mac-context-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 4px;
+}
+
+.mac-context-header .ctx-app-icon {
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.mac-context-header .ctx-app-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.mac-context-header .ctx-app-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mac-context-header .ctx-app-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mac-context-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  user-select: none;
+}
+
+.mac-context-item:hover,
+.mac-context-item:focus {
+  background: #0284c7;
+  color: #ffffff;
+  outline: none;
+  transform: translateX(2px);
+}
+
+.mac-context-item.danger-item:hover,
+.mac-context-item.danger-item:focus {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.mac-context-item .ctx-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mac-context-item .ctx-label {
+  flex: 1;
+  font-weight: 500;
+}
+
+.mac-context-item .ctx-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+}
+
+.mac-context-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 6px;
+}
+
+/* Chặn menu popup mặc định của trình duyệt điện thoại khi chạm giữ icon */
+.app-item, .dock-btn {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* MOBILE ACTION SHEET (<= 600px) */
+@media (max-width: 600px) {
+  .mac-context-backdrop {
+    display: block;
+  }
+
+  .mac-context-menu {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 12px 16px max(24px, env(safe-area-inset-bottom, 24px)) !important;
+    box-shadow: 0 -16px 50px rgba(0, 0, 0, 0.8) !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    animation: actionSheetSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    gap: 4px !important;
+    max-height: 82vh;
+    overflow-y: auto;
+  }
+
+  @keyframes actionSheetSlideUp {
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(0); }
+  }
+
+  .mac-context-menu::before {
+    content: '';
+    display: block;
+    width: 44px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    margin: 4px auto 14px;
+  }
+
+  .mac-context-item {
+    padding: 13px 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .mac-context-item .ctx-icon {
+    font-size: 20px;
+    width: 26px;
+  }
+}
+
+/* ==============================================================================
+   11. TOAST NOTIFICATION
+   ============================================================================== */
+.mac-toast {
+  position: fixed;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+  padding: 10px 18px;
+  border-radius: 28px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+  z-index: 100000;
+  animation: toastFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 90vw;
+}
+
+@keyframes toastFadeIn {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.mac-toast .toast-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.mac-toast .toast-btn:hover {
+  background: #0369a1;
+}
+
+/* --------------------------------------------------------------------------
+   21. SUPABASE DATABASE STATUS BADGE & CONTROLS
+   -------------------------------------------------------------------------- */
+.db-status-badge {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 2px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.db-status-badge:hover {
+  background: rgba(34, 197, 94, 0.28);
+  border-color: rgba(34, 197, 94, 0.6);
+  color: #bbf7d0;
+  transform: translateY(-1px);
+}
+
+.db-status-badge.offline {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.db-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  display: inline-block;
+  animation: dbDotPulse 2s infinite ease-in-out;
+}
+
+.db-pulse-dot.offline {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: none;
+}
+
+@keyframes dbDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}

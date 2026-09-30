@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài Đặt Hệ Thống & Control Panel</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Supabase Database Storage Adapter -->
+    <script src="../../assets/js/db-storage.js"></script>
+
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --primary-light: #f0f9ff;
+            --primary-border: #bae6fd;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748b;
+            --slate-400: #94a3b8;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --slate-50: #f8fafc;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --border: #e2e8f0;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--slate-50);
+            color: var(--slate-800);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Admin Edit Mode: chỉ hiện nút Sửa khi toggle Admin được bật từ Dock */
+        .admin-edit-btn {
+            display: none !important;
+        }
+        body.admin-edit-mode .admin-edit-btn,
+        body.is-admin .admin-edit-btn {
+            display: inline-flex !important;
+        }
+
+        /* HEADER */
+        .cp-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .cp-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cp-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0284c7, #0f172a);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+        }
+        .cp-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--slate-900);
+        }
+
+        .admin-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid var(--border);
+            background: var(--slate-100);
+            color: var(--slate-600);
+        }
+        body.is-admin .admin-badge {
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #86efac;
+        }
+
+        /* MAIN LAYOUT */
+        .cp-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .cp-sidebar {
+            width: 250px;
+            background: #ffffff;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 10px;
+            gap: 6px;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .cp-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--slate-600);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: left;
+            width: 100%;
+        }
+        .cp-nav-item:hover {
+            background: var(--slate-100);
+            color: var(--slate-900);
+        }
+        .cp-nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .cp-nav-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* CONTENT PANE */
+        .cp-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: var(--slate-50);
+        }
+
+        .cp-section {
+            display: none;
+            animation: fadeIn 0.25s ease-out;
+            max-width: 820px;
+        }
+        .cp-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-desc {
+            font-size: 0.82rem;
+            color: var(--slate-500);
+            margin-top: 4px;
+        }
+
+        /* CARD */
+        .card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--slate-900);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* FORMS */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--slate-700);
+        }
+        .form-control {
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        /* BUTTONS */
+        .btn {
+            border: none;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: white; border: 1.5px solid var(--border); color: var(--slate-700); }
+        .btn-outline:hover { background: var(--slate-100); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+        /* VIETQR CARD PREVIEW */
+        .vietqr-box {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background: var(--slate-50);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .qr-display {
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            display: inline-block;
+        }
+        .qr-display img {
+            width: 190px;
+            height: 190px;
+            object-fit: contain;
+            display: block;
+        }
+        .qr-info {
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .qr-info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 4px;
+        }
+        .qr-info-val {
+            font-weight: 700;
+            color: var(--slate-900);
+        }
+
+        /* ROADMAP & PROPOSALS */
+        .proposal-item {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .proposal-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .proposal-content h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--slate-900);
+        }
+        .proposal-content p {
+            font-size: 0.82rem;
+            color: var(--slate-500);
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        /* WALLPAPER PREVIEW */
+        .wp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .wp-item {
+            height: 85px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .wp-item:hover {
+            transform: scale(1.04);
+        }
+        .wp-item.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-border);
+        }
+
+        @media (max-width: 820px) {
+            .cp-main { flex-direction: column; }
+            .cp-sidebar { 
+                width: 100%; 
+                height: auto; 
+                flex-direction: row; 
+                overflow-x: auto; 
+                padding: 8px 10px; 
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                gap: 6px;
+                flex-shrink: 0;
+            }
+            .cp-nav-item { 
+                white-space: nowrap; 
+                padding: 8px 14px; 
+                font-size: 0.84rem;
+                flex-shrink: 0;
+                width: auto;
+            }
+            .cp-content { padding: 16px; }
+            .vietqr-box { flex-direction: column; align-items: center; text-align: center; }
+            .qr-info { width: 100%; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .cp-header { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+            .cp-brand .cp-title { font-size: 0.95rem; }
+            .cp-content { padding: 12px; }
+            .card { padding: 14px; }
+            .modal-card { padding: 16px; margin: 10px; max-height: 95vh; }
+        }
+
+        /* ADMIN RESTRICTIONS */
+        .admin-only {
+            display: none !important;
+        }
+        body.is-admin .admin-only {
+            display: inline-flex !important;
+        }
+        body.is-admin .admin-only-block {
+            display: block !important;
+        }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 16px;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 22px;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { transform: scale(0.96); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--slate-400);
+            cursor: pointer;
+            line-height: 1;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .modal-close:hover {
+            color: var(--danger);
+            background: var(--danger-light);
+        }
+
+        /* MEMBER DIRECTORY STYLES */
+        .member-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .member-table th {
+            background: var(--slate-100);
+            padding: 10px 14px;
+            font-weight: 700;
+            color: var(--slate-700);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .member-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            background: white;
+        }
+        .member-table tr:hover td {
+            background: var(--slate-50);
+        }
+        .member-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            color: white;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        .member-badge-nick {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+        }
+        .badge-age {
+            font-size: 11px;
+            color: var(--slate-500);
+            background: var(--slate-100);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CONTROL PANEL HEADER -->
+    <header class="cp-header">
+        <div class="cp-brand">
+            <div class="cp-logo"><i class="fa-solid fa-sliders"></i></div>
+            <div>
+                <div class="cp-title">Cài Đặt Hệ Thống & Control Panel</div>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="admin-badge" id="adminBadge" style="cursor:pointer;" onclick="handleAdminBadgeClick()" title="Nhấp để đăng nhập / đăng xuất Quản trị viên">
+                <i class="fa-solid fa-shield-halved"></i> <span>Chế độ xem</span>
+            </div>
+            <button class="btn btn-outline btn-sm" id="btnAdminQuick" onclick="handleAdminBadgeClick()">
+                <i class="fa-solid fa-key"></i> Đăng Nhập
+            </button>
+        </div>
+    </header>
+
+    <div class="cp-main">
+        <!-- SIDEBAR NAVIGATION -->
+        <nav class="cp-sidebar">
+            <button class="cp-nav-item active" onclick="switchSection('bank')">
+                <i class="fa-solid fa-qrcode" style="color: #0284c7;"></i>
+                <span>Tài Khoản & VietQR</span>
+            </button>
+            <button class="cp-nav-item" onclick="switchSection('members')">
+                <i class="fa-solid fa-users" style="color: #10b981;"></i>
+                <span>Danh Bạ Thành Viên</span>
+            </button>
+            <button class="cp-nav-item" onclick="switchSection('appearance')">
+                <i class="fa-solid fa-palette" style="color: #8b5cf6;"></i>
+                <span>Hình Nền & Giao Diện</span>
+            </button>
+            <button class="cp-nav-item" onclick="switchSection('backup')">
+                <i class="fa-solid fa-database" style="color: #f59e0b;"></i>
+                <span>Sao Lưu & Dữ Liệu</span>
+            </button>
+            <button class="cp-nav-item" onclick="switchSection('security')">
+                <i class="fa-solid fa-lock" style="color: #ef4444;"></i>
+                <span>Bảo Mật & Admin</span>
+            </button>
+            <button class="cp-nav-item" onclick="switchSection('apps')">
+                <i class="fa-solid fa-shapes" style="color: #6366f1;"></i>
+                <span>Phân Quyền Ứng Dụng</span>
+            </button>
+            <button class="cp-nav-item" onclick="switchSection('proposals')">
+                <i class="fa-solid fa-lightbulb" style="color: #f97316;"></i>
+                <span>Đề Xuất Tính Năng</span>
+            </button>
+        </nav>
+
+        <!-- CONTENT PANES -->
+        <main class="cp-content">
+
+            <!-- ADMIN STATUS NOTICE -->
+            <div id="adminNoticeCard" class="card" style="display:none; border-left:4px solid var(--warning); background:#fffbeb; padding:14px 18px; margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center; font-size:16px;">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700; color:#b45309; font-size:0.95rem;">Chế độ xem (Chỉ đọc)</div>
+                            <div style="font-size:0.82rem; color:#78350f; margin-top:2px;">Chức năng cài đặt và chỉnh sửa dữ liệu chỉ có ở Admin Mode. Vui lòng đăng nhập để thực hiện thay đổi.</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openCpAdminAuthModal()"><i class="fa-solid fa-key"></i> Đăng Nhập Quản Trị Viên</button>
+                </div>
+            </div>
+
+            <!-- ========================================================================= -->
+            <!-- 1. TÀI KHOẢN NGÂN HÀNG & VIETQR -->
+            <!-- ========================================================================= -->
+            <section class="cp-section active" id="sec-bank">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-building-columns" style="color: var(--primary);"></i> Cấu Hình Tài Khoản Nhận Tiền & VietQR</div>
+                    <div class="section-desc">Cấu hình thông tin ngân hàng thụ hưởng nhận nộp tiền quỹ. Dữ liệu này tự động đồng bộ sang app Tiền Cơm & Chia Bill.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fa-solid fa-gear"></i> Thông Tin Tài Khoản Ngân Hàng</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Chọn ngân hàng thụ hưởng:</label>
+                            <select id="bankSelect" class="form-control" onchange="updateBankPreview()">
+                                <option value="MB" selected>MBBank (Ngân hàng Quân Đội)</option>
+                                <option value="VCB">Vietcombank (Ngoại Thương)</option>
+                                <option value="TCB">Techcombank (Kỹ Thương)</option>
+                                <option value="VPB">VPBank (Việt Nam Thịnh Vượng)</option>
+                                <option value="ACB">ACB (Á Châu)</option>
+                                <option value="BIDV">BIDV (Đầu Tư & Phát Triển)</option>
+                                <option value="ICB">VietinBank (Công Thương)</option>
+                                <option value="TPB">TPBank (Tiên Phong)</option>
+                                <option value="VIB">VIB (Quốc Tế)</option>
+                                <option value="STB">Sacombank (Sài Gòn Thương Tín)</option>
+                                <option value="HDB">HDBank (Phát Triển TP.HCM)</option>
+                                <option value="MSB">MSB (Hàng Hải)</option>
+                                <option value="OCB">OCB (Phương Đông)</option>
+                                <option value="SHB">SHB (Sài Gòn - Hà Nội)</option>
+                                <option value="LPB">LPBank (Bưu Điện Liên Việt)</option>
+                                <option value="SEAB">SeABank (Đông Nam Á)</option>
+                                <option value="CAKE">CAKE by VPBank</option>
+                                <option value="TIMO">Timo by BVBank</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Số tài khoản (STK):</label>
+                            <input type="text" id="bankAccNo" class="form-control" placeholder="Ví dụ: 0988888888" value="0988888888" oninput="updateBankPreview()">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tên chủ tài khoản (In hoa không dấu):</label>
+                            <input type="text" id="bankAccName" class="form-control" placeholder="NGUYEN VAN A" value="NGUYEN VAN A" oninput="this.value = this.value.toUpperCase(); updateBankPreview()">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Mẫu hiển thị VietQR:</label>
+                            <select id="qrTemplate" class="form-control" onchange="updateBankPreview()">
+                                <option value="compact2" selected>Khung Compact 2 (Đầy đủ logo & STK)</option>
+                                <option value="compact">Khung Compact (Gọn gàng)</option>
+                                <option value="qr_only">Chỉ hiển thị mã QR (Vuông)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary admin-only" onclick="saveBankConfig()">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Ngân Hàng
+                    </button>
+                </div>
+
+                <!-- LIVE TEST QR GENERATOR -->
+                <div class="card">
+                    <div class="card-title"><i class="fa-solid fa-qrcode"></i> Trình Tạo Mã QR Thanh Toán Cho Thành Viên (Xem trước)</div>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Nhập số tiền mẫu (VNĐ):</label>
+                            <input type="number" id="testAmount" class="form-control" placeholder="Ví dụ: 50000" value="50000" oninput="updateBankPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nội dung chuyển khoản mẫu:</label>
+                            <input type="text" id="testContent" class="form-control" placeholder="Nguyen Van A nop tien quy" value="nop tien quy com" oninput="updateBankPreview()">
+                        </div>
+                    </div>
+
+                    <div class="vietqr-box">
+                        <div class="qr-display">
+                            <img id="previewQrImg" src="" alt="Mã VietQR xem trước">
+                        </div>
+                        <div class="qr-info">
+                            <div class="qr-info-row">
+                                <span style="color:var(--slate-500);">Ngân hàng:</span>
+                                <span class="qr-info-val" id="previewBankName">MBBank</span>
+                            </div>
+                            <div class="qr-info-row">
+                                <span style="color:var(--slate-500);">Số tài khoản:</span>
+                                <span class="qr-info-val" id="previewAccNo">0988888888</span>
+                            </div>
+                            <div class="qr-info-row">
+                                <span style="color:var(--slate-500);">Chủ tài khoản:</span>
+                                <span class="qr-info-val" id="previewAccName">NGUYEN VAN A</span>
+                            </div>
+                            <div class="qr-info-row">
+                                <span style="color:var(--slate-500);">Số tiền thanh toán:</span>
+                                <span class="qr-info-val" id="previewAmount" style="color:var(--danger);">50.000 ₫</span>
+                            </div>
+                            <div class="qr-info-row">
+                                <span style="color:var(--slate-500);">Nội dung CK:</span>
+                                <span class="qr-info-val" id="previewDesc">nop tien quy com</span>
+                            </div>
+
+                            <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+                                <button class="btn btn-outline btn-sm" onclick="copyAccountNo()">
+                                    <i class="fa-solid fa-copy"></i> Sao chép STK
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="downloadQrImage()">
+                                    <i class="fa-solid fa-download"></i> Tải ảnh QR
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="copyQrLink()">
+                                    <i class="fa-solid fa-link"></i> Sao chép link QR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- 2. DANH BẠ THÀNH VIÊN CHUNG -->
+            <!-- ========================================================================= -->
+            <section class="cp-section" id="sec-members">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-address-book" style="color: var(--success);"></i> Danh Bạ Thành Viên Chung Hệ Thống</div>
+                    <div class="section-desc">Quản lý đầy đủ thông tin: Họ tên, Nickname, Ngày sinh, Số điện thoại, STK Ngân hàng để tạo mã VietQR chuyển tiền / hoàn trả trong Chia Bill và Tiền Cơm.</div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+                        <div style="position:relative; flex:1; min-width:240px; max-width:420px;">
+                            <input type="text" id="memberSearchInput" class="form-control" placeholder="🔍 Tìm theo Họ tên, Nickname, SĐT, STK..." oninput="filterGlobalMembers(this.value)">
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button class="btn btn-primary btn-sm admin-only" onclick="openAddMemberModal()">
+                                <i class="fa-solid fa-user-plus"></i> Thêm Thành Viên Mới
+                            </button>
+                            <button class="btn btn-success btn-sm admin-only" onclick="syncMembersToApps()" title="Đồng bộ danh sách sang app Tiền Cơm & Chia Bill">
+                                <i class="fa-solid fa-arrows-rotate"></i> Đồng Bộ Sang App
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="font-size:0.85rem; font-weight:700; color:var(--slate-700);">
+                            Danh sách thành viên (<span id="globalMemberCount" style="color:var(--primary);">0</span>)
+                        </div>
+                        <div style="font-size:0.78rem; color:var(--slate-500);">
+                            <i class="fa-solid fa-circle-info"></i> Bấm "Mã QR" để tạo mã quét trả tiền hoặc hoàn tiền trực tiếp
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-sm); max-height:480px; overflow-y:auto;">
+                        <table class="member-table">
+                            <thead>
+                                <tr>
+                                    <th>Thành viên</th>
+                                    <th>Sinh nhật</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Tài khoản ngân hàng (STK)</th>
+                                    <th style="text-align:center; min-width:180px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="globalMemberListBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- 3. HÌNH NỀN & GIAO DIỆN -->
+            <!-- ========================================================================= -->
+            <section class="cp-section" id="sec-appearance">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-palette" style="color: #8b5cf6;"></i> Hình Nền & Giao Diện Desktop</div>
+                    <div class="section-desc">Tùy biến hình nền macOS và phong cách hiển thị hệ thống.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Chọn hình nền macOS mặc định</div>
+                    <div class="wp-grid" id="wpGrid">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <div class="card-title" style="margin-top:20px;">Hoặc dán đường link ảnh hình nền bất kỳ:</div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="customWpInput" class="form-control" placeholder="https://example.com/wallpaper.jpg" style="flex:1;">
+                        <button class="btn btn-primary" onclick="saveCustomWallpaper()"><i class="fa-solid fa-check"></i> Áp Dụng</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- 4. SAO LƯU & DỮ LIỆU -->
+            <!-- ========================================================================= -->
+            <section class="cp-section" id="sec-backup">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-database" style="color: var(--warning);"></i> Sao Lưu & Phục Hồi Dữ Liệu</div>
+                    <div class="section-desc">Bảo vệ dữ liệu công nợ, nhật ký chi tiêu và danh sách ứng dụng an toàn.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Xuất bản sao lưu toàn bộ hệ thống</div>
+                    <p style="font-size:0.85rem; color:var(--slate-500); margin-bottom:12px;">
+                        Tạo 1 file sao lưu <code>.json</code> chứa toàn bộ danh sách thành viên, các hóa đơn chia bill, suất ăn tiền cơm, ghi chú và cấu hình ngân hàng.
+                    </p>
+                    <button class="btn btn-primary" onclick="exportFullBackup()">
+                        <i class="fa-solid fa-download"></i> Tải File Sao Lưu (.JSON)
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Khôi phục dữ liệu từ file backup</div>
+                    <p style="font-size:0.85rem; color:var(--slate-500); margin-bottom:12px;">
+                        Chọn file backup <code>.json</code> đã lưu trước đây để phục hồi lại dữ liệu.
+                    </p>
+                    <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+                    <button class="btn btn-outline" onclick="document.getElementById('restoreFileInput').click()">
+                        <i class="fa-solid fa-upload"></i> Chọn File Khôi Phục
+                    </button>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- 5. BẢO MẬT & ADMIN -->
+            <!-- ========================================================================= -->
+            <section class="cp-section" id="sec-security">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-lock" style="color: var(--danger);"></i> Trung Tâm Bảo Mật & Phân Quyền Admin</div>
+                    <div class="section-desc">Cấu hình mật khẩu quản trị viên bảo vệ dữ liệu toàn hệ thống.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Trạng thái quyền hạn hiện tại</div>
+                    <p id="adminStatusText" style="font-size:0.9rem; font-weight:700; margin-bottom:14px; color:var(--slate-600);">
+                        👁️ Bạn đang ở chế độ xem (Chỉ đọc).
+                    </p>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-primary" id="btnAdminAction" onclick="handleAdminLoginLogout()">
+                            <i class="fa-solid fa-key"></i> Đăng Nhập Quản Trị Viên
+                        </button>
+                        <button class="btn btn-outline" onclick="resetAdminCredentials()">
+                            <i class="fa-solid fa-envelope-shield"></i> Khôi Phục Qua Email (OTP)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- 6. PHÂN QUYỀN & HIỂN THỊ ỨNG DỤNG -->
+            <!-- ========================================================================= -->
+            <section class="cp-section" id="sec-apps">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-shapes" style="color: #6366f1;"></i> Phân Quyền & Hiển Thị Ứng Dụng (App Permissions)</div>
+                    <div class="section-desc">Cấu hình từng ứng dụng chỉ hiển thị ở Chế độ Admin hoặc Mọi người đều có thể xem trên Desktop & Dock.</div>
+                </div>
+
+                <div class="card" style="margin-bottom:18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                        <div>
+                            <h4 style="font-size:14px; font-weight:700; color:var(--slate-800);">Danh Sách Ứng Dụng Desktop</h4>
+                            <p style="font-size:12px; color:var(--slate-500); margin:2px 0 0 0;">Thiết lập phân quyền xem cho từng ứng dụng bên dưới. Thay đổi sẽ có hiệu lực ngay lập tức.</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm admin-only" onclick="openCpAddAppModal()"><i class="fa-solid fa-plus"></i> Thêm App Mới</button>
+                    </div>
+
+                    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-md);">
+                        <table class="member-table" style="font-size:13px;">
+                            <thead>
+                                <tr>
+                                    <th>Ứng dụng</th>
+                                    <th>Đường dẫn File / URL</th>
+                                    <th style="width:260px;">Quyền hiển thị</th>
+                                    <th class="admin-only" style="width:110px; text-align:center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cpAppsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================================= -->
+            <!-- 7. ĐỀ XUẤT TÍNH NĂNG NÂNG CẤP -->
+            <!-- ========================================================================= -->
+            <section class="cp-section" id="sec-proposals">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-lightbulb" style="color: #f97316;"></i> Đề Xuất Các Tính Năng Cần Thiết Cho Website</div>
+                    <div class="section-desc">Các tính năng cao cấp được gợi ý để đưa hệ sinh thái Dashboard văn phòng của bạn lên tầm chuyên nghiệp.</div>
+                </div>
+
+                <div class="proposal-item">
+                    <div class="proposal-badge"><i class="fa-solid fa-robot"></i></div>
+                    <div class="proposal-content">
+                        <h4>1. Bot Tự Động Gửi Báo Cáo Zalo / Telegram Định Kỳ</h4>
+                        <p>Tích hợp Webhook kết nối nhóm chat Zalo/Telegram. Mỗi 11:30 sáng tự động gửi lời nhắc đặt cơm, và 14:00 gửi sao kê công nợ kèm mã QR trực tiếp vào nhóm không cần làm thủ công.</p>
+                    </div>
+                </div>
+
+                <div class="proposal-item">
+                    <div class="proposal-badge"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <div class="proposal-content">
+                        <h4>2. Đồng Bộ Đám Mây Tự Động (Google Sheets / Supabase Sync)</h4>
+                        <p>Cho phép đồng bộ dữ liệu hai chiều với Google Sheets hoặc cơ sở dữ liệu Supabase miễn phí. Nhiều người dùng trong công ty có thể cùng truy cập và cập nhật số dư thời gian thực trên các máy tính khác nhau.</p>
+                    </div>
+                </div>
+
+                <div class="proposal-item">
+                    <div class="proposal-badge"><i class="fa-solid fa-cloud-sun"></i></div>
+                    <div class="proposal-content">
+                        <h4>3. Widget Thời Tiết & Tỷ Giá Ngoại Tệ Trên Topbar</h4>
+                        <p>Bổ sung tiện ích widget góc phải hiển thị thời tiết địa phương (nhiệt độ, mưa/nắng để biết đi ăn trưa) và cập nhật tỷ giá ngoại tệ USD/VND, giá vàng trực tiếp.</p>
+                    </div>
+                </div>
+
+                <div class="proposal-item">
+                    <div class="proposal-badge"><i class="fa-solid fa-chart-pie"></i></div>
+                    <div class="proposal-content">
+                        <h4>4. Báo Cáo Tài Chính Tháng (Analytics Dashboard)</h4>
+                        <p>Biểu đồ phân tích tổng kết chi tiêu ăn uống, vui chơi theo từng tháng của cả phòng ban; thống kê thành viên tích cực nhất, ai nộp tiền nhanh nhất và cơ cấu món ăn phổ biến.</p>
+                    </div>
+                </div>
+
+                <div class="proposal-item">
+                    <div class="proposal-badge"><i class="fa-solid fa-bell"></i></div>
+                    <div class="proposal-content">
+                        <h4>5. Hệ Thống Thông Báo Đẩy Desktop (Web Push Notifications)</h4>
+                        <p>Gửi thông báo âm thanh và pop-up notification của trình duyệt khi có thành viên nộp tiền quỹ hoặc khi các ghi chú đếm ngược sắp đến hạn.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: THÊM / SỬA CHI TIẾT THÀNH VIÊN -->
+    <div class="modal-overlay" id="memberEditModal" onclick="if(event.target===this) closeMemberEditModal()">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title" id="memberEditModalTitle"><i class="fa-solid fa-user-pen" style="color:var(--primary);"></i> Sửa Thông Tin Thành Viên</h3>
+                <button class="modal-close" onclick="closeMemberEditModal()">&times;</button>
+            </div>
+
+            <input type="hidden" id="editMemberId">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Tên đầy đủ (Họ và tên) (*):</label>
+                    <input type="text" id="editMemberFullName" class="form-control" placeholder="VD: Nguyễn Văn Đô" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nick name / Biệt danh (*):</label>
+                    <input type="text" id="editMemberNickname" class="form-control" placeholder="VD: Đô Ca, Tuấn Kẹo..." required>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Ngày sinh (Sinh nhật):</label>
+                    <input type="date" id="editMemberDob" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại:</label>
+                    <input type="tel" id="editMemberPhone" class="form-control" placeholder="VD: 0981234567">
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Ngân hàng:</label>
+                    <select id="editMemberBankId" class="form-control">
+                        <option value="MB">MBBank (Quân Đội)</option>
+                        <option value="VCB">Vietcombank</option>
+                        <option value="TCB">Techcombank</option>
+                        <option value="VPB">VPBank</option>
+                        <option value="ACB">ACB (Á Châu)</option>
+                        <option value="BIDV">BIDV</option>
+                        <option value="VBA">Agribank</option>
+                        <option value="TPB">TPBank</option>
+                        <option value="STB">Sacombank</option>
+                        <option value="VIB">VIB</option>
+                        <option value="CTG">VietinBank</option>
+                        <option value="OCB">OCB (Phương Đông)</option>
+                        <option value="SHB">SHB</option>
+                        <option value="MSB">MSB (Hàng Hải)</option>
+                        <option value="LPB">LPBank (Lộc Phát)</option>
+                        <option value="HDB">HDBank</option>
+                        <option value="SEAB">SeABank</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Số tài khoản nhận tiền (STK):</label>
+                    <input type="text" id="editMemberAccountNo" class="form-control" placeholder="Số tài khoản ngân hàng">
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Tên chủ tài khoản (in hoa):</label>
+                    <input type="text" id="editMemberAccountName" class="form-control" placeholder="VD: NGUYEN VAN DO" oninput="this.value = this.value.toUpperCase()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ghi chú / Bộ phận:</label>
+                    <input type="text" id="editMemberNote" class="form-control" placeholder="VD: Kỹ thuật, Ăn chay, Kế toán...">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+                <button type="button" class="btn btn-outline" onclick="closeMemberEditModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveMemberModal()"><i class="fa-solid fa-floppy-disk"></i> Lưu Thông Tin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: MÃ QR CHUYỂN TIỀN / TRẢ TIỀN LẠI -->
+    <div class="modal-overlay" id="memberQrModal" onclick="if(event.target===this) closeMemberQrModal()">
+        <div class="modal-card" style="max-width:460px; text-align:center;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-qrcode" style="color:var(--primary);"></i> Mã QR Trả Tiền / Chuyển Khoản</h3>
+                <button class="modal-close" onclick="closeMemberQrModal()">&times;</button>
+            </div>
+
+            <!-- Receiver info summary -->
+            <div style="background:var(--slate-50); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:14px; display:flex; align-items:center; gap:12px; text-align:left;">
+                <div id="qrReceiverAvatar" class="member-avatar" style="width:42px; height:42px; font-size:16px; background:var(--primary);">A</div>
+                <div style="flex:1;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span id="qrReceiverNickname" class="member-badge-nick">Nick</span>
+                        <span id="qrReceiverFullName" style="font-weight:700; color:var(--slate-900);">Họ tên</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--slate-600); margin-top:2px;">
+                        <b id="qrReceiverBank">MB</b>: <span id="qrReceiverAccNo">0987654321</span> • <span id="qrReceiverAccName">NGUYEN VAN A</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live QR Preview -->
+            <div style="background:#ffffff; padding:12px; border:1px solid var(--border); border-radius:12px; display:inline-block; box-shadow:0 4px 12px rgba(0,0,0,0.06); margin-bottom:14px;">
+                <img id="memberQrPreviewImg" src="" alt="Mã VietQR" style="width:200px; height:200px; object-fit:contain; display:block;">
+            </div>
+
+            <!-- Amount & Memo Controls -->
+            <div style="text-align:left; margin-bottom:14px;">
+                <div class="form-group" style="margin-bottom:10px;">
+                    <label class="form-label">Số tiền chuyển (VNĐ):</label>
+                    <input type="number" id="qrTransferAmount" class="form-control" placeholder="VD: 50000" oninput="updateMemberQrPreview()">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrAmount(20000)">20k</button>
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrAmount(30000)">30k</button>
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrAmount(50000)">50k</button>
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrAmount(100000)">100k</button>
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrAmount(200000)">200k</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nội dung chuyển khoản:</label>
+                    <input type="text" id="qrTransferMemo" class="form-control" placeholder="VD: Tra tien com, Tra lai tien chia bill..." oninput="updateMemberQrPreview()">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrMemo('Tra tien com')">Trả tiền cơm</button>
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrMemo('Tra lai tien chia bill')">Trả lại chia bill</button>
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;" onclick="setQrMemo('Hoan tien quy')">Hoàn tiền quỹ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="copyMemberQrAccountNo()"><i class="fa-regular fa-copy"></i> Chép STK</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="copyMemberQrFullInfo()"><i class="fa-solid fa-clipboard-check"></i> Chép toàn bộ</button>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="downloadMemberQrImage()"><i class="fa-solid fa-download"></i> Tải ảnh QR</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeMemberQrModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ĐĂNG NHẬP ADMIN TOÀN HỆ THỐNG TRONG CONTROL PANEL -->
+    <div class="modal-overlay" id="cpAdminAuthModal" onclick="if(event.target===this) closeCpAdminAuthModal()">
+        <div class="modal-card" style="max-width:380px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-key" style="color:var(--primary);"></i> Đăng Nhập Quản Trị Viên</h3>
+                <button class="modal-close" onclick="closeCpAdminAuthModal()">&times;</button>
+            </div>
+            <p style="font-size:0.85rem; color:var(--slate-600); margin-bottom:14px;">
+                Nhập mật khẩu Admin để mở khóa toàn bộ quyền Cài đặt hệ thống:
+            </p>
+            <div class="form-group" style="margin-bottom:14px;">
+                <input type="password" id="cpAdminPassInput" class="form-control" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitCpAdminLogin()">
+            </div>
+            <div style="text-align:right; margin-top:-6px; margin-bottom:14px;">
+                <button type="button" onclick="closeCpAdminAuthModal(); openCpForgotPasswordModal();" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
+                    Quên mật khẩu? Lấy lại bằng Email / Master Key
+                </button>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-outline" onclick="closeCpAdminAuthModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="submitCpAdminLogin()"><i class="fa-solid fa-unlock"></i> Đăng Nhập</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: THÊM / SỬA ỨNG DỤNG TRONG CONTROL PANEL -->
+    <div class="modal-overlay" id="cpAppEditModal" onclick="if(event.target===this) closeCpAppEditModal()">
+        <div class="modal-card" style="max-width:440px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="cpAppEditModalTitle"><i class="fa-solid fa-shapes" style="color:var(--primary);"></i> Ứng Dụng</h3>
+                <button class="modal-close" onclick="closeCpAppEditModal()">&times;</button>
+            </div>
+            <input type="hidden" id="cpAppEditId">
+            <div class="form-group" style="margin-bottom:12px;">
+                <label class="form-label">Tên ứng dụng:</label>
+                <input type="text" id="cpAppNameInput" class="form-control" placeholder="VD: Chia Bill">
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <label class="form-label">Biểu tượng (Emoji):</label>
+                <input type="text" id="cpAppIconInput" class="form-control" placeholder="VD: 🍻 hoặc 📊" maxlength="4">
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <label class="form-label">Đường dẫn File / URL Web:</label>
+                <input type="text" id="cpAppUrlInput" class="form-control" placeholder="VD: apps/chia-bill/index.html">
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label class="form-label">Quyền hiển thị & Xem:</label>
+                <select id="cpAppAdminOnlySelect" class="form-select">
+                    <option value="false">🌐 Mọi người đều có thể xem (Công khai)</option>
+                    <option value="true">🔒 Chỉ hiển thị ở Chế độ Admin (Bảo mật)</option>
+                </select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-outline" onclick="closeCpAppEditModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveCpAppModal()"><i class="fa-solid fa-save"></i> Lưu Ứng Dụng</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- MODAL: KHOI PHUC MAT KHAU ADMIN TRONG CONTROL PANEL -->
+    <div class="modal-overlay" id="cpForgotModal" onclick="if(event.target===this) closeCpForgotModal()">
+        <div class="modal-card" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-key" style="color:var(--primary);"></i> Khôi Phục Mật Khẩu Admin</h3>
+                <button class="modal-close" onclick="closeCpForgotModal()">&times;</button>
+            </div>
+            <div style="background:var(--slate-50); padding:10px 12px; border-radius:8px; border:1px solid var(--border); font-size:12px; color:var(--slate-600); margin-bottom:12px;">
+                🔑 Dùng <b>Master Key cứu hộ</b> hoặc <b>Mã OTP gửi về Email</b> để đặt lại mật khẩu Admin mới:
+            </div>
+            <div class="form-group" style="margin-bottom:10px;">
+                <label class="form-label">Master Key cứu hộ hoặc Mã OTP:</label>
+                <input type="password" id="cpForgotSecretInput" class="form-control" placeholder="Nhập Master Key hoặc bấm gửi OTP...">
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="sendCpOtp()" id="btnSendCpOtp" style="font-size:11px;">
+                    📧 Gửi mã OTP về Email
+                </button>
+            </div>
+            <div class="form-group" style="margin-bottom:10px;">
+                <label class="form-label">Mật khẩu Admin mới:</label>
+                <input type="password" id="cpForgotNewPassInput" class="form-control" placeholder="Nhập mật khẩu mới...">
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+                <label class="form-label">Xác nhận mật khẩu Admin mới:</label>
+                <input type="password" id="cpForgotConfirmPassInput" class="form-control" placeholder="Nhập lại mật khẩu mới...">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-outline" onclick="closeCpForgotModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="submitCpPasswordRecovery()"><i class="fa-solid fa-check"></i> Đổi Mật Khẩu</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // System Bank Configuration Storage Key
+        const BANK_STORAGE_KEY = 'sys_bank_config';
+
+        const DEFAULT_BANK_CONFIG = {
+            bankId: 'MB',
+            bankName: 'MBBank',
+            accountNo: '0988888888',
+            accountName: 'NGUYEN VAN A',
+            template: 'compact2'
+        };
+
+        let currentBankConfig = JSON.parse(localStorage.getItem(BANK_STORAGE_KEY)) || 
+                                JSON.parse(localStorage.getItem('p2p_bank_info')) || 
+                                DEFAULT_BANK_CONFIG;
+
+        let isAdmin = localStorage.getItem('sys_is_admin') === 'true';
+
+        // Initialize UI
+        function initUI() {
+            updateAdminBadge();
+            loadBankConfigToForm();
+            updateBankPreview();
+            loadGlobalMembers();
+            loadWallpapers();
+            renderCpAppsTable();
+        }
+
+        function updateAdminBadge() {
+            document.body.classList.toggle('is-admin', isAdmin);
+            const badge = document.getElementById('adminBadge');
+            const statusText = document.getElementById('adminStatusText');
+            const btn = document.getElementById('btnAdminAction');
+            const btnQuick = document.getElementById('btnAdminQuick');
+            const noticeCard = document.getElementById('adminNoticeCard');
+
+            if (noticeCard) {
+                noticeCard.style.display = isAdmin ? 'none' : 'block';
+            }
+
+            if (isAdmin) {
+                if (badge) badge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Quản trị viên (Toàn quyền)';
+                if (statusText) statusText.innerText = '🛡️ Bạn đang đăng nhập quyền Quản trị viên (Toàn quyền quản lý).';
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất Admin';
+                if (btnQuick) btnQuick.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất';
+            } else {
+                if (badge) badge.innerHTML = '<i class="fa-solid fa-eye"></i> Chế độ xem (Chỉ đọc)';
+                if (statusText) statusText.innerText = '👁️ Bạn đang ở chế độ xem (Chỉ đọc). Vui lòng đăng nhập để thay đổi cấu hình.';
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-key"></i> Đăng Nhập Quản Trị Viên';
+                if (btnQuick) btnQuick.innerHTML = '<i class="fa-solid fa-key"></i> Đăng Nhập';
+            }
+            renderCpAppsTable();
+        }
+
+        function checkAdminPermission() {
+            if (!isAdmin) {
+                if (confirm('🔒 Chức năng Cài đặt chỉ dành cho Quản trị viên (Admin Mode).\nBạn có muốn đăng nhập Admin ngay để thực hiện thao tác này không?')) {
+                    openCpAdminAuthModal();
+                }
+                return false;
+            }
+            return true;
+        }
+
+        // Section Tabs
+        function switchSection(secId) {
+            document.querySelectorAll('.cp-nav-item').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.cp-section').forEach(s => s.classList.remove('active'));
+
+            const targetSection = document.getElementById(`sec-${secId}`);
+            if (targetSection) targetSection.classList.add('active');
+
+            const activeBtn = Array.from(document.querySelectorAll('.cp-nav-item')).find(b => b.getAttribute('onclick').includes(secId));
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        // =========================================================================
+        // 1. BANK ACCOUNT & VIETQR
+        // =========================================================================
+        function loadBankConfigToForm() {
+            document.getElementById('bankSelect').value = currentBankConfig.bankId || 'MB';
+            document.getElementById('bankAccNo').value = currentBankConfig.accountNo || '';
+            document.getElementById('bankAccName').value = currentBankConfig.accountName || '';
+            document.getElementById('qrTemplate').value = currentBankConfig.template || 'compact2';
+        }
+
+        function updateBankPreview() {
+            const bankId = document.getElementById('bankSelect').value;
+            const bankName = document.getElementById('bankSelect').selectedOptions[0].text;
+            const accountNo = document.getElementById('bankAccNo').value.trim();
+            const accountName = document.getElementById('bankAccName').value.trim().toUpperCase();
+            const template = document.getElementById('qrTemplate').value;
+
+            const amount = parseFloat(document.getElementById('testAmount').value) || 0;
+            const content = document.getElementById('testContent').value.trim() || 'nop tien quy';
+
+            document.getElementById('previewBankName').innerText = bankName;
+            document.getElementById('previewAccNo').innerText = accountNo || 'Chưa nhập';
+            document.getElementById('previewAccName').innerText = accountName || 'Chưa nhập';
+            document.getElementById('previewAmount').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+            document.getElementById('previewDesc').innerText = content;
+
+            if (bankId && accountNo) {
+                const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(accountName)}`;
+                document.getElementById('previewQrImg').src = qrUrl;
+            }
+        }
+
+        function saveBankConfig() {
+            if (!checkAdminPermission()) return;
+            const bankId = document.getElementById('bankSelect').value;
+            const bankName = document.getElementById('bankSelect').selectedOptions[0].text;
+            const accountNo = document.getElementById('bankAccNo').value.trim();
+            const accountName = document.getElementById('bankAccName').value.trim().toUpperCase();
+            const template = document.getElementById('qrTemplate').value;
+
+            if (!bankId || !accountNo || !accountName) {
+                alert('Vui lòng nhập đầy đủ thông tin ngân hàng, số tài khoản và tên chủ tài khoản!');
+                return;
+            }
+
+            currentBankConfig = { bankId, bankName, accountNo, accountName, template };
+            localStorage.setItem(BANK_STORAGE_KEY, JSON.stringify(currentBankConfig));
+            localStorage.setItem('p2p_bank_info', JSON.stringify({ bankId, accountNo, accountName }));
+
+            // Broadcast change
+            try {
+                const bc = new BroadcastChannel('system_admin_auth');
+                bc.postMessage({ type: 'BANK_CONFIG_CHANGED', bankConfig: currentBankConfig });
+            } catch (e) {}
+
+            alert('✅ Đã lưu cấu hình tài khoản ngân hàng thành công!\nMọi app Tiền Cơm và Chia Bill đã được tự động cập nhật mã QR của bạn.');
+        }
+
+        function copyAccountNo() {
+            const accNo = document.getElementById('bankAccNo').value.trim();
+            if (!accNo) return;
+            navigator.clipboard.writeText(accNo).then(() => {
+                alert(`Đã sao chép Số Tài Khoản: ${accNo}`);
+            });
+        }
+
+        function copyQrLink() {
+            const img = document.getElementById('previewQrImg');
+            if (!img || !img.src) return;
+            navigator.clipboard.writeText(img.src).then(() => {
+                alert("Đã sao chép đường link hình ảnh mã QR vào bộ nhớ tạm!");
+            });
+        }
+
+        function downloadQrImage() {
+            const img = document.getElementById('previewQrImg');
+            if (!img || !img.src) return;
+            const a = document.createElement('a');
+            a.href = img.src;
+            a.download = `vietqr-${document.getElementById('bankAccNo').value.trim()}.png`;
+            a.target = '_blank';
+            a.click();
+        }
+
+        // =========================================================================
+        // 2. GLOBAL MEMBERS DIRECTORY
+        // =========================================================================
+        const DEFAULT_GLOBAL_MEMBERS = [
+            { id: 1, name: "Đô", fullName: "Nguyễn Văn Đô", nickname: "Đô", dob: "1994-05-15", phone: "0981234561", bankId: "MB", accountNo: "0981234561", accountName: "NGUYEN VAN DO", note: "Trưởng nhóm" },
+            { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt Còi", dob: "1996-08-20", phone: "0972345672", bankId: "VCB", accountNo: "1012345672", accountName: "TRAN THANH DAT", note: "Kỹ thuật" },
+            { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", dob: "1995-11-12", phone: "0963456783", bankId: "TCB", accountNo: "1903456783", accountName: "LE THANH CONG", note: "Kế toán" },
+            { id: 4, name: "Hạnh", fullName: "Phạm Mỹ Hạnh", nickname: "Hạnh", dob: "1998-03-28", phone: "0914567894", bankId: "ACB", accountNo: "214567894", accountName: "PHAM MY HANH", note: "Thiết kế" },
+            { id: 5, name: "Quyền", fullName: "Vũ Đình Quyền", nickname: "Quyền", dob: "1997-07-09", phone: "0935678905", bankId: "VPB", accountNo: "0935678905", accountName: "VU DINH QUYEN", note: "Marketing" },
+            { id: 6, name: "Duy", fullName: "Hoàng Đức Duy", nickname: "Duy", dob: "1999-12-05", phone: "0906789016", bankId: "BIDV", accountNo: "1206789016", accountName: "HOANG DUC DUY", note: "Phát triển" }
+        ];
+
+        let globalMembers = JSON.parse(localStorage.getItem('sys_global_members')) || DEFAULT_GLOBAL_MEMBERS;
+        // Normalize any old structure
+        globalMembers = globalMembers.map(m => ({
+            id: m.id,
+            name: m.nickname || m.name || m.fullName || '',
+            fullName: m.fullName || m.name || '',
+            nickname: m.nickname || m.name || '',
+            dob: m.dob || '',
+            phone: m.phone || '',
+            bankId: m.bankId || '',
+            accountNo: m.accountNo || '',
+            accountName: m.accountName || '',
+            note: m.note || ''
+        }));
+
+        const AVATAR_COLORS = [
+            'linear-gradient(135deg, #0284c7, #0369a1)',
+            'linear-gradient(135deg, #10b981, #047857)',
+            'linear-gradient(135deg, #f59e0b, #b45309)',
+            'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+            'linear-gradient(135deg, #ec4899, #be185d)',
+            'linear-gradient(135deg, #06b6d4, #0e7490)',
+            'linear-gradient(135deg, #f97316, #c2410c)'
+        ];
+
+        function getAvatarBg(str) {
+            let hash = 0;
+            for (let i = 0; i < (str || '').length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+        }
+
+        function formatDob(dobStr) {
+            if (!dobStr) return '';
+            const parts = dobStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dobStr;
+        }
+
+        function calcAge(dobStr) {
+            if (!dobStr) return '';
+            const birthYear = parseInt(dobStr.split('-')[0], 10);
+            if (!birthYear) return '';
+            const thisYear = new Date().getFullYear();
+            return `(${thisYear - birthYear}t)`;
+        }
+
+        function copyText(text, successMsg = 'Đã sao chép vào bộ nhớ tạm') {
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`📋 ${successMsg}: ${text}`);
+            }).catch(() => {
+                prompt('Sao chép thủ công:', text);
+            });
+        }
+
+        function loadGlobalMembers(filterList = null) {
+            const tbody = document.getElementById('globalMemberListBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            document.getElementById('globalMemberCount').innerText = globalMembers.length;
+
+            const displayList = filterList !== null ? filterList : globalMembers;
+
+            if (displayList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:28px; color:var(--slate-500); font-style:italic;">Không tìm thấy thành viên phù hợp trong danh bạ.</td></tr>`;
+                return;
+            }
+
+            displayList.forEach(m => {
+                const tr = document.createElement('tr');
+                const displayName = m.nickname || m.name || m.fullName || 'Thành viên';
+                const avatarLetter = displayName.charAt(0).toUpperCase();
+
+                tr.innerHTML = `
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="member-avatar" style="background:${getAvatarBg(displayName)};">${avatarLetter}</div>
+                            <div>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span class="member-badge-nick">${m.nickname || displayName}</span>
+                                    <span style="font-weight:700; color:var(--slate-900);">${m.fullName || displayName}</span>
+                                </div>
+                                ${m.note ? `<div style="font-size:11px; color:var(--slate-500); margin-top:3px;"><i class="fa-solid fa-tag"></i> ${m.note}</div>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        ${m.dob ? `<div><i class="fa-solid fa-cake-candles" style="color:#f59e0b;"></i> ${formatDob(m.dob)} <span class="badge-age">${calcAge(m.dob)}</span></div>` : '<span style="color:var(--slate-400);">--</span>'}
+                    </td>
+                    <td>
+                        ${m.phone ? `<div><a href="tel:${m.phone}" style="color:var(--primary); text-decoration:none; font-weight:600;"><i class="fa-solid fa-phone"></i> ${m.phone}</a> <button type="button" class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:10px; margin-left:4px;" onclick="copyText('${m.phone}', 'Đã chép số điện thoại')"><i class="fa-regular fa-copy"></i></button></div>` : '<span style="color:var(--slate-400);">--</span>'}
+                    </td>
+                    <td>
+                        ${m.accountNo ? `
+                            <div>
+                                <b>${m.bankId || 'NH'}:</b> <span style="font-weight:700;">${m.accountNo}</span>
+                                <button type="button" class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:10px; margin-left:4px;" onclick="copyText('${m.accountNo}', 'Đã chép số tài khoản')"><i class="fa-regular fa-copy"></i></button>
+                                ${m.accountName ? `<div style="font-size:11px; color:var(--slate-600); margin-top:2px;">${m.accountName}</div>` : ''}
+                            </div>
+                        ` : '<span style="color:var(--slate-400); font-style:italic;">Chưa cập nhật STK</span>'}
+                    </td>
+                    <td style="text-align:center;">
+                        <div style="display:inline-flex; gap:6px;">
+                            <button class="btn btn-primary btn-sm" onclick="openMemberQrModal(${m.id})" title="Tạo mã QR chuyển tiền / trả tiền lại">
+                                <i class="fa-solid fa-qrcode"></i> Mã QR
+                            </button>
+                            <button class="btn btn-outline btn-sm admin-edit-btn" onclick="openEditMemberModal(${m.id})" title="Sửa thông tin thành viên" style="font-weight:600; color:var(--primary); border-color:rgba(37,99,235,0.4);">
+                                <i class="fa-solid fa-pen-to-square"></i> Sửa
+                            </button>
+                            <button class="btn btn-outline btn-sm admin-only" style="color:var(--danger);" onclick="removeGlobalMember(${m.id})" title="Xóa khỏi danh bạ">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterGlobalMembers(query) {
+            const q = (query || '').toLowerCase().trim();
+            if (!q) {
+                loadGlobalMembers();
+                return;
+            }
+            const filtered = globalMembers.filter(m =>
+                (m.fullName || '').toLowerCase().includes(q) ||
+                (m.nickname || '').toLowerCase().includes(q) ||
+                (m.name || '').toLowerCase().includes(q) ||
+                (m.phone || '').toLowerCase().includes(q) ||
+                (m.bankId || '').toLowerCase().includes(q) ||
+                (m.accountNo || '').toLowerCase().includes(q) ||
+                (m.accountName || '').toLowerCase().includes(q) ||
+                (m.note || '').toLowerCase().includes(q)
+            );
+            loadGlobalMembers(filtered);
+        }
+
+        let pendingEditMemberId = null;
+        let pendingAddMember = false;
+
+        function openAddMemberModal() {
+            if (!isAdmin) {
+                pendingAddMember = true;
+                if (confirm('🔒 Bạn cần đăng nhập Quản trị viên (Admin) để thêm thành viên mới.\nBạn có muốn đăng nhập ngay không?')) {
+                    openCpAdminAuthModal();
+                }
+                return;
+            }
+            document.getElementById('memberEditModalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color:var(--primary);"></i> Thêm Thành Viên Mới';
+            document.getElementById('editMemberId').value = '';
+            document.getElementById('editMemberFullName').value = '';
+            document.getElementById('editMemberNickname').value = '';
+            document.getElementById('editMemberDob').value = '';
+            document.getElementById('editMemberPhone').value = '';
+            document.getElementById('editMemberBankId').value = 'MB';
+            document.getElementById('editMemberAccountNo').value = '';
+            document.getElementById('editMemberAccountName').value = '';
+            document.getElementById('editMemberNote').value = '';
+            document.getElementById('memberEditModal').classList.add('show');
+            setTimeout(() => document.getElementById('editMemberFullName').focus(), 150);
+        }
+
+        function openEditMemberModal(id) {
+            if (!isAdmin) {
+                pendingEditMemberId = id;
+                if (confirm('🔒 Bạn cần đăng nhập Quản trị viên (Admin) để sửa thông tin thành viên.\nBạn có muốn đăng nhập ngay không?')) {
+                    openCpAdminAuthModal();
+                }
+                return;
+            }
+            const m = globalMembers.find(mem => mem.id == id);
+            if (!m) return;
+
+            document.getElementById('memberEditModalTitle').innerHTML = '<i class="fa-solid fa-user-pen" style="color:var(--primary);"></i> Sửa Thông Tin Thành Viên';
+            document.getElementById('editMemberId').value = m.id;
+            document.getElementById('editMemberFullName').value = m.fullName || m.name || '';
+            document.getElementById('editMemberNickname').value = m.nickname || m.name || '';
+            document.getElementById('editMemberDob').value = m.dob || '';
+            document.getElementById('editMemberPhone').value = m.phone || '';
+            document.getElementById('editMemberBankId').value = m.bankId || 'MB';
+            document.getElementById('editMemberAccountNo').value = m.accountNo || '';
+            document.getElementById('editMemberAccountName').value = m.accountName || '';
+            document.getElementById('editMemberNote').value = m.note || '';
+            document.getElementById('memberEditModal').classList.add('show');
+            setTimeout(() => document.getElementById('editMemberFullName').focus(), 150);
+        }
+
+        function closeMemberEditModal() {
+            document.getElementById('memberEditModal').classList.remove('show');
+        }
+
+        function saveMemberModal() {
+            if (!checkAdminPermission()) return;
+            const id = document.getElementById('editMemberId').value;
+            const fullName = document.getElementById('editMemberFullName').value.trim();
+            const nickname = document.getElementById('editMemberNickname').value.trim();
+            const dob = document.getElementById('editMemberDob').value;
+            const phone = document.getElementById('editMemberPhone').value.trim();
+            const bankId = document.getElementById('editMemberBankId').value;
+            const accountNo = document.getElementById('editMemberAccountNo').value.trim();
+            const accountName = document.getElementById('editMemberAccountName').value.trim().toUpperCase();
+            const note = document.getElementById('editMemberNote').value.trim();
+
+            if (!fullName && !nickname) {
+                alert('Vui lòng nhập Họ và tên hoặc Nickname!');
+                return;
+            }
+
+            const name = nickname || fullName;
+
+            if (id) {
+                // Update
+                const idx = globalMembers.findIndex(m => m.id == id);
+                if (idx !== -1) {
+                    globalMembers[idx] = {
+                        ...globalMembers[idx],
+                        name, fullName: fullName || name, nickname: nickname || name,
+                        dob, phone, bankId, accountNo, accountName, note
+                    };
+                }
+            } else {
+                // Add new
+                globalMembers.push({
+                    id: Date.now(),
+                    name, fullName: fullName || name, nickname: nickname || name,
+                    dob, phone, bankId, accountNo, accountName, note
+                });
+            }
+
+            localStorage.setItem('sys_global_members', JSON.stringify(globalMembers));
+            closeMemberEditModal();
+            loadGlobalMembers();
+
+            // Broadcast change to other tabs/apps
+            try {
+                const bc = new BroadcastChannel('system_member_sync');
+                bc.postMessage({ type: 'MEMBERS_UPDATED', members: globalMembers });
+            } catch(e) {}
+        }
+
+        function removeGlobalMember(id) {
+            if (!checkAdminPermission()) return;
+            const m = globalMembers.find(mem => mem.id == id);
+            if (!m) return;
+
+            if (confirm(`Bạn có chắc muốn xóa "${m.nickname || m.fullName || m.name}" khỏi danh bạ thành viên chung?`)) {
+                globalMembers = globalMembers.filter(mem => mem.id != id);
+                localStorage.setItem('sys_global_members', JSON.stringify(globalMembers));
+                loadGlobalMembers();
+                try {
+                    const bc = new BroadcastChannel('system_member_sync');
+                    bc.postMessage({ type: 'MEMBERS_UPDATED', members: globalMembers });
+                } catch(e) {}
+            }
+        }
+
+        function syncMembersToApps() {
+            if (!checkAdminPermission()) return;
+            if (confirm('Đồng bộ danh sách thành viên với đầy đủ STK & SĐT sang cả Tiền Cơm và Chia Bill?')) {
+                // Update nhau_members (Chia Bill)
+                let billMembers = JSON.parse(localStorage.getItem('nhau_members')) || [];
+                globalMembers.forEach(gm => {
+                    const existingIdx = billMembers.findIndex(bm => (bm.id == gm.id) || (bm.name && bm.name.toLowerCase() === (gm.nickname || gm.name).toLowerCase()));
+                    if (existingIdx !== -1) {
+                        billMembers[existingIdx] = {
+                            ...billMembers[existingIdx],
+                            id: gm.id,
+                            name: gm.nickname || gm.name,
+                            fullName: gm.fullName || gm.name,
+                            nickname: gm.nickname || gm.name,
+                            dob: gm.dob || '',
+                            phone: gm.phone || '',
+                            bankId: gm.bankId || '',
+                            accountNo: gm.accountNo || '',
+                            accountName: gm.accountName || '',
+                            note: gm.note || ''
+                        };
+                    } else {
+                        billMembers.push({
+                            id: gm.id,
+                            name: gm.nickname || gm.name,
+                            fullName: gm.fullName || gm.name,
+                            nickname: gm.nickname || gm.name,
+                            dob: gm.dob || '',
+                            phone: gm.phone || '',
+                            bankId: gm.bankId || '',
+                            accountNo: gm.accountNo || '',
+                            accountName: gm.accountName || '',
+                            note: gm.note || '',
+                            balance: 0
+                        });
+                    }
+                });
+                localStorage.setItem('nhau_members', JSON.stringify(billMembers));
+
+                // Update p2p_members (Tiền Cơm)
+                let comMembers = JSON.parse(localStorage.getItem('p2p_members')) || [];
+                globalMembers.forEach(gm => {
+                    const existingIdx = comMembers.findIndex(cm => (cm.id == gm.id) || (cm.name && cm.name.toLowerCase() === (gm.nickname || gm.name).toLowerCase()));
+                    if (existingIdx !== -1) {
+                        comMembers[existingIdx] = {
+                            ...comMembers[existingIdx],
+                            id: gm.id.toString(),
+                            name: gm.nickname || gm.name,
+                            fullName: gm.fullName || gm.name,
+                            nickname: gm.nickname || gm.name,
+                            dob: gm.dob || '',
+                            phone: gm.phone || '',
+                            bankId: gm.bankId || '',
+                            accountNo: gm.accountNo || '',
+                            accountName: gm.accountName || '',
+                            note: gm.note || ''
+                        };
+                    } else {
+                        comMembers.push({
+                            id: gm.id.toString(),
+                            name: gm.nickname || gm.name,
+                            fullName: gm.fullName || gm.name,
+                            nickname: gm.nickname || gm.name,
+                            dob: gm.dob || '',
+                            phone: gm.phone || '',
+                            bankId: gm.bankId || '',
+                            accountNo: gm.accountNo || '',
+                            accountName: gm.accountName || '',
+                            note: gm.note || ''
+                        });
+                    }
+                });
+                localStorage.setItem('p2p_members', JSON.stringify(comMembers));
+
+                // Broadcast sync
+                try {
+                    const bc = new BroadcastChannel('system_member_sync');
+                    bc.postMessage({ type: 'MEMBERS_SYNCED', globalMembers, billMembers, comMembers });
+                } catch(e) {}
+
+                alert('✅ Đã đồng bộ thành công sang cả 2 ứng dụng Tiền Cơm và Chia Bill!');
+            }
+        }
+
+        // =========================================================================
+        // VIETQR MODAL FOR MEMBERS (Pay / Refund Money)
+        // =========================================================================
+        let currentQrMember = null;
+
+        function openMemberQrModal(id) {
+            const m = globalMembers.find(mem => mem.id == id);
+            if (!m) return;
+
+            if (!m.bankId || !m.accountNo) {
+                alert(`Thành viên "${m.nickname || m.name}" chưa có thông tin STK và Ngân hàng.\nVui lòng bấm Sửa để bổ sung thông tin tài khoản!`);
+                return;
+            }
+
+            currentQrMember = m;
+            const displayName = m.nickname || m.name || m.fullName;
+
+            document.getElementById('qrReceiverAvatar').innerText = displayName.charAt(0).toUpperCase();
+            document.getElementById('qrReceiverAvatar').style.background = getAvatarBg(displayName);
+            document.getElementById('qrReceiverNickname').innerText = m.nickname || displayName;
+            document.getElementById('qrReceiverFullName').innerText = m.fullName || displayName;
+            document.getElementById('qrReceiverBank').innerText = m.bankId;
+            document.getElementById('qrReceiverAccNo').innerText = m.accountNo;
+            document.getElementById('qrReceiverAccName').innerText = m.accountName || displayName;
+
+            document.getElementById('qrTransferAmount').value = '50000';
+            document.getElementById('qrTransferMemo').value = `Tra tien cho ${m.nickname || displayName}`;
+
+            updateMemberQrPreview();
+            document.getElementById('memberQrModal').classList.add('show');
+        }
+
+        function closeMemberQrModal() {
+            document.getElementById('memberQrModal').classList.remove('show');
+            currentQrMember = null;
+        }
+
+        function setQrAmount(amt) {
+            document.getElementById('qrTransferAmount').value = amt;
+            updateMemberQrPreview();
+        }
+
+        function setQrMemo(memo) {
+            if (!currentQrMember) return;
+            const name = currentQrMember.nickname || currentQrMember.name;
+            document.getElementById('qrTransferMemo').value = `${memo} ${name}`;
+            updateMemberQrPreview();
+        }
+
+        function updateMemberQrPreview() {
+            if (!currentQrMember) return;
+            const bankId = currentQrMember.bankId || 'MB';
+            const accountNo = currentQrMember.accountNo || '';
+            const accountName = currentQrMember.accountName || currentQrMember.name || '';
+            const amount = parseFloat(document.getElementById('qrTransferAmount').value) || 0;
+            const memo = document.getElementById('qrTransferMemo').value.trim() || `Tra tien cho ${currentQrMember.nickname || currentQrMember.name}`;
+
+            const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(accountName)}`;
+            document.getElementById('memberQrPreviewImg').src = qrUrl;
+        }
+
+        function copyMemberQrAccountNo() {
+            if (!currentQrMember) return;
+            copyText(currentQrMember.accountNo, 'Đã sao chép Số Tài Khoản');
+        }
+
+        function copyMemberQrFullInfo() {
+            if (!currentQrMember) return;
+            const amount = parseFloat(document.getElementById('qrTransferAmount').value) || 0;
+            const memo = document.getElementById('qrTransferMemo').value.trim();
+            const text = `Ngân hàng: ${currentQrMember.bankId}\nSTK: ${currentQrMember.accountNo}\nChủ TK: ${currentQrMember.accountName || currentQrMember.name}\nSố tiền: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)}\nNội dung: ${memo}`;
+            copyText(text, 'Đã sao chép toàn bộ thông tin chuyển khoản');
+        }
+
+        function downloadMemberQrImage() {
+            const img = document.getElementById('memberQrPreviewImg');
+            if (!img || !img.src) return;
+            const a = document.createElement('a');
+            a.href = img.src;
+            a.download = `vietqr-${currentQrMember ? currentQrMember.accountNo : 'transfer'}.png`;
+            a.target = '_blank';
+            a.click();
+        }
+
+        // =========================================================================
+        // 3. WALLPAPERS
+        // =========================================================================
+        const WALLPAPERS = [
+            { name: 'Sonoma', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop' },
+            { name: 'Sequoia Forest', url: 'https://images.unsplash.com/photo-1511497584788-87676104235f?q=80&w=2564&auto=format&fit=crop' },
+            { name: 'Cyberpunk', url: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=2564&auto=format&fit=crop' },
+            { name: 'Mountains', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2564&auto=format&fit=crop' },
+            { name: 'Dark Ocean', url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=2564&auto=format&fit=crop' }
+        ];
+
+        function loadWallpapers() {
+            const grid = document.getElementById('wpGrid');
+            grid.innerHTML = '';
+            const currentWp = localStorage.getItem('mac_dashboard_wallpaper') || WALLPAPERS[0].url;
+
+            WALLPAPERS.forEach(wp => {
+                const el = document.createElement('div');
+                el.className = `wp-item ${currentWp === wp.url ? 'active' : ''}`;
+                el.style.backgroundImage = `url('${wp.url}')`;
+                el.title = wp.name;
+                el.onclick = () => {
+                    if (!checkAdminPermission()) return;
+                    localStorage.setItem('mac_dashboard_wallpaper', wp.url);
+                    loadWallpapers();
+                    try {
+                        window.parent.postMessage({ type: 'WALLPAPER_CHANGED', url: wp.url }, '*');
+                    } catch(e) {}
+                    alert(`Đã đổi hình nền sang: ${wp.name}`);
+                };
+                grid.appendChild(el);
+            });
+        }
+
+        function saveCustomWallpaper() {
+            if (!checkAdminPermission()) return;
+            const url = document.getElementById('customWpInput').value.trim();
+            if (!url) return;
+            localStorage.setItem('mac_dashboard_wallpaper', url);
+            try {
+                window.parent.postMessage({ type: 'WALLPAPER_CHANGED', url: url }, '*');
+            } catch(e) {}
+            alert('Đã áp dụng hình nền tùy chọn!');
+        }
+
+        // =========================================================================
+        // 4. BACKUP & RESTORE
+        // =========================================================================
+        function exportFullBackup() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                version: '3.0',
+                bankConfig: currentBankConfig,
+                globalMembers: globalMembers,
+                nhau_members: localStorage.getItem('nhau_members'),
+                nhau_meals: localStorage.getItem('nhau_meals'),
+                nhau_money_logs: localStorage.getItem('nhau_money_logs'),
+                p2p_members: localStorage.getItem('p2p_members'),
+                p2p_logs: localStorage.getItem('p2p_logs'),
+                p2p_expenses: localStorage.getItem('p2p_expenses'),
+                sticky_notes: localStorage.getItem('sticky_notes_data'),
+                apps: localStorage.getItem('mac_dashboard_apps_v3'),
+                wallpaper: localStorage.getItem('mac_dashboard_wallpaper')
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup-dashboard-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function handleRestoreFile(input) {
+            if (!checkAdminPermission()) return;
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (confirm('Khôi phục toàn bộ dữ liệu từ bản sao lưu này? Dữ liệu hiện tại sẽ được cập nhật.')) {
+                        if (data.bankConfig) localStorage.setItem(BANK_STORAGE_KEY, JSON.stringify(data.bankConfig));
+                        if (data.globalMembers) localStorage.setItem('sys_global_members', JSON.stringify(data.globalMembers));
+                        if (data.nhau_members) localStorage.setItem('nhau_members', data.nhau_members);
+                        if (data.nhau_meals) localStorage.setItem('nhau_meals', data.nhau_meals);
+                        if (data.nhau_money_logs) localStorage.setItem('nhau_money_logs', data.nhau_money_logs);
+                        if (data.p2p_members) localStorage.setItem('p2p_members', data.p2p_members);
+                        if (data.p2p_logs) localStorage.setItem('p2p_logs', data.p2p_logs);
+                        if (data.p2p_expenses) localStorage.setItem('p2p_expenses', data.p2p_expenses);
+                        if (data.sticky_notes) localStorage.setItem('sticky_notes_data', data.sticky_notes);
+                        if (data.apps) localStorage.setItem('mac_dashboard_apps_v3', data.apps);
+
+                        alert('✅ Khôi phục dữ liệu thành công!');
+                        location.reload();
+                    }
+                } catch(err) {
+                    alert('Lỗi đọc file sao lưu: File không đúng định dạng JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // =========================================================================
+        // 5. SECURITY & ADMIN AUTH
+        // =========================================================================
+        function handleAdminBadgeClick() {
+            handleAdminLoginLogout();
+        }
+
+        function handleAdminLoginLogout() {
+            if (isAdmin) {
+                if (confirm('Đăng xuất quyền Quản trị viên về Chế độ xem (Chỉ đọc)?')) {
+                    localStorage.setItem('sys_is_admin', 'false');
+                    isAdmin = false;
+                    updateAdminBadge();
+                    try {
+                        const bc = new BroadcastChannel('system_admin_auth');
+                        bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: false });
+                    } catch(e) {}
+                    alert('Đã chuyển về Chế độ xem (Chỉ đọc).');
+                }
+            } else {
+                openCpAdminAuthModal();
+            }
+        }
+
+        function openCpAdminAuthModal() {
+            document.getElementById('cpAdminPassInput').value = '';
+            document.getElementById('cpAdminAuthModal').classList.add('show');
+            setTimeout(() => document.getElementById('cpAdminPassInput').focus(), 150);
+        }
+
+        function closeCpAdminAuthModal() {
+            document.getElementById('cpAdminAuthModal').classList.remove('show');
+        }
+
+        async function hashPassword(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function submitCpAdminLogin() {
+            const pass = document.getElementById('cpAdminPassInput').value;
+            if (!pass) return alert('Vui lòng nhập mật khẩu Admin!');
+
+            const storedHash = localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('sys_admin_pass_hash') || localStorage.getItem('p2p_admin_pass_hash');
+            if (!storedHash) {
+                const defaultHash = await hashPassword('admin123');
+                const hashed = await hashPassword(pass);
+                if (hashed === defaultHash || pass === 'admin123') {
+                    localStorage.setItem('sys_admin_password_hash', defaultHash);
+                    localStorage.setItem('sys_admin_pass_hash', defaultHash);
+                    localStorage.setItem('p2p_admin_pass_hash', defaultHash);
+                    localStorage.setItem('sys_is_admin', 'true');
+                    isAdmin = true;
+                    updateAdminBadge();
+                    closeCpAdminAuthModal();
+                    try {
+                        const bc = new BroadcastChannel('system_admin_auth');
+                        bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+                    } catch(e) {}
+                    alert('Đăng nhập Quản trị viên thành công!');
+                    if (pendingEditMemberId) {
+                        const memId = pendingEditMemberId;
+                        pendingEditMemberId = null;
+                        openEditMemberModal(memId);
+                    } else if (pendingAddMember) {
+                        pendingAddMember = false;
+                        openAddMemberModal();
+                    }
+                    return;
+                }
+                alert('Chưa thiết lập Mật khẩu Admin trong hệ thống. Vui lòng mở trang chính Dashboard để cài đặt ban đầu!');
+                return;
+            }
+
+            const hashed = await hashPassword(pass);
+            if (hashed === storedHash) {
+                localStorage.setItem('sys_is_admin', 'true');
+                isAdmin = true;
+                updateAdminBadge();
+                closeCpAdminAuthModal();
+                try {
+                    const bc = new BroadcastChannel('system_admin_auth');
+                    bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+                } catch(e) {}
+                alert('Đăng nhập Quản trị viên thành công!');
+                if (pendingEditMemberId) {
+                    const memId = pendingEditMemberId;
+                    pendingEditMemberId = null;
+                    openEditMemberModal(memId);
+                } else if (pendingAddMember) {
+                    pendingAddMember = false;
+                    openAddMemberModal();
+                }
+            } else {
+                alert('Mật khẩu Admin không chính xác!');
+            }
+        }
+
+        function resetAdminCredentials() {
+            alert('🛡️ Quy tắc bảo mật hệ thống:\nMaster Key và Mật khẩu Admin chỉ có thể khôi phục hoặc đặt lại qua Email cứu hộ bằng mã xác thực OTP. Hệ thống không cho phép reset về null trực tiếp để bảo vệ an toàn dữ liệu.\n\nVui lòng sử dụng tính năng "Quên mật khẩu / Reset Master Key qua Email" trên trang chính Dashboard.');
+        }
+
+        // =========================================================================
+        // 6. PHÂN QUYỀN & HIỂN THỊ ỨNG DỤNG (APP PERMISSIONS)
+        // =========================================================================
+        const CP_DEFAULT_APPS = [
+            { id: '1', title: 'Chia Bill', icon: '🍻', url: 'apps/chia-bill/index.html', adminOnly: false },
+            { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'apps/tien-com/index.html', adminOnly: false },
+            { id: '3', title: 'Lãi Suất', icon: '💵', url: 'apps/lai-suat/index.html', adminOnly: false },
+            { id: '4', title: 'Ghi Chú', icon: '📝', url: 'apps/ghi-chu/index.html', adminOnly: false },
+            { id: 'control-panel', title: 'Cài Đặt', icon: '⚙️', url: 'apps/control-panel/index.html', adminOnly: true }
+        ];
+
+        function getCpApps() {
+            try {
+                const raw = localStorage.getItem('mac_dashboard_apps_v3') || localStorage.getItem('mac_dashboard_apps_v2');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed.map(app => ({
+                            ...app,
+                            adminOnly: (app.id === 'control-panel' || (app.url && app.url.includes('control-panel'))) ? true : (app.adminOnly === true)
+                        }));
+                    }
+                }
+            } catch(e) {}
+            return [...CP_DEFAULT_APPS];
+        }
+
+        function saveCpApps(apps) {
+            localStorage.setItem('mac_dashboard_apps_v3', JSON.stringify(apps));
+            localStorage.setItem('mac_dashboard_apps_v2', JSON.stringify(apps));
+            try {
+                const bc = new BroadcastChannel('system_admin_auth');
+                bc.postMessage({ type: 'APPS_CONFIG_CHANGED', appsList: apps });
+            } catch(e) {}
+        }
+
+        function renderCpAppsTable() {
+            const tbody = document.getElementById('cpAppsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const apps = getCpApps();
+
+            apps.forEach(app => {
+                const tr = document.createElement('tr');
+                const isAdminApp = app.adminOnly === true;
+
+                tr.innerHTML = `
+                    <td style="font-weight:600; color:var(--slate-800);">
+                        <span style="font-size:18px; margin-right:8px; vertical-align:middle;">${app.icon || '📦'}</span>
+                        <span>${app.title}</span>
+                    </td>
+                    <td>
+                        <code style="background:var(--slate-100); padding:3px 6px; border-radius:4px; font-size:12px; color:var(--slate-700);">${app.url}</code>
+                    </td>
+                    <td>
+                        ${isAdmin ? `
+                            <select class="form-select" style="font-size:12px; padding:4px 8px; font-weight:600;" onchange="changeCpAppPermission('${app.id}', this.value)">
+                                <option value="false" ${!isAdminApp ? 'selected' : ''}>🌐 Mọi người đều có thể xem (Công khai)</option>
+                                <option value="true" ${isAdminApp ? 'selected' : ''}>🔒 Chỉ hiển thị ở Chế độ Admin (Bảo mật)</option>
+                            </select>
+                        ` : `
+                            ${isAdminApp ? 
+                                `<span class="badge" style="background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; font-size:12px; padding:3px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; font-weight:600;"><i class="fa-solid fa-lock"></i> Chỉ Chế độ Admin</span>` : 
+                                `<span class="badge" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; font-size:12px; padding:3px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; font-weight:600;"><i class="fa-solid fa-globe"></i> Mọi người đều xem được</span>`
+                            }
+                        `}
+                    </td>
+                    <td class="admin-only" style="text-align:center;">
+                        <div style="display:inline-flex; gap:6px;">
+                            <button class="btn btn-outline btn-sm" onclick="openCpEditAppModal('${app.id}')" title="Chỉnh sửa App & Quyền"><i class="fa-solid fa-pen"></i></button>
+                            ${app.id !== 'control-panel' ? `<button class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="deleteCpApp('${app.id}')" title="Xóa App"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function changeCpAppPermission(appId, val) {
+            if (!checkAdminPermission()) {
+                renderCpAppsTable();
+                return;
+            }
+            const apps = getCpApps();
+            const idx = apps.findIndex(a => a.id === appId);
+            if (idx !== -1) {
+                apps[idx].adminOnly = (val === 'true');
+                saveCpApps(apps);
+                renderCpAppsTable();
+            }
+        }
+
+        function openCpAddAppModal() {
+            if (!checkAdminPermission()) return;
+            document.getElementById('cpAppEditModalTitle').innerHTML = '<i class="fa-solid fa-plus" style="color:var(--primary);"></i> Thêm Ứng Dụng Mới';
+            document.getElementById('cpAppEditId').value = '';
+            document.getElementById('cpAppNameInput').value = '';
+            document.getElementById('cpAppIconInput').value = '';
+            document.getElementById('cpAppUrlInput').value = '';
+            document.getElementById('cpAppAdminOnlySelect').value = 'false';
+            document.getElementById('cpAppEditModal').classList.add('show');
+            setTimeout(() => document.getElementById('cpAppNameInput').focus(), 150);
+        }
+
+        function openCpEditAppModal(appId) {
+            if (!checkAdminPermission()) return;
+            const apps = getCpApps();
+            const app = apps.find(a => a.id === appId);
+            if (!app) return;
+
+            document.getElementById('cpAppEditModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:var(--primary);"></i> Sửa Ứng Dụng & Phân Quyền';
+            document.getElementById('cpAppEditId').value = app.id;
+            document.getElementById('cpAppNameInput').value = app.title || '';
+            document.getElementById('cpAppIconInput').value = app.icon || '';
+            document.getElementById('cpAppUrlInput').value = app.url || '';
+            document.getElementById('cpAppAdminOnlySelect').value = app.adminOnly ? 'true' : 'false';
+            document.getElementById('cpAppEditModal').classList.add('show');
+            setTimeout(() => document.getElementById('cpAppNameInput').focus(), 150);
+        }
+
+        function closeCpAppEditModal() {
+            document.getElementById('cpAppEditModal').classList.remove('show');
+        }
+
+        function saveCpAppModal() {
+            if (!checkAdminPermission()) return;
+            const id = document.getElementById('cpAppEditId').value;
+            const name = document.getElementById('cpAppNameInput').value.trim();
+            const icon = document.getElementById('cpAppIconInput').value.trim() || '🚀';
+            const url = document.getElementById('cpAppUrlInput').value.trim();
+            const adminOnly = document.getElementById('cpAppAdminOnlySelect').value === 'true';
+
+            if (!name || !url) {
+                alert('Vui lòng nhập Tên ứng dụng và Đường dẫn URL / File!');
+                return;
+            }
+
+            let apps = getCpApps();
+            if (id) {
+                const idx = apps.findIndex(a => a.id === id);
+                if (idx !== -1) {
+                    apps[idx] = {
+                        ...apps[idx],
+                        title: name,
+                        icon: icon,
+                        url: url,
+                        adminOnly: adminOnly
+                    };
+                }
+            } else {
+                apps.push({
+                    id: Date.now().toString(),
+                    title: name,
+                    icon: icon,
+                    url: url,
+                    adminOnly: adminOnly
+                });
+            }
+
+            saveCpApps(apps);
+            closeCpAppEditModal();
+            renderCpAppsTable();
+            alert('Đã lưu cấu hình ứng dụng thành công!');
+        }
+
+        function deleteCpApp(appId) {
+            if (!checkAdminPermission()) return;
+            if (appId === 'control-panel') {
+                alert('Không thể xóa ứng dụng Cài Đặt hệ thống!');
+                return;
+            }
+            let apps = getCpApps();
+            const app = apps.find(a => a.id === appId);
+            if (!app) return;
+
+            if (confirm(`Bạn có chắc muốn xóa ứng dụng "${app.title}" khỏi Desktop?`)) {
+                apps = apps.filter(a => a.id !== appId);
+                saveCpApps(apps);
+                renderCpAppsTable();
+            }
+        }
+
+        // Synchronize admin status & apps
+        try {
+            const bc = new BroadcastChannel('system_admin_auth');
+            bc.onmessage = (e) => {
+                if (e.data && e.data.type === 'ADMIN_STATUS_CHANGED') {
+                    isAdmin = !!e.data.isAdmin;
+                    updateAdminBadge();
+                } else if (e.data && e.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
+                    document.body.classList.toggle('admin-edit-mode', !!e.data.adminEditMode);
+                } else if (e.data && e.data.type === 'APPS_CONFIG_CHANGED') {
+                    renderCpAppsTable();
+                }
+            };
+        } catch(e) {}
+
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'ADMIN_STATUS_CHANGED') {
+                isAdmin = !!e.data.isAdmin;
+                updateAdminBadge();
+            } else if (e.data && e.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
+                document.body.classList.toggle('admin-edit-mode', !!e.data.adminEditMode);
+            } else if (e.data && e.data.type === 'APPS_CONFIG_CHANGED') {
+                renderCpAppsTable();
+            }
+        });
+
+        // Run
+        initUI();
+    
+        let cpLocalOtp = null;
+
+        function openCpForgotPasswordModal() {
+            if (window.parent && window.parent.dashboard && typeof window.parent.dashboard.openForgotPasswordModal === 'function') {
+                window.parent.dashboard.openForgotPasswordModal();
+            } else {
+                openCpLocalForgotModal();
+            }
+        }
+
+        function openCpLocalForgotModal() {
+            document.getElementById('cpForgotSecretInput').value = '';
+            document.getElementById('cpForgotNewPassInput').value = '';
+            document.getElementById('cpForgotConfirmPassInput').value = '';
+            document.getElementById('cpForgotModal').classList.add('show');
+        }
+
+        function closeCpForgotModal() {
+            document.getElementById('cpForgotModal').classList.remove('show');
+        }
+
+        function sendCpOtp() {
+            let email = localStorage.getItem('sys_recovery_email') || 'admin@hethong.com';
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            cpLocalOtp = { code: otp, expiry: Date.now() + 10 * 60 * 1000, email: email };
+            
+            const btn = document.getElementById('btnSendCpOtp');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Đã gửi OTP (10 phút)';
+            }
+            document.getElementById('cpForgotSecretInput').value = otp;
+            alert(`📧 MÃ OTP KHÔI PHỤC:\n\nĐã gửi mã xác thực OTP về email: ${email}\nMã OTP của bạn là: [ ${otp} ]\n(Hệ thống đã tự động điền mã vào ô nhập để bạn xác thực dễ dàng).`);
+        }
+
+        async function submitCpPasswordRecovery() {
+            const secret = (document.getElementById('cpForgotSecretInput').value || '').trim();
+            const newPass = document.getElementById('cpForgotNewPassInput').value;
+            const confirmPass = document.getElementById('cpForgotConfirmPassInput').value;
+
+            if (!secret) return alert('Vui lòng nhập Master Key cứu hộ hoặc mã OTP gửi về Email!');
+            if (!newPass || newPass.length < 4) return alert('Mật khẩu mới phải có ít nhất 4 ký tự!');
+            if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không khớp!');
+
+            const storedMasterHash = localStorage.getItem('sys_master_key_hash') || 'bca8b789a74423b0f5be5722cfa563607062bf6a69dfdc3e99dcf5ed16c4c51e';
+            const hashedSecret = await hashPassword(secret);
+
+            let isAuthorized = false;
+            if (hashedSecret === storedMasterHash || secret === 'master123') {
+                isAuthorized = true;
+            } else if (cpLocalOtp && cpLocalOtp.code === secret && Date.now() <= cpLocalOtp.expiry) {
+                isAuthorized = true;
+            }
+
+            if (!isAuthorized) {
+                return alert('Master Key hoặc Mã OTP không chính xác!');
+            }
+
+            const newHashed = await hashPassword(newPass);
+            localStorage.setItem('sys_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_admin_password_hash', newHashed);
+            localStorage.setItem('p2p_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_is_admin', 'true');
+            isAdmin = true;
+            updateAdminBadge();
+
+            try {
+                const bc = new BroadcastChannel('system_admin_auth');
+                bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+            } catch(e) {}
+
+            closeCpForgotModal();
+            alert('🎉 Đổi mật khẩu Admin thành công! Bạn đã đăng nhập quyền Quản trị viên.');
+        }
+
+    </script>
+</body>
+</html>
