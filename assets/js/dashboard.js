@@ -2630,43 +2630,97 @@
     const text = document.getElementById('dbStatusText');
     const modalTag = document.getElementById('dbModalStatusTag');
     const countEl = document.getElementById('dbKeyCountText');
+    const cloudTag = document.getElementById('cloudSyncStatusBadge');
+    const anonInput = document.getElementById('supabaseAnonKeyInput');
+    const urlInput = document.getElementById('supabaseUrlInput');
 
+    const cfg = window.dbStorage ? window.dbStorage.getSupabaseConfig() : { url: '', anonKey: '' };
+    if (anonInput && !anonInput.value && cfg.anonKey) {
+      anonInput.value = cfg.anonKey;
+    }
+    if (urlInput && cfg.url) {
+      urlInput.value = cfg.url;
+    }
+
+    // 1. Kiểm tra nếu đang kết nối trực tiếp Supabase Cloud REST
+    if (window.dbStorage && window.dbStorage.isConnected() && window.dbStorage.getSyncMode() === 'SUPABASE_REST') {
+      if (badge) badge.classList.remove('offline');
+      if (dot) dot.classList.remove('offline');
+      if (text) text.textContent = 'Supabase 🟢';
+      if (modalTag) {
+        modalTag.textContent = 'Đang hoạt động (Supabase Cloud Direct)';
+        modalTag.style.background = '#15803d';
+        modalTag.style.color = '#dcfce7';
+      }
+      if (cloudTag) {
+        cloudTag.textContent = '🟢 Đã kết nối Cloud';
+        cloudTag.style.background = '#15803d';
+        cloudTag.style.color = '#dcfce7';
+      }
+      if (countEl) countEl.textContent = `${localStorage.length} mục`;
+      if (showNotification) showToast('✅ Kết nối trực tiếp Supabase Cloud thành công!');
+      return;
+    }
+
+    // 2. Kiểm tra nếu có Node.js server (khi mở trên localhost)
     try {
-      const res = await fetch('/api/status');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.connected) {
-          if (badge) badge.classList.remove('offline');
-          if (dot) dot.classList.remove('offline');
-          if (text) text.textContent = 'Postgres 🟢';
-          if (modalTag) {
-            modalTag.textContent = 'Đang hoạt động';
-            modalTag.style.background = '#15803d';
-            modalTag.style.color = '#dcfce7';
-          }
-          if (countEl) countEl.textContent = `${data.totalKeys} mục`;
-          if (data.tables) {
-            for (const [tbl, cnt] of Object.entries(data.tables)) {
-              const el = document.getElementById(`stat_${tbl}`);
-              if (el) el.textContent = `${cnt} dòng`;
+      const nodeUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
+      if (nodeUrl) {
+        const res = await fetch(`${nodeUrl}/api/status`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.connected) {
+            if (badge) badge.classList.remove('offline');
+            if (dot) dot.classList.remove('offline');
+            if (text) text.textContent = 'Postgres 🟢';
+            if (modalTag) {
+              modalTag.textContent = 'Đang hoạt động (Node Server)';
+              modalTag.style.background = '#15803d';
+              modalTag.style.color = '#dcfce7';
             }
+            if (cloudTag) {
+              cloudTag.textContent = '🟢 Qua Node.js Server';
+              cloudTag.style.background = '#0284c7';
+              cloudTag.style.color = '#e0f2fe';
+            }
+            if (countEl) countEl.textContent = `${data.totalKeys} mục`;
+            if (data.tables) {
+              for (const [tbl, cnt] of Object.entries(data.tables)) {
+                const el = document.getElementById(`stat_${tbl}`);
+                if (el) el.textContent = `${cnt} dòng`;
+              }
+            }
+            if (showNotification) showToast('✅ Kết nối Supabase PostgreSQL thành công!');
+            return;
           }
-          if (showNotification) showToast('✅ Kết nối Supabase PostgreSQL thành công!');
-          return;
         }
       }
     } catch (e) {}
 
+    // 3. Nếu chưa có kết nối Cloud hay Server
+    const isGithub = window.location.hostname.endsWith('github.io') || window.location.protocol === 'https:';
     if (badge) badge.classList.add('offline');
     if (dot) dot.classList.add('offline');
-    if (text) text.textContent = 'Postgres 🔴';
+    if (text) text.textContent = isGithub ? 'Cần Key 🟡' : 'Offline 🟡';
     if (modalTag) {
-      modalTag.textContent = 'Chưa bật server';
-      modalTag.style.background = '#b91c1c';
-      modalTag.style.color = '#fee2e2';
+      modalTag.textContent = isGithub ? 'Chưa nhập Supabase Key' : 'Chưa bật server';
+      modalTag.style.background = isGithub ? '#b45309' : '#b91c1c';
+      modalTag.style.color = '#fef3c7';
     }
-    if (countEl) countEl.textContent = 'Không có kết nối';
-    if (showNotification) showToast('⚠️ Không thể kết nối DB server. Hãy chạy file start-server.bat');
+    if (cloudTag) {
+      cloudTag.textContent = cfg.anonKey ? '🔴 Sai key hoặc lỗi mạng' : '🟡 Cần nhập `anon` key';
+      cloudTag.style.background = cfg.anonKey ? '#991b1b' : '#b45309';
+      cloudTag.style.color = '#fef3c7';
+    }
+    if (countEl) countEl.textContent = `${localStorage.length} mục (Offline Cache)`;
+
+    if (showNotification) {
+      if (isGithub && !cfg.anonKey) {
+        showToast('⚠️ Bạn đang chạy trên GitHub Pages. Vui lòng nhập mã Supabase `anon` key để đồng bộ!');
+      } else {
+        showToast('⚠️ Chưa thể kết nối tới Supabase Cloud. Hãy kiểm tra lại key hoặc kết nối mạng.');
+      }
+    }
   }
 
   function openDbStatusModal() {
@@ -2682,18 +2736,70 @@
     if (modal) modal.classList.remove('show');
   }
 
+  async function saveSupabaseCloudKey() {
+    const keyInput = document.getElementById('supabaseAnonKeyInput');
+    const urlInput = document.getElementById('supabaseUrlInput');
+    const key = keyInput ? keyInput.value.trim() : '';
+    const url = urlInput ? urlInput.value.trim() : '';
+
+    if (!key) {
+      showToast('⚠️ Vui lòng dán mã Supabase `anon` public key.');
+      return;
+    }
+
+    if (url) {
+      localStorage.setItem('supabase_url', url);
+    }
+
+    showToast('🔄 Đang kiểm tra kết nối với Supabase Cloud...');
+    const testRes = await window.dbStorage.testSupabaseConnection(url, key);
+    if (!testRes.success) {
+      showToast(`❌ ${testRes.error}`);
+      return;
+    }
+
+    await window.dbStorage.setSupabaseAnonKey(key);
+    showToast('✅ Đã lưu cấu hình và kết nối Supabase Cloud thành công!');
+    await checkDbConnection(false);
+    loadApps();
+  }
+
+  async function testSupabaseCloudConnection() {
+    const keyInput = document.getElementById('supabaseAnonKeyInput');
+    const urlInput = document.getElementById('supabaseUrlInput');
+    const key = keyInput ? keyInput.value.trim() : '';
+    const url = urlInput ? urlInput.value.trim() : '';
+
+    showToast('🔄 Đang thử gửi lệnh tới Supabase REST API...');
+    const res = await window.dbStorage.testSupabaseConnection(url, key);
+    if (res.success) {
+      showToast(`✅ ${res.message}`);
+    } else {
+      showToast(`❌ Thất bại: ${res.error}`);
+    }
+  }
+
   async function refreshDbStatus(showToastMsg) {
     if (window.dbStorage) {
-      await window.dbStorage.refresh();
+      await window.dbStorage.syncNow();
       loadApps();
     }
     await checkDbConnection(showToastMsg);
   }
 
+  // Lắng nghe sự kiện đồng bộ từ db-storage.js
+  window.addEventListener('db-storage-ready', (e) => {
+    console.log('[Dashboard] Nhận sự kiện db-storage-ready:', e.detail);
+    loadApps();
+    checkDbConnection(false);
+  });
+
   // Expose on window
   window.openDbStatusModal = openDbStatusModal;
   window.closeDbStatusModal = closeDbStatusModal;
   window.refreshDbStatus = refreshDbStatus;
+  window.saveSupabaseCloudKey = saveSupabaseCloudKey;
+  window.testSupabaseCloudConnection = testSupabaseCloudConnection;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
