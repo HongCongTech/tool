@@ -63,10 +63,10 @@
   function getNodeApiBase() {
     try {
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:3000';
+        return window.location.origin;
       }
       if (window.location.protocol === 'file:') {
-        return 'http://localhost:3000';
+        return 'http://localhost:3001';
       }
     } catch (e) {}
     return null;
