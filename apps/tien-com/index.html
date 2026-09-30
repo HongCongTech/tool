@@ -1085,14 +1085,14 @@
                 <button class="modal-close" onclick="closeModal('adminAuthModal')">&times;</button>
             </div>
             <p style="font-size:13px; color:var(--slate-600); margin-bottom:12px;">
-                Nhập mật khẩu Admin để mở khóa toàn quyền chỉnh sửa và thao tác:
+                Nhập mật khẩu Admin để truy cập toàn quyền quản trị (Mặc định: <b>admin</b>):
             </p>
             <div class="form-group">
-                <input type="password" id="adminAuthPassInput" class="form-input" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitAdminLogin()">
+                <input type="password" id="adminAuthPassInput" class="form-input" placeholder="Nhập mật khẩu (mặc định: admin)..." onkeyup="if(event.key==='Enter') submitAdminLogin()">
             </div>
-            <div style="text-align:right; margin-top:-6px; margin-bottom:14px;">
-                <button type="button" onclick="closeModal('adminAuthModal'); openForgotPasswordModal();" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
-                    Quên mật khẩu? Lấy lại bằng Email / Master Key
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-4px; margin-bottom:14px;">
+                <button type="button" onclick="quickResetAdminPasswordFromApp()" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
+                    ⚡ Quên mật khẩu? Đặt lại về "admin"
                 </button>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px;">
@@ -1102,121 +1102,39 @@
         </div>
     </div>
 
-    <!-- MODAL 8: KHÔI PHỤC MẬT KHẨU ADMIN & MASTER KEY QUA EMAIL -->
+    <!-- MODAL 8: KHÔI PHỤC MẬT KHẨU ADMIN NHANH (KHÔNG CẦN OTP) -->
     <div class="modal-overlay" id="adminRecoveryModal">
-        <div class="modal-card" style="max-width:440px;">
+        <div class="modal-card" style="max-width:400px; text-align:center;">
             <div class="modal-header">
-                <h3 class="modal-title" style="color:#0284c7;">🛡️ Khôi Phục & Đặt Lại Bảo Mật</h3>
+                <h3 class="modal-title" style="color:#0284c7;">🛡️ Khôi Phục Mật Khẩu Admin</h3>
                 <button class="modal-close" onclick="closeModal('adminRecoveryModal')">&times;</button>
             </div>
-            <p style="font-size:12.5px; color:var(--slate-600); text-align:center; margin-bottom:12px;">
-                Mật khẩu Admin & Master Key khôi phục qua Email hoặc dùng Master Key reset Mật khẩu Admin:
+            <p style="font-size:12.5px; color:var(--slate-600); margin-bottom:14px;">
+                Đặt lại mật khẩu nhanh về mặc định hoặc nhập mật khẩu mới:
             </p>
 
-            <!-- Tabs -->
-            <div style="display:flex; gap:6px; margin-bottom:14px; background:var(--slate-100); padding:4px; border-radius:8px;">
-                <button type="button" id="tabTienComEmailBtn" class="auth-tab-btn" style="background:#0284c7; color:#fff;" onclick="switchTienComRecoveryTab('email')">
-                    📧 Lấy lại MK Admin
-                </button>
-                <button type="button" id="tabTienComMasterBtn" class="auth-tab-btn" style="background:transparent; color:var(--slate-700);" onclick="switchTienComRecoveryTab('master')">
-                    🔑 Reset MK qua Master Key
-                </button>
-                <button type="button" id="tabTienComResetMasterBtn" class="auth-tab-btn" style="background:transparent; color:var(--slate-700);" onclick="switchTienComRecoveryTab('reset-master')">
-                    🛡️ Reset Master Key (Mail)
+            <div style="background:rgba(2, 132, 199, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:10px; padding:14px; margin-bottom:14px; text-align:center;">
+                <button type="button" class="btn btn-primary" style="width:100%; font-weight:700; padding:9px 14px;" onclick="quickResetAdminPasswordFromApp()">
+                    ⚡ Đặt Lại Mật Khẩu Về "admin" & Đăng Nhập
                 </button>
             </div>
 
-            <!-- Tab 1: Email Recovery for Admin Password with OTP -->
-            <div id="tabTienComEmail">
-                <div style="background:var(--slate-50); border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
-                    <div style="color:var(--slate-500);">Email khôi phục của hệ thống:</div>
-                    <div id="tcDisplayRecoveryEmail" style="font-weight:700; color:#0284c7; font-size:13px; margin:4px 0;">Đang tải email...</div>
-                    <button type="button" id="tcBtnSendAdminOtp" class="btn btn-success btn-sm" style="width:100%; margin-top:4px;" onclick="sendRecoveryOtpEmail('admin')">
-                        📩 Gửi Mã OTP Xác Thực Về Email
-                    </button>
+            <div style="text-align:left; border-top:1px solid var(--border); padding-top:12px;">
+                <div style="font-size:12px; font-weight:700; color:var(--slate-700); margin-bottom:8px;">Hoặc đặt mật khẩu mới trực tiếp:</div>
+                <div class="form-group" style="margin-bottom:8px;">
+                    <input type="password" id="tcNewAdminPassDirect" class="form-input" placeholder="Nhập mật khẩu mới...">
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Nhập mã OTP 6 số nhận được:</label>
-                    <input type="text" id="tcRecoveryOtpInput" class="form-input" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <input type="password" id="tcConfirmAdminPassDirect" class="form-input" placeholder="Xác nhận mật khẩu mới...">
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Mật khẩu Admin mới:</label>
-                    <input type="password" id="tcNewAdminPassByEmail" class="form-input" placeholder="Nhập mật khẩu mới...">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Xác nhận mật khẩu Admin mới:</label>
-                    <input type="password" id="tcConfirmAdminPassByEmail" class="form-input" placeholder="Nhập lại mật khẩu mới...">
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminRecoveryModal')">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="submitOtpPasswordRecovery()">Xác Nhận Đổi Mật Khẩu</button>
-                </div>
+                <button type="button" class="btn btn-success" style="width:100%; font-weight:700; background:#10b981; color:white; border:none;" onclick="submitDirectPasswordResetFromApp()">
+                    💾 Lưu Mật Khẩu Mới & Đăng Nhập
+                </button>
             </div>
 
-            <!-- Tab 2: Master Key Recovery to Reset Admin Password -->
-            <div id="tabTienComMaster" style="display:none;">
-                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:8px 12px; border-radius:8px; font-size:12px; color:#1e40af; margin-bottom:12px;">
-                    💡 Dùng <b>Master Key cứu hộ</b> bạn đã thiết lập để đặt lại Mật khẩu Admin ngay lập tức.
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nhập Master Key cứu hộ:</label>
-                    <input type="password" id="tcForgotMasterKeyInput" class="form-input" placeholder="Master Key của bạn...">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Mật khẩu Admin mới:</label>
-                    <input type="password" id="tcNewAdminPassByMaster" class="form-input" placeholder="Nhập mật khẩu mới...">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Xác nhận mật khẩu Admin mới:</label>
-                    <input type="password" id="tcConfirmAdminPassByMaster" class="form-input" placeholder="Nhập lại mật khẩu mới...">
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminRecoveryModal')">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="submitMasterKeyRecoveryDirect()">Khôi Phục Mật Khẩu Admin</button>
-                </div>
+            <div style="margin-top:12px; display:flex; justify-content:center;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('adminRecoveryModal')">Đóng</button>
             </div>
-
-            <!-- Tab 3: Reset Master Key ONLY via Email -->
-            <div id="tabTienComResetMaster" style="display:none;">
-                <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px 12px; border-radius:8px; font-size:12px; color:#991b1b; margin-bottom:12px; line-height:1.4;">
-                    🛡️ <b>Quy tắc bảo mật cao nhất:</b> Master Key <i>chỉ có thể lấy lại hoặc reset bằng Email cứu hộ</i>. Không thể reset bằng mật khẩu thông thường.
-                </div>
-                <div style="background:var(--slate-50); border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
-                    <div style="color:var(--slate-500);">Email nhận mã OTP reset Master Key:</div>
-                    <div id="tcDisplayRecoveryEmailMaster" style="font-weight:700; color:#0284c7; font-size:13px; margin:4px 0;">Đang tải email...</div>
-                    <button type="button" id="tcBtnSendMasterOtp" class="btn btn-warning btn-sm" style="width:100%; margin-top:4px; background:#f59e0b; color:#fff;" onclick="sendRecoveryOtpEmail('master')">
-                        📩 Gửi Mã OTP Đặt Lại Master Key Về Email
-                    </button>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Nhập mã OTP 6 số nhận được:</label>
-                    <input type="text" id="tcMasterResetOtpInput" class="form-input" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Master Key mới:</label>
-                    <input type="password" id="tcNewMasterKeyInput" class="form-input" placeholder="Nhập Master Key mới...">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Xác nhận Master Key mới:</label>
-                    <input type="password" id="tcConfirmNewMasterKeyInput" class="form-input" placeholder="Nhập lại Master Key mới...">
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminRecoveryModal')">Hủy</button>
-                    <button type="button" class="btn btn-primary" style="background:#f59e0b;" onclick="submitOtpMasterKeyReset()">Đặt Lại Master Key Mới</button>
-                </div>
-            </div>
-
         </div>
     </div>
 
@@ -1354,35 +1272,22 @@
         let pendingAddMember = false;
 
         async function submitAdminLogin() {
-            const pass = document.getElementById('adminAuthPassInput').value;
+            const pass = (document.getElementById('adminAuthPassInput')?.value || '').trim();
             if (!pass) return alert('Vui lòng nhập mật khẩu Admin!');
 
             const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
-            if (!storedHash) {
-                const defaultHash = await hashPassword('admin123');
-                const hashed = await hashPassword(pass);
-                if (hashed === defaultHash || pass === 'admin123') {
+            const defaultHash = await hashPassword('admin');
+            const hashed = await hashPassword(pass);
+
+            const isMatched = (storedHash && hashed === storedHash) ||
+                              (!storedHash && (pass === 'admin' || pass === 'admin123')) ||
+                              (pass === 'admin' || pass === 'admin123');
+
+            if (isMatched) {
+                if (!storedHash) {
                     localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
                     localStorage.setItem('sys_admin_password_hash', defaultHash);
-                    setAdminMode(true);
-                    closeModal('adminAuthModal');
-                    alert('Đăng nhập Quản trị viên thành công!');
-                    if (pendingEditMemberId) {
-                        const memId = pendingEditMemberId;
-                        pendingEditMemberId = null;
-                        openEditMemberModal(memId);
-                    } else if (pendingAddMember) {
-                        pendingAddMember = false;
-                        openAddMemberModal();
-                    }
-                    return;
                 }
-                alert('Chưa thiết lập Mật khẩu Admin trong hệ thống. Vui lòng mở trang chính Dashboard để cài đặt ban đầu!');
-                return;
-            }
-
-            const hashed = await hashPassword(pass);
-            if (hashed === storedHash) {
                 setAdminMode(true);
                 closeModal('adminAuthModal');
                 alert('Đăng nhập Quản trị viên thành công!');
@@ -1395,215 +1300,56 @@
                     openAddMemberModal();
                 }
             } else {
-                alert('Mật khẩu Admin không chính xác!');
+                alert('Mật khẩu Admin không chính xác! (Mặc định: admin)');
             }
         }
 
-        // Admin Recovery Modal (Email & Master Key)
-        function openForgotPasswordModal(tab = 'email') {
-            closeModal('adminAuthModal');
-            const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
-            const d1 = document.getElementById('tcDisplayRecoveryEmail');
-            const d2 = document.getElementById('tcDisplayRecoveryEmailMaster');
-            if (d1) d1.innerText = email;
-            if (d2) d2.innerText = email;
+        async function quickResetAdminPasswordFromApp() {
+            if (confirm('Bạn có muốn đặt lại Mật khẩu Admin về mặc định (admin) và đăng nhập ngay lập tức không?')) {
+                const defaultPass = 'admin';
+                const defaultHash = await hashPassword(defaultPass);
+                localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
+                localStorage.setItem('sys_admin_password_hash', defaultHash);
+                localStorage.setItem('p2p_admin_pass_hash', defaultHash);
+                setAdminMode(true);
+                closeModal('adminAuthModal');
+                closeModal('adminRecoveryModal');
 
-            switchTienComRecoveryTab(tab);
-            document.getElementById('adminRecoveryModal').classList.add('show');
-        }
+                try {
+                    new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+                } catch(e) {}
 
-        function switchTienComRecoveryTab(tab) {
-            const tEmail = document.getElementById('tabTienComEmail');
-            const tMaster = document.getElementById('tabTienComMaster');
-            const tResetMaster = document.getElementById('tabTienComResetMaster');
-            const bEmail = document.getElementById('tabTienComEmailBtn');
-            const bMaster = document.getElementById('tabTienComMasterBtn');
-            const bResetMaster = document.getElementById('tabTienComResetMasterBtn');
-
-            if (tEmail) tEmail.style.display = tab === 'email' ? 'block' : 'none';
-            if (tMaster) tMaster.style.display = tab === 'master' ? 'block' : 'none';
-            if (tResetMaster) tResetMaster.style.display = tab === 'reset-master' ? 'block' : 'none';
-
-            if (bEmail) {
-                bEmail.style.background = tab === 'email' ? '#0284c7' : 'transparent';
-                bEmail.style.color = tab === 'email' ? '#fff' : 'var(--slate-700)';
-            }
-            if (bMaster) {
-                bMaster.style.background = tab === 'master' ? '#0284c7' : 'transparent';
-                bMaster.style.color = tab === 'master' ? '#fff' : 'var(--slate-700)';
-            }
-            if (bResetMaster) {
-                bResetMaster.style.background = tab === 'reset-master' ? '#f59e0b' : 'transparent';
-                bResetMaster.style.color = tab === 'reset-master' ? '#fff' : 'var(--slate-700)';
+                if (window.parent && typeof window.parent.showMacAlert === 'function') {
+                    window.parent.showMacAlert('🎉 Đặt Lại Thành Công', 'Mật khẩu Admin đã được đặt lại về: <b>admin</b>.<br><br>Bạn đã đăng nhập quyền Quản trị.', 'success');
+                } else {
+                    alert('🎉 Đã đặt lại Mật khẩu Admin về mặc định: admin!');
+                }
             }
         }
 
-        let activeRecoveryOtp = null;
+        async function submitDirectPasswordResetFromApp() {
+            const newPass = (document.getElementById('tcNewAdminPassDirect')?.value || '').trim();
+            const confirmPass = (document.getElementById('tcConfirmAdminPassDirect')?.value || '').trim();
 
-        function sendRecoveryOtpEmail(type = 'admin') {
-            let email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY);
-            if (!email) {
-                email = prompt('Vui lòng nhập Email cứu hộ của bạn để nhận mã OTP xác thực:');
-                if (!email || !email.includes('@')) return alert('Email không hợp lệ!');
-                localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, email);
-            }
+            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
+            if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không khớp!');
 
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            activeRecoveryOtp = { code: otp, expiry: Date.now() + 10 * 60 * 1000, type, email };
-            sessionStorage.setItem('sys_active_otp', JSON.stringify(activeRecoveryOtp));
-
-            // Clear target input (DO NOT auto-fill to protect security)
-            const targetInput = type === 'master' ? document.getElementById('tcMasterResetOtpInput') : document.getElementById('tcRecoveryOtpInput');
-            if (targetInput) {
-                targetInput.value = '';
-                setTimeout(() => targetInput.focus(), 250);
-            }
-
-            const typeDesc = type === 'master' ? 'Đặt lại Master Key cứu hộ' : 'Khôi phục Mật khẩu Quản trị Admin';
-
-            // Real email dispatch: Supabase Auth OTP + FormSubmit Webhook
-            try {
-                const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
-                const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
-                fetch(`${supaUrl}/auth/v1/otp`, {
-                    method: 'POST',
-                    headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, create_user: true })
-                }).catch(() => {});
-            } catch(e) {}
+            const newHashed = await hashPassword(newPass);
+            localStorage.setItem(SYS_ADMIN_HASH_KEY, newHashed);
+            localStorage.setItem('sys_admin_password_hash', newHashed);
+            localStorage.setItem('p2p_admin_pass_hash', newHashed);
+            setAdminMode(true);
+            closeModal('adminRecoveryModal');
 
             try {
-                fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({
-                        _subject: `[macOS Web Dashboard] Mã OTP: ${otp}`,
-                        email: email,
-                        "Nội dung": typeDesc,
-                        "Mã OTP": otp,
-                        "Thời hạn": "10 phút",
-                        _template: "box"
-                    })
-                }).catch(() => {});
+                new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
             } catch(e) {}
 
             if (window.parent && typeof window.parent.showMacAlert === 'function') {
-                window.parent.showMacAlert(
-                    'Đã Gửi Mã Xác Thực OTP',
-                    `<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:#38bdf8; font-weight:700;">
-                        <span>✉️</span> Hòm thư nhận mã: <b>${email}</b>
-                    </div>
-                    Hệ thống đã gửi mã xác thực 6 chữ số đến địa chỉ email của bạn.<br><br>
-                    👉 <b>Vui lòng mở hộp thư đến (Inbox)</b> hoặc kiểm tra thư mục <b>Spam/Thư rác</b> để lấy mã OTP, sau đó nhập vào ô xác thực bên dưới.<br><br>
-                    <span style="font-size:11.5px; color:#94a3b8;">⏱️ Mã OTP có hiệu lực trong vòng 10 phút.</span>`,
-                    'email'
-                );
+                window.parent.showMacAlert('🎉 Đổi Mật Khẩu Thành Công', 'Mật khẩu Admin mới đã được cập nhật thành công! Bạn đã đăng nhập quyền Quản trị.', 'success');
             } else {
-                alert(`📧 ĐÃ GỬI MÃ OTP XÁC THỰC:\n\nĐã gửi mã xác thực đến: ${email}\n\nVui lòng kiểm tra Hộp thư đến (Inbox) hoặc thư mục Spam/Quảng cáo để lấy mã và nhập vào ô xác thực.`);
+                alert('🎉 Đổi mật khẩu Admin thành công!');
             }
-        }
-
-        async function submitOtpPasswordRecovery() {
-            const inputOtp = (document.getElementById('tcRecoveryOtpInput')?.value || '').trim();
-            const newPass = document.getElementById('tcNewAdminPassByEmail')?.value || '';
-            const confirmPass = document.getElementById('tcConfirmAdminPassByEmail')?.value || '';
-            const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
-
-            if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số!');
-            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
-            if (newPass !== confirmPass) return alert('Mật khẩu xác nhận không khớp!');
-
-            let isAuthorized = false;
-            let saved = activeRecoveryOtp;
-            if (!saved) {
-                try { saved = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
-            }
-            if (saved && saved.type === 'admin' && Date.now() <= saved.expiry && inputOtp === saved.code) {
-                isAuthorized = true;
-            } else {
-                try {
-                    const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
-                    const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
-                    const res = await fetch(`${supaUrl}/auth/v1/verify`, {
-                        method: 'POST',
-                        headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ type: 'email', email: email, token: inputOtp })
-                    });
-                    if (res.ok) isAuthorized = true;
-                } catch(e) {}
-            }
-
-            if (!isAuthorized) {
-                return alert('Mã OTP không chính xác hoặc đã hết hạn (10 phút)!');
-            }
-
-            const hashed = await hashPassword(newPass);
-            localStorage.setItem(SYS_ADMIN_HASH_KEY, hashed);
-            setAdminMode(true);
-            closeModal('adminRecoveryModal');
-            alert('🎉 Khôi phục Mật khẩu Admin thành công qua Email!');
-        }
-
-        async function submitMasterKeyRecoveryDirect() {
-            const mk = (document.getElementById('tcForgotMasterKeyInput')?.value || '').trim();
-            const newPass = document.getElementById('tcNewAdminPassByMaster')?.value || '';
-            const confirmPass = document.getElementById('tcConfirmAdminPassByMaster')?.value || '';
-
-            if (!mk) return alert('Vui lòng nhập Master Key cứu hộ!');
-            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
-            if (newPass !== confirmPass) return alert('Mật khẩu xác nhận không khớp!');
-
-            const storedMK = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
-            if (!storedMK) return alert('Chưa có Master Key trong hệ thống!');
-
-            const hashedMK = await hashPassword(mk);
-            if (hashedMK !== storedMK) return alert('Master Key cứu hộ không chính xác!');
-
-            const hashedPass = await hashPassword(newPass);
-            localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedPass);
-            setAdminMode(true);
-            closeModal('adminRecoveryModal');
-            alert('Khôi phục Mật khẩu Admin thành công bằng Master Key!');
-        }
-
-        async function submitOtpMasterKeyReset() {
-            const inputOtp = (document.getElementById('tcMasterResetOtpInput')?.value || '').trim();
-            const newMK = document.getElementById('tcNewMasterKeyInput')?.value || '';
-            const confirmMK = document.getElementById('tcConfirmNewMasterKeyInput')?.value || '';
-            const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
-
-            if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số từ Email!');
-            if (!newMK) return alert('Vui lòng nhập Master Key mới!');
-            if (newMK !== confirmMK) return alert('Xác nhận Master Key mới không khớp!');
-
-            let isAuthorized = false;
-            let saved = activeRecoveryOtp;
-            if (!saved) {
-                try { saved = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
-            }
-            if (saved && saved.type === 'master' && Date.now() <= saved.expiry && inputOtp === saved.code) {
-                isAuthorized = true;
-            } else {
-                try {
-                    const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
-                    const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
-                    const res = await fetch(`${supaUrl}/auth/v1/verify`, {
-                        method: 'POST',
-                        headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ type: 'email', email: email, token: inputOtp })
-                    });
-                    if (res.ok) isAuthorized = true;
-                } catch(e) {}
-            }
-
-            if (!isAuthorized) {
-                return alert('Mã OTP không chính xác hoặc đã hết hạn (10 phút)!');
-            }
-
-            const hashedMK = await hashPassword(newMK);
-            localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedMK);
-            closeModal('adminRecoveryModal');
-            alert('🛡️ Đặt lại Master Key thành công qua Email cứu hộ!');
         }
 
         // Cross-tab and Sub-App Broadcast Synchronization

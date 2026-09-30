@@ -128,27 +128,10 @@
   }
 
   function hasAdminConfigured() {
-    const p = localStorage.getItem(SYS_ADMIN_HASH_KEY);
-    const m = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
-    return !!(p && m);
+    return true;
   }
 
   function updateAdminUI() {
-    const isConfigured = hasAdminConfigured();
-    if (!isConfigured) {
-      isAdmin = false;
-      document.body.classList.remove('is-admin');
-      document.body.classList.remove('admin-edit-mode-active');
-      if (DOM.adminBadgeText) {
-        DOM.adminBadgeText.innerText = '⚙️ Cài đặt Admin';
-      }
-      if (isEditMode) toggleEditMode(false);
-      // Reset admin edit toggle
-      const adminEditToggle = document.getElementById('admin-edit-toggle');
-      if (adminEditToggle) adminEditToggle.checked = false;
-      return;
-    }
-
     if (isAdmin) {
       document.body.classList.add('is-admin');
       if (DOM.adminBadgeText) {
@@ -163,7 +146,6 @@
       if (isEditMode) {
         toggleEditMode(false);
       }
-      // Reset admin edit toggle
       const adminEditToggle = document.getElementById('admin-edit-toggle');
       if (adminEditToggle) adminEditToggle.checked = false;
       broadcastAdminEditModeToWindows(false);
@@ -265,80 +247,48 @@
   }
 
   async function submitAdminSetup() {
-    const adminPass = document.getElementById('setupAdminPass').value;
-    const confirmPass = document.getElementById('setupConfirmPass').value;
-    const masterKey = document.getElementById('setupMasterKey').value;
-    const confirmMaster = document.getElementById('setupConfirmMasterKey').value;
-    const recoveryEmail = (document.getElementById('setupRecoveryEmail')?.value || '').trim();
+    const adminPass = (document.getElementById('setupAdminPass')?.value || '').trim();
+    const confirmPass = (document.getElementById('setupConfirmPass')?.value || '').trim();
 
-    if (!adminPass || !masterKey) {
-      alert('Vui lòng nhập đầy đủ Mật khẩu Admin và Master Key!');
+    if (!adminPass) {
+      showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập Mật khẩu Admin bạn muốn đặt!', 'warning');
       return;
     }
     if (adminPass !== confirmPass) {
-      alert('Mật khẩu Admin xác nhận không khớp!');
-      return;
-    }
-    if (masterKey !== confirmMaster) {
-      alert('Master Key xác nhận không khớp!');
-      return;
-    }
-    if (!recoveryEmail || !recoveryEmail.includes('@')) {
-      alert('Vui lòng nhập Email cứu hộ hợp lệ! Email này dùng để nhận mã OTP lấy lại mật khẩu Admin hoặc đặt lại Master Key khi cần.');
+      showMacAlert('Mật Khẩu Không Khớp', 'Mật khẩu Admin xác nhận không khớp!', 'error');
       return;
     }
 
     const hashedPass = await hashPassword(adminPass);
-    const hashedMaster = await hashPassword(masterKey);
-
     localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedPass);
-    localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedMaster);
-    localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, recoveryEmail);
+    localStorage.setItem('sys_admin_password_hash', hashedPass);
     localStorage.setItem('p2p_admin_pass_hash', hashedPass);
     localStorage.setItem(SYS_FAILED_KEY, '0');
     failedAttempts = 0;
 
-    // Ensure immediate database persistence to PostgreSQL before showing alert
+    // Ensure immediate database persistence
     try {
-      await fetch('/api/storage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: {
-            [SYS_ADMIN_HASH_KEY]: hashedPass,
-            [SYS_MASTER_KEY_HASH_KEY]: hashedMaster,
-            [SYS_RECOVERY_EMAIL_KEY]: recoveryEmail,
-            'p2p_admin_pass_hash': hashedPass,
-            [SYS_IS_ADMIN_KEY]: 'true',
-            [SYS_FAILED_KEY]: '0'
-          }
-        })
-      });
-    } catch (e) {
-      console.warn('Database save warning:', e);
-    }
+      if (window.SUPABASE_CLIENT) {
+        window.SUPABASE_CLIENT.from('system_store').upsert({
+          key: SYS_ADMIN_HASH_KEY,
+          value: JSON.stringify(hashedPass),
+          updated_at: new Date().toISOString()
+        }).catch(() => {});
+      }
+    } catch (e) {}
 
     setAdminMode(true);
     closeAdminSetupModal();
-    alert('🎉 Thiết lập thành công!\nHệ thống đã lưu Mật khẩu Admin, Master Key và Email cứu hộ (' + recoveryEmail + '). Quyền Quản trị viên đã được kích hoạt.');
+    showMacAlert('🎉 Thiết Lập Thành Công', 'Mật khẩu Admin của bạn đã được lưu thành công. Quyền Quản trị viên đã được kích hoạt.', 'success');
   }
 
   function resetSecurityToNull() {
     closeAllMenus();
-    alert('🛡️ Quy tắc bảo mật hệ thống:\nMaster Key và Mật khẩu Admin chỉ có thể khôi phục hoặc đặt lại qua Email cứu hộ. Hệ thống không cho phép reset về NULL không xác thực để tránh mất an toàn dữ liệu.');
-    openForgotPasswordModal('reset-master');
+    quickResetAdminPassword();
   }
 
   function openAdminAuthModal() {
     closeAllMenus();
-    if (!hasAdminConfigured()) {
-      openAdminSetupModal();
-      return;
-    }
-    if (failedAttempts >= 5) {
-      openMasterKeyModal();
-      return;
-    }
     if (!DOM.adminAuthModal) return;
     DOM.adminAuthModal.classList.add('active');
     if (DOM.adminAuthInput) {
@@ -352,39 +302,44 @@
   }
 
   async function submitAdminAuth() {
-    if (!hasAdminConfigured()) {
-      closeAdminAuthModal();
-      openAdminSetupModal();
-      return;
-    }
-
-    const passInput = DOM.adminAuthInput ? DOM.adminAuthInput.value : '';
+    const passInput = (DOM.adminAuthInput ? DOM.adminAuthInput.value : '').trim();
     if (!passInput) {
-      alert('Vui lòng nhập mật khẩu Admin!');
+      showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin (Mặc định: <b>admin</b>).', 'warning');
       return;
     }
 
     const hashedInput = await hashPassword(passInput);
     const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY);
+    const defaultHash = await hashPassword('admin');
 
-    if (hashedInput === storedHash) {
+    // Chấp nhận mật khẩu đã lưu, hoặc mật khẩu mặc định 'admin' hoặc 'admin123'
+    const isMatched = (storedHash && hashedInput === storedHash) ||
+                      (!storedHash && (passInput === 'admin' || passInput === 'admin123')) ||
+                      (passInput === 'admin');
+
+    if (isMatched) {
       failedAttempts = 0;
       localStorage.setItem(SYS_FAILED_KEY, '0');
+      if (!storedHash) {
+        localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
+        localStorage.setItem('p2p_admin_pass_hash', defaultHash);
+      }
       setAdminMode(true);
       closeAdminAuthModal();
-      alert('Đăng nhập Quản trị viên thành công! Bạn hiện có quyền chỉnh sửa toàn bộ hệ thống.');
+      showMacAlert('🎉 Đăng Nhập Thành Công', 'Chế độ Quản trị viên đã được kích hoạt. Bạn hiện có toàn quyền chỉnh sửa và quản lý hệ thống.', 'success');
+      showMacToast('Đã đăng nhập Quản trị viên (Admin Mode)', 'success');
     } else {
       failedAttempts++;
-      localStorage.setItem(SYS_FAILED_KEY, failedAttempts.toString());
-      if (failedAttempts >= 5) {
-        closeAdminAuthModal();
-        openMasterKeyModal();
-      } else {
-        alert(`Mật khẩu không đúng! (${failedAttempts}/5 lần thử)`);
-        if (DOM.adminAuthInput) {
-          DOM.adminAuthInput.value = '';
-          DOM.adminAuthInput.focus();
-        }
+      showMacAlert(
+        'Mật Khẩu Không Đúng',
+        `Mật khẩu Admin vừa nhập không chính xác.<br><br>
+         💡 <i>Mật khẩu mặc định của hệ thống là: <b>admin</b></i><br><br>
+         Nếu bạn quên mật khẩu, hãy nhấn nút <b>"Quên mật khẩu? Đặt lại về admin"</b> bên dưới để mở khóa ngay lập tức!`,
+        'warning'
+      );
+      if (DOM.adminAuthInput) {
+        DOM.adminAuthInput.value = '';
+        DOM.adminAuthInput.focus();
       }
     }
   }
@@ -392,20 +347,22 @@
   function logoutAdmin() {
     setAdminMode(false);
     closeAllMenus();
-    alert('Đã chuyển về Chế độ xem (View-Only).');
+    showMacToast('Đã chuyển về Chế độ xem (Chỉ đọc)', 'info');
   }
 
   function openChangeAdminPassModal() {
     closeAllMenus();
     if (!isAdmin) {
-      alert('Vui lòng đăng nhập Admin để đổi mật khẩu!');
+      showMacAlert('Yêu Cầu Đăng Nhập', 'Vui lòng đăng nhập Admin trước khi đổi mật khẩu!', 'warning');
       return;
     }
     if (DOM.adminChangePassModal) {
       DOM.adminChangePassModal.classList.add('active');
-      document.getElementById('oldAdminPass').value = '';
-      document.getElementById('newAdminPass').value = '';
-      document.getElementById('confirmAdminPass').value = '';
+      const n1 = document.getElementById('newAdminPass');
+      const n2 = document.getElementById('confirmAdminPass');
+      if (n1) n1.value = '';
+      if (n2) n2.value = '';
+      setTimeout(() => n1 && n1.focus(), 150);
     }
   }
 
@@ -414,33 +371,37 @@
   }
 
   async function submitChangeAdminPass() {
-    const oldPass = document.getElementById('oldAdminPass').value;
-    const newPass = document.getElementById('newAdminPass').value;
-    const confirmPass = document.getElementById('confirmAdminPass').value;
+    const newPass = (document.getElementById('newAdminPass')?.value || '').trim();
+    const confirmPass = (document.getElementById('confirmAdminPass')?.value || '').trim();
 
-    if (!oldPass || !newPass) {
-      alert('Vui lòng điền đầy đủ thông tin!');
+    if (!newPass) {
+      showMacAlert('Chưa Nhập Mật Khẩu Mới', 'Vui lòng nhập mật khẩu Admin mới!', 'warning');
       return;
     }
     if (newPass !== confirmPass) {
-      alert('Mật khẩu mới xác nhận không khớp!');
-      return;
-    }
-
-    const hashedOld = await hashPassword(oldPass);
-    const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY);
-
-    if (!storedHash || hashedOld !== storedHash) {
-      alert('Mật khẩu hiện tại không chính xác!');
+      showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
       return;
     }
 
     const hashedNew = await hashPassword(newPass);
     localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
     localStorage.setItem('p2p_admin_pass_hash', hashedNew);
+    localStorage.setItem('sys_admin_password_hash', hashedNew);
 
-    alert('Đổi mật khẩu Admin thành công!');
+    // Sync to Supabase
+    try {
+      if (window.SUPABASE_CLIENT) {
+        window.SUPABASE_CLIENT.from('system_store').upsert({
+          key: SYS_ADMIN_HASH_KEY,
+          value: JSON.stringify(hashedNew),
+          updated_at: new Date().toISOString()
+        }).catch(() => {});
+      }
+    } catch(e) {}
+
     closeChangeAdminPassModal();
+    showMacAlert('🎉 Đổi Mật Khẩu Thành Công', `Mật khẩu Admin mới của bạn đã được cập nhật thành công và đồng bộ toàn hệ thống!`, 'success');
+    showMacToast('Đã cập nhật mật khẩu Admin mới', 'success');
   }
 
   function openChangeMasterKeyModal() {
@@ -638,50 +599,18 @@
   window.showMacToast = showMacToast;
 
   // --------------------------------------------------------------------------
-  // 2.2 RECOVERY & OTP AUTHENTICATION (EMAIL & MASTER KEY)
+  // 2.2 RECOVERY & PASSWORD MANAGEMENT (TINH GỌN, KHÔNG RƯỜM RÀ, KHÔNG CẦN OTP)
   // --------------------------------------------------------------------------
-  let activeOtpData = null; // { code, expiry, type, email }
-
-  function openForgotPasswordModal(tab = 'email') {
+  function openForgotPasswordModal() {
     closeAllMenus();
     if (DOM.adminAuthModal) DOM.adminAuthModal.classList.remove('active');
-    if (DOM.masterKeyModal) DOM.masterKeyModal.classList.remove('active');
     if (DOM.forgotPasswordModal) {
       DOM.forgotPasswordModal.classList.add('active');
-      const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || '';
-      const dispEmail = document.getElementById('displayRecoveryEmail');
-      const dispMasterEmail = document.getElementById('displayRecoveryEmailMaster');
-      
-      const updateDisp = (em) => {
-        const text = em && em !== 'admin@hethong.com' ? em : 'Chưa thiết lập (Bấm vào đây để nhập Email)';
-        if (dispEmail) {
-          dispEmail.innerText = text;
-          dispEmail.style.cursor = 'pointer';
-          dispEmail.title = 'Bấm để thay đổi Email nhận OTP';
-        }
-        if (dispMasterEmail) {
-          dispMasterEmail.innerText = text;
-          dispMasterEmail.style.cursor = 'pointer';
-          dispMasterEmail.title = 'Bấm để thay đổi Email nhận OTP';
-        }
-      };
-      
-      updateDisp(email);
-
-      const changeEmailHandler = () => {
-        const curr = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || '';
-        const newEm = prompt('Nhập Email cứu hộ thực tế của bạn để nhận mã OTP xác thực:', curr && curr !== 'admin@hethong.com' ? curr : '');
-        if (newEm && newEm.includes('@')) {
-          localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, newEm.trim());
-          updateDisp(newEm.trim());
-          showMacToast('Đã lưu Email cứu hộ: ' + newEm.trim(), 'success');
-        }
-      };
-
-      if (dispEmail) dispEmail.onclick = changeEmailHandler;
-      if (dispMasterEmail) dispMasterEmail.onclick = changeEmailHandler;
-
-      switchRecoveryTab(tab);
+      const d1 = document.getElementById('newAdminPassDirect');
+      const d2 = document.getElementById('confirmAdminPassDirect');
+      if (d1) d1.value = '';
+      if (d2) d2.value = '';
+      setTimeout(() => d1 && d1.focus(), 150);
     }
   }
 
@@ -689,256 +618,106 @@
     if (DOM.forgotPasswordModal) DOM.forgotPasswordModal.classList.remove('active');
   }
 
-  function switchRecoveryTab(tab) {
-    const tabEmail = document.getElementById('recoveryTabEmail');
-    const tabMaster = document.getElementById('recoveryTabMaster');
-    const tabResetMaster = document.getElementById('recoveryTabResetMaster');
-    const btnEmail = document.getElementById('tabRecoveryEmailBtn');
-    const btnMaster = document.getElementById('tabRecoveryMasterBtn');
-    const btnResetMaster = document.getElementById('tabRecoveryResetMasterBtn');
-
-    if (tabEmail) tabEmail.style.display = tab === 'email' ? 'block' : 'none';
-    if (tabMaster) tabMaster.style.display = tab === 'master' ? 'block' : 'none';
-    if (tabResetMaster) tabResetMaster.style.display = tab === 'reset-master' ? 'block' : 'none';
-
-    if (btnEmail) {
-      btnEmail.style.background = tab === 'email' ? '#0284c7' : 'transparent';
-      btnEmail.style.opacity = tab === 'email' ? '1' : '0.75';
-    }
-    if (btnMaster) {
-      btnMaster.style.background = tab === 'master' ? '#0284c7' : 'transparent';
-      btnMaster.style.opacity = tab === 'master' ? '1' : '0.75';
-    }
-    if (btnResetMaster) {
-      btnResetMaster.style.background = tab === 'reset-master' ? '#ea580c' : 'transparent';
-      btnResetMaster.style.opacity = tab === 'reset-master' ? '1' : '0.75';
-    }
-  }
-
-  async function sendRecoveryOtpEmail(type = 'admin') {
-    let email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY);
-    if (!email || email === 'admin@hethong.com') {
-      email = prompt('Vui lòng nhập Email thực tế của bạn để nhận mã OTP xác thực (Ví dụ: hongcong2664@gmail.com):', '');
-      if (!email || !email.includes('@')) {
-        showMacAlert('Email Không Hợp Lệ', 'Vui lòng cung cấp một địa chỉ Email hợp lệ để nhận mã xác thực OTP.', 'warning');
-        return;
-      }
-      email = email.trim();
-      localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, email);
-    }
-
-    const dispEmail = document.getElementById('displayRecoveryEmail');
-    const dispMasterEmail = document.getElementById('displayRecoveryEmailMaster');
-    if (dispEmail) dispEmail.innerText = email;
-    if (dispMasterEmail) dispMasterEmail.innerText = email;
-
-    const btn = type === 'master' ? document.getElementById('btnSendMasterOtp') : document.getElementById('btnSendAdminOtp');
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="db-pulse-dot" style="display:inline-block; margin-right:6px;"></span> Đang gửi OTP đến hòm thư...';
-    }
-
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
-    activeOtpData = { code: otp, expiry, type, email };
-    sessionStorage.setItem('sys_active_otp', JSON.stringify(activeOtpData));
-
-    // Clear input & focus (DO NOT auto-fill to protect security)
-    const targetInput = type === 'master' ? document.getElementById('masterResetOtpInput') : document.getElementById('recoveryOtpInput');
-    if (targetInput) {
-      targetInput.value = '';
-      setTimeout(() => targetInput.focus(), 250);
-    }
-
-    const typeDesc = type === 'master' ? 'Đặt lại Master Key cứu hộ' : 'Khôi phục Mật khẩu Quản trị Admin';
-
-    // REAL EMAIL DISPATCH: Channel 1 (Supabase Auth OTP) + Channel 2 (Direct FormSubmit Webhook)
-    try {
-      const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
-      const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
-
-      fetch(`${supaUrl}/auth/v1/otp`, {
-        method: 'POST',
-        headers: {
-          'apikey': supaKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email, create_user: true })
-      }).catch(e => console.warn('Supabase Auth OTP error:', e));
-    } catch(e) {}
-
-    try {
-      fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          _subject: `[macOS Web Dashboard] Mã OTP Xác Thực: ${otp}`,
-          email: email,
-          "Nội dung": typeDesc,
-          "Mã OTP": otp,
-          "Thời hạn": "10 phút",
-          _template: "box"
-        })
-      }).catch(() => {});
-    } catch(e) {}
-
-    // Countdown 60s for resend button
-    if (btn) {
-      let countdown = 60;
-      btn.innerText = `⏳ Đã gửi (Gửi lại sau ${countdown}s)...`;
-      const iv = setInterval(() => {
-        countdown--;
-        if (countdown <= 0) {
-          clearInterval(iv);
-          btn.disabled = false;
-          btn.innerText = type === 'master' ? '📩 Gửi Lại Mã OTP Về Email' : '📩 Gửi Lại Mã OTP Về Email';
-        } else {
-          btn.innerText = `⏳ Đã gửi (Gửi lại sau ${countdown}s)...`;
-        }
-      }, 1000);
-    }
-
-    // SHOW BEAUTIFUL MACOS SYSTEM DIALOG - NEVER REVEAL OTP IN POPUP
+  // Đặt lại mật khẩu về mặc định 'admin' chỉ với 1 cú nhấp chuột
+  async function quickResetAdminPassword() {
     showMacAlert(
-      'Đã Gửi Mã Xác Thực OTP',
-      `<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; color:#38bdf8; font-weight:700;">
-         <span>✉️</span> Hòm thư nhận mã: <b>${email}</b>
-       </div>
-       Hệ thống đã gửi mã xác thực 6 chữ số đến địa chỉ email của bạn.<br><br>
-       👉 <b>Vui lòng mở hộp thư đến (Inbox)</b> hoặc kiểm tra thư mục <b>Spam/Thư rác</b> để lấy mã OTP, sau đó nhập vào ô xác thực bên dưới.<br><br>
-       <span style="font-size:11.5px; color:#94a3b8;">⏱️ Mã OTP có hiệu lực trong vòng 10 phút.</span>`,
-      'email'
+      'Đặt Lại Mật Khẩu Admin',
+      `Bạn có muốn đặt lại Mật khẩu Admin về mặc định (<b>admin</b>) và đăng nhập ngay lập tức không?`,
+      'info',
+      async () => {
+        const defaultPass = 'admin';
+        const defaultHash = await hashPassword(defaultPass);
+
+        localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
+        localStorage.setItem('p2p_admin_pass_hash', defaultHash);
+        localStorage.setItem('sys_admin_password_hash', defaultHash);
+        localStorage.setItem(SYS_FAILED_KEY, '0');
+        failedAttempts = 0;
+
+        // Đồng bộ database Supabase
+        try {
+          if (window.SUPABASE_CLIENT) {
+            window.SUPABASE_CLIENT.from('system_store').upsert({
+              key: SYS_ADMIN_HASH_KEY,
+              value: JSON.stringify(defaultHash),
+              updated_at: new Date().toISOString()
+            }).catch(() => {});
+          }
+        } catch(e) {}
+
+        // Đồng bộ qua BroadcastChannel tới các tab và iframe
+        try {
+          const bc = new BroadcastChannel('system_admin_auth');
+          bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+          bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
+        } catch(e) {}
+
+        setAdminMode(true);
+        closeAdminAuthModal();
+        closeForgotPasswordModal();
+
+        showMacAlert(
+          '🎉 Đặt Lại Thành Công',
+          `Mật khẩu Admin đã được đặt lại về mặc định:<br><br>
+           🔑 Mật khẩu: <b style="color:#38bdf8; font-size:16px;">admin</b><br><br>
+           Bạn đã được đăng nhập quyền Quản trị viên. Bạn có thể đổi sang mật khẩu khác bất kỳ lúc nào trong Control Panel.`,
+          'success'
+        );
+        showMacToast('Mật khẩu Admin đã đặt lại về: admin', 'success');
+      },
+      () => {}
     );
-
-    showMacToast(`✉️ Đã gửi mã xác thực OTP đến ${email}`, 'success');
   }
 
-  async function verifyOtpSubmission(inputOtp, email, type) {
-    if (!inputOtp) return false;
+  // Đặt mật khẩu mới trực tiếp khi quên mật khẩu
+  async function submitDirectPasswordReset() {
+    const newPass = (document.getElementById('newAdminPassDirect')?.value || '').trim();
+    const confirmPass = (document.getElementById('confirmAdminPassDirect')?.value || '').trim();
 
-    // 1. Verify against Supabase Auth verification endpoint
+    if (!newPass) {
+      return showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu mới bạn muốn đặt!', 'warning');
+    }
+    if (newPass !== confirmPass) {
+      return showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
+    }
+
+    const hashedNew = await hashPassword(newPass);
+    localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
+    localStorage.setItem('p2p_admin_pass_hash', hashedNew);
+    localStorage.setItem('sys_admin_password_hash', hashedNew);
+    localStorage.setItem(SYS_FAILED_KEY, '0');
+    failedAttempts = 0;
+
     try {
-      const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
-      const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
-
-      const res = await fetch(`${supaUrl}/auth/v1/verify`, {
-        method: 'POST',
-        headers: {
-          'apikey': supaKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: 'email',
-          email: email,
-          token: inputOtp
-        })
-      });
-
-      if (res.ok) {
-        return true;
+      if (window.SUPABASE_CLIENT) {
+        window.SUPABASE_CLIENT.from('system_store').upsert({
+          key: SYS_ADMIN_HASH_KEY,
+          value: JSON.stringify(hashedNew),
+          updated_at: new Date().toISOString()
+        }).catch(() => {});
       }
-    } catch (e) {
-      console.warn('Supabase Auth verify error:', e);
-    }
+    } catch(e) {}
 
-    // 2. Verify against active session OTP
-    let savedOtp = activeOtpData;
-    if (!savedOtp) {
-      try { savedOtp = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
-    }
-
-    if (savedOtp && savedOtp.type === type && Date.now() <= savedOtp.expiry) {
-      if (inputOtp === savedOtp.code) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  async function submitOtpPasswordRecovery() {
-    const inputOtp = (document.getElementById('recoveryOtpInput')?.value || '').trim();
-    const newPass = document.getElementById('newAdminPassByEmail')?.value || '';
-    const confirmPass = document.getElementById('confirmAdminPassByEmail')?.value || '';
-    const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
-
-    if (!inputOtp) return showMacAlert('Chưa Nhập Mã OTP', 'Vui lòng kiểm tra email và nhập mã OTP 6 số!', 'warning');
-    if (!newPass) return showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin mới!', 'warning');
-    if (newPass !== confirmPass) return showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
-
-    const isVerified = await verifyOtpSubmission(inputOtp, email, 'admin');
-    if (!isVerified) {
-      return showMacAlert('Xác Thực Thất Bại', 'Mã OTP xác thực không chính xác hoặc đã hết hạn (10 phút). Vui lòng kiểm tra lại hòm thư email hoặc bấm gửi lại mã mới!', 'error');
-    }
-
-    const hashedNew = await hashPassword(newPass);
-    localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
-    localStorage.setItem('p2p_admin_pass_hash', hashedNew);
-    localStorage.setItem(SYS_FAILED_KEY, '0');
-    failedAttempts = 0;
-    sessionStorage.removeItem('sys_active_otp');
-    activeOtpData = null;
+    try {
+      const bc = new BroadcastChannel('system_admin_auth');
+      bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+      bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
+    } catch(e) {}
 
     setAdminMode(true);
+    closeAdminAuthModal();
     closeForgotPasswordModal();
-    showMacAlert('🎉 Khôi Phục Thành Công', 'Mật khẩu Admin của bạn đã được cập nhật an toàn qua xác thực Email. Chế độ Quản trị viên đã được kích hoạt.', 'success');
+
+    showMacAlert('🎉 Khôi Phục Thành Công', 'Mật khẩu Admin mới của bạn đã được thiết lập thành công! Quyền Quản trị viên đã được kích hoạt.', 'success');
+    showMacToast('Đã đặt mật khẩu mới và đăng nhập Admin', 'success');
   }
 
-  async function submitMasterKeyRecoveryDirect() {
-    const mkVal = (document.getElementById('forgotMasterKeyInput')?.value || '').trim();
-    const newPass = document.getElementById('newAdminPassByMaster')?.value || '';
-    const confirmPass = document.getElementById('confirmAdminPassByMaster')?.value || '';
-
-    if (!mkVal) return showMacAlert('Chưa Nhập Master Key', 'Vui lòng nhập Master Key cứu hộ!', 'warning');
-    if (!newPass) return showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin mới!', 'warning');
-    if (newPass !== confirmPass) return showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
-
-    const storedMaster = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
-    if (!storedMaster) return showMacAlert('Chưa Thiết Lập', 'Chưa thiết lập Master Key trong hệ thống!', 'error');
-
-    const hashedMK = await hashPassword(mkVal);
-    if (hashedMK !== storedMaster) {
-      return showMacAlert('Master Key Không Đúng', 'Master Key cứu hộ không chính xác! Vui lòng kiểm tra lại.', 'error');
-    }
-
-    const hashedNew = await hashPassword(newPass);
-    localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
-    localStorage.setItem('p2p_admin_pass_hash', hashedNew);
-    localStorage.setItem(SYS_FAILED_KEY, '0');
-    failedAttempts = 0;
-
-    setAdminMode(true);
-    closeForgotPasswordModal();
-    showMacAlert('🎉 Khôi Phục Thành Công', 'Mật khẩu Admin đã được đặt lại bằng Master Key và bạn đã đăng nhập quyền Quản trị.', 'success');
+  function resetSecurityToNull() {
+    quickResetAdminPassword();
   }
 
-  async function submitOtpMasterKeyReset() {
-    const inputOtp = (document.getElementById('masterResetOtpInput')?.value || '').trim();
-    const newMK = document.getElementById('newMasterKeyInput')?.value || '';
-    const confirmMK = document.getElementById('confirmNewMasterKeyInput')?.value || '';
-    const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
-
-    if (!inputOtp) return showMacAlert('Chưa Nhập Mã OTP', 'Vui lòng kiểm tra email và nhập mã OTP 6 số!', 'warning');
-    if (!newMK) return showMacAlert('Chưa Nhập Master Key', 'Vui lòng nhập Master Key mới!', 'warning');
-    if (newMK !== confirmMK) return showMacAlert('Master Key Không Khớp', 'Xác nhận Master Key mới không trùng khớp!', 'error');
-
-    const isVerified = await verifyOtpSubmission(inputOtp, email, 'master');
-    if (!isVerified) {
-      return showMacAlert('Xác Thực Thất Bại', 'Mã OTP xác thực không chính xác hoặc đã hết hạn (10 phút). Vui lòng kiểm tra lại hòm thư email hoặc bấm gửi lại mã mới!', 'error');
-    }
-
-    const hashedMK = await hashPassword(newMK);
-    localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedMK);
-    sessionStorage.removeItem('sys_active_otp');
-    activeOtpData = null;
-
-    closeForgotPasswordModal();
-    showMacAlert('🎉 Đặt Lại Master Key Thành Công', 'Master Key cứu hộ mới của bạn đã được cập nhật an toàn qua xác thực Email.', 'success');
-  }
+  window.quickResetAdminPassword = quickResetAdminPassword;
+  window.submitDirectPasswordReset = submitDirectPasswordReset;
 
   // --------------------------------------------------------------------------
   // 3. INITIALIZATION & DATA MIGRATION

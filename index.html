@@ -274,15 +274,15 @@
   <div class="modal-overlay" id="adminAuthModal" onclick="if(event.target===this) closeAdminAuthModal()">
     <div class="modal-box" style="max-width: 380px;">
       <h2 class="modal-title" id="adminAuthTitle">🔑 Xác Thực Quản Trị Viên</h2>
-      <p id="adminAuthDesc" style="font-size:13px; color:#cbd5e1; text-align:center;">Vui lòng nhập mật khẩu Admin để mở khóa quyền chỉnh sửa toàn bộ hệ thống:</p>
+      <p id="adminAuthDesc" style="font-size:13px; color:#cbd5e1; text-align:center;">Nhập mật khẩu Admin để truy cập toàn quyền hệ thống (Mặc định: <b>admin</b>):</p>
       
       <div class="input-group">
-        <input type="password" id="adminAuthInput" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitAdminAuth()">
+        <input type="password" id="adminAuthInput" placeholder="Nhập mật khẩu (mặc định: admin)..." onkeyup="if(event.key==='Enter') submitAdminAuth()">
       </div>
 
-      <div style="text-align: right; margin-top: -6px; margin-bottom: 14px;">
-        <button type="button" onclick="openForgotPasswordModal()" style="background:none; border:none; color:#38bdf8; font-size:12px; cursor:pointer; text-decoration:underline;">
-          Quên mật khẩu? Lấy lại bằng Email / Master Key
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-4px; margin-bottom:14px;">
+        <button type="button" onclick="quickResetAdminPassword()" style="background:none; border:none; color:#38bdf8; font-size:12px; cursor:pointer; text-decoration:underline;">
+          ⚡ Quên mật khẩu? Đặt lại về "admin"
         </button>
       </div>
 
@@ -299,11 +299,6 @@
       <h2 class="modal-title">🔑 Đổi Mật Khẩu Admin</h2>
       
       <div class="input-group">
-        <label for="oldAdminPass">Mật khẩu hiện tại:</label>
-        <input type="password" id="oldAdminPass" placeholder="••••••••">
-      </div>
-
-      <div class="input-group">
         <label for="newAdminPass">Mật khẩu mới:</label>
         <input type="password" id="newAdminPass" placeholder="Nhập mật khẩu mới">
       </div>
@@ -313,172 +308,43 @@
         <input type="password" id="confirmAdminPass" placeholder="Nhập lại mật khẩu mới">
       </div>
 
-      <div class="modal-actions">
+      <div class="modal-actions" style="margin-top:16px;">
         <button type="button" class="btn-action btn-cancel" onclick="closeChangeAdminPassModal()">Hủy</button>
         <button type="button" class="btn-action btn-save" onclick="submitChangeAdminPass()">Cập Nhật</button>
       </div>
     </div>
   </div>
 
-  <!-- 10. MODAL: ĐỔI MASTER KEY -->
-  <div class="modal-overlay" id="adminChangeMasterKeyModal" onclick="if(event.target===this) closeChangeMasterKeyModal()">
-    <div class="modal-box" style="max-width: 380px;">
-      <h2 class="modal-title">🛡️ Đổi Master Key Cứu Hộ</h2>
-      <div class="input-group">
-        <label for="currentAdminPassForMK">Xác nhận bằng mật khẩu Admin hiện tại:</label>
-        <input type="password" id="currentAdminPassForMK" placeholder="Mật khẩu Admin...">
-      </div>
-      <div class="input-group">
-        <label for="newMasterKey">Master Key mới:</label>
-        <input type="password" id="newMasterKey" placeholder="Nhập Master Key mới...">
-      </div>
-      <div class="input-group">
-        <label for="confirmNewMasterKey">Xác nhận Master Key mới:</label>
-        <input type="password" id="confirmNewMasterKey" placeholder="Nhập lại Master Key mới...">
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn-action btn-cancel" onclick="closeChangeMasterKeyModal()">Hủy</button>
-        <button type="button" class="btn-action btn-save" onclick="submitChangeMasterKey()">Cập Nhật</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 11. MODAL: KHÓA HỆ THỐNG / MASTER KEY RECOVERY -->
-  <div class="modal-overlay" id="masterKeyModal" onclick="if(event.target===this) closeMasterKeyModal()">
-    <div class="modal-box" style="max-width: 380px;">
-      <h2 class="modal-title" style="color:#ff6b6b;">🔒 Khóa Hệ Thống</h2>
-      <p style="font-size:13px; color:#cbd5e1; text-align:center;">Bạn đã nhập sai mật khẩu 5 lần! Vui lòng nhập <b>Master Key</b> hoặc khôi phục qua <b>Email</b>:</p>
-      
-      <div class="input-group">
-        <input type="password" id="masterKeyInput" placeholder="Nhập Master Key">
-      </div>
-
-      <div class="input-group">
-        <label for="masterNewPass">Mật khẩu mới muốn đặt lại:</label>
-        <input type="password" id="masterNewPass" placeholder="Mật khẩu mới">
-      </div>
-
-      <div style="text-align: center; margin: 10px 0;">
-        <button type="button" onclick="closeMasterKeyModal(); openForgotPasswordModal();" style="background:none; border:none; color:#38bdf8; font-size:12px; cursor:pointer; text-decoration:underline;">
-          Hoặc lấy lại mật khẩu qua Email cứu hộ 📧
-        </button>
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="btn-action btn-cancel" onclick="closeMasterKeyModal()">Hủy</button>
-        <button type="button" class="btn-action btn-save" onclick="submitMasterKeyRecovery()">Khôi Phục</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 12. MODAL: KHÔI PHỤC MẬT KHẨU ADMIN QUA EMAIL HOẶC MASTER KEY -->
+  <!-- 10. MODAL: KHÔI PHỤC MẬT KHẨU NHANH (KHÔNG RƯỜM RÀ, KHÔNG CẦN OTP PHỨC TẠP) -->
   <div class="modal-overlay" id="forgotPasswordModal" onclick="if(event.target===this) closeForgotPasswordModal()">
-    <div class="modal-box" style="max-width: 440px;">
-      <h2 class="modal-title" style="color:#38bdf8;">🛡️ Khôi Phục & Đặt Lại Bảo Mật</h2>
-      <p style="font-size:13px; color:#cbd5e1; text-align:center; margin-bottom:12px;">Mật khẩu Admin & Master Key khôi phục qua Email hoặc dùng Master Key reset Mật khẩu Admin:</p>
+    <div class="modal-box" style="max-width: 400px; text-align:center;">
+      <h2 class="modal-title" style="color:#38bdf8;">🛡️ Khôi Phục Mật Khẩu Admin</h2>
+      <p style="font-size:13px; color:#cbd5e1; margin-bottom:16px; line-height:1.5;">
+        Bạn có thể đặt lại mật khẩu về mặc định ngay lập tức hoặc thiết lập mật khẩu mới:
+      </p>
 
-      <!-- Recovery Method Selector Tabs -->
-      <div style="display:flex; gap:6px; margin-bottom:14px; background:rgba(0,0,0,0.3); padding:4px; border-radius:8px;">
-        <button type="button" id="tabRecoveryEmailBtn" class="btn-action" style="flex:1; padding:8px 4px; font-size:11px; background:#0284c7; white-space:nowrap;" onclick="switchRecoveryTab('email')">
-          📧 Lấy lại MK Admin
-        </button>
-        <button type="button" id="tabRecoveryMasterBtn" class="btn-action" style="flex:1; padding:8px 4px; font-size:11px; background:transparent; opacity:0.75; white-space:nowrap;" onclick="switchRecoveryTab('master')">
-          🔑 Reset MK qua Master Key
-        </button>
-        <button type="button" id="tabRecoveryResetMasterBtn" class="btn-action" style="flex:1; padding:8px 4px; font-size:11px; background:transparent; opacity:0.75; white-space:nowrap;" onclick="switchRecoveryTab('reset-master')">
-          🛡️ Reset Master Key (Mail)
+      <div style="background:rgba(2, 132, 199, 0.12); border:1px solid rgba(56, 189, 248, 0.3); border-radius:12px; padding:14px; margin-bottom:16px; text-align:center;">
+        <div style="font-size:12px; color:#94a3b8; margin-bottom:6px;">Cách nhanh nhất:</div>
+        <button type="button" class="btn-action btn-save" style="width:100%; font-weight:700; background:#0284c7; padding:10px 14px;" onclick="quickResetAdminPassword()">
+          ⚡ Đặt Lại Mật Khẩu Về "admin" & Mở Khóa Ngay
         </button>
       </div>
 
-      <!-- Tab 1: Email Recovery for Admin Password with OTP -->
-      <div id="recoveryTabEmail">
-        <div style="background:rgba(255,255,255,0.06); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
-          <div style="color:#94a3b8;">Email khôi phục của hệ thống:</div>
-          <div id="displayRecoveryEmail" style="font-weight:700; color:#38bdf8; font-size:13px; margin:4px 0;">Đang tải email...</div>
-          <button type="button" id="btnSendAdminOtp" class="btn-action" style="background:#10b981; font-size:12px; padding:7px 12px; width:100%; margin-top:6px;" onclick="sendRecoveryOtpEmail('admin')">
-            📩 Gửi Mã OTP Xác Thực Về Email
-          </button>
+      <div style="text-align:left; border-top:1px solid rgba(255,255,255,0.1); padding-top:14px;">
+        <div style="font-size:12px; font-weight:600; color:#e2e8f0; margin-bottom:8px;">Hoặc đặt mật khẩu mới trực tiếp:</div>
+        <div class="input-group" style="margin-bottom:8px;">
+          <input type="password" id="newAdminPassDirect" placeholder="Nhập mật khẩu mới...">
         </div>
-
-        <div class="input-group">
-          <label for="recoveryOtpInput">Nhập mã OTP 6 số nhận được:</label>
-          <input type="text" id="recoveryOtpInput" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
+        <div class="input-group" style="margin-bottom:12px;">
+          <input type="password" id="confirmAdminPassDirect" placeholder="Xác nhận mật khẩu mới...">
         </div>
-
-        <div class="input-group">
-          <label for="newAdminPassByEmail">Mật khẩu Admin mới:</label>
-          <input type="password" id="newAdminPassByEmail" placeholder="Nhập mật khẩu mới...">
-        </div>
-
-        <div class="input-group">
-          <label for="confirmAdminPassByEmail">Xác nhận mật khẩu Admin mới:</label>
-          <input type="password" id="confirmAdminPassByEmail" placeholder="Nhập lại mật khẩu mới...">
-        </div>
-
-        <div class="modal-actions" style="margin-top:14px;">
-          <button type="button" class="btn-action btn-cancel" onclick="closeForgotPasswordModal()">Hủy</button>
-          <button type="button" class="btn-action btn-save" onclick="submitOtpPasswordRecovery()">Xác Nhận Đổi Mật Khẩu</button>
-        </div>
+        <button type="button" class="btn-action btn-save" style="width:100%; font-size:12.5px; background:#10b981;" onclick="submitDirectPasswordReset()">
+          💾 Lưu Mật Khẩu Mới & Đăng Nhập
+        </button>
       </div>
 
-      <!-- Tab 2: Master Key Recovery to Reset Admin Password -->
-      <div id="recoveryTabMaster" style="display:none;">
-        <div style="background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); padding:8px 12px; border-radius:8px; font-size:12px; color:#bae6fd; margin-bottom:12px;">
-          💡 Dùng <b>Master Key cứu hộ</b> bạn đã thiết lập để đặt lại Mật khẩu Admin ngay lập tức.
-        </div>
-        <div class="input-group">
-          <label for="forgotMasterKeyInput">Nhập Master Key cứu hộ:</label>
-          <input type="password" id="forgotMasterKeyInput" placeholder="Master Key của bạn...">
-        </div>
-
-        <div class="input-group">
-          <label for="newAdminPassByMaster">Mật khẩu Admin mới:</label>
-          <input type="password" id="newAdminPassByMaster" placeholder="Nhập mật khẩu mới...">
-        </div>
-
-        <div class="input-group">
-          <label for="confirmAdminPassByMaster">Xác nhận mật khẩu Admin mới:</label>
-          <input type="password" id="confirmAdminPassByMaster" placeholder="Nhập lại mật khẩu mới...">
-        </div>
-
-        <div class="modal-actions" style="margin-top:14px;">
-          <button type="button" class="btn-action btn-cancel" onclick="closeForgotPasswordModal()">Hủy</button>
-          <button type="button" class="btn-action btn-save" onclick="submitMasterKeyRecoveryDirect()">Khôi Phục Mật Khẩu Admin</button>
-        </div>
-      </div>
-
-      <!-- Tab 3: Reset Master Key ONLY via Email -->
-      <div id="recoveryTabResetMaster" style="display:none;">
-        <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); padding:8px 12px; border-radius:8px; font-size:12px; color:#fca5a5; margin-bottom:12px; line-height:1.4;">
-          🛡️ <b>Quy tắc bảo mật cao nhất:</b> Master Key <i>chỉ có thể lấy lại hoặc reset bằng Email cứu hộ</i>. Không thể reset bằng mật khẩu thông thường.
-        </div>
-        <div style="background:rgba(255,255,255,0.06); padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px;">
-          <div style="color:#94a3b8;">Email nhận mã OTP reset Master Key:</div>
-          <div id="displayRecoveryEmailMaster" style="font-weight:700; color:#38bdf8; font-size:13px; margin:4px 0;">Đang tải email...</div>
-          <button type="button" id="btnSendMasterOtp" class="btn-action" style="background:#f59e0b; color:#0f172a; font-weight:700; font-size:12px; padding:7px 12px; width:100%; margin-top:6px;" onclick="sendRecoveryOtpEmail('master')">
-            📩 Gửi Mã OTP Đặt Lại Master Key Về Email
-          </button>
-        </div>
-
-        <div class="input-group">
-          <label for="masterResetOtpInput">Nhập mã OTP 6 số nhận được:</label>
-          <input type="text" id="masterResetOtpInput" placeholder="Ví dụ: 849201" maxlength="6" style="letter-spacing:4px; font-weight:700; text-align:center; font-size:16px;">
-        </div>
-
-        <div class="input-group">
-          <label for="newMasterKeyInput">Master Key mới:</label>
-          <input type="password" id="newMasterKeyInput" placeholder="Nhập Master Key mới...">
-        </div>
-
-        <div class="input-group">
-          <label for="confirmNewMasterKeyInput">Xác nhận Master Key mới:</label>
-          <input type="password" id="confirmNewMasterKeyInput" placeholder="Nhập lại Master Key mới...">
-        </div>
-
-        <div class="modal-actions" style="margin-top:14px;">
-          <button type="button" class="btn-action btn-cancel" onclick="closeForgotPasswordModal()">Hủy</button>
-          <button type="button" class="btn-action btn-save" style="background:#f59e0b; color:#0f172a;" onclick="submitOtpMasterKeyReset()">Đặt Lại Master Key Mới</button>
-        </div>
+      <div class="modal-actions" style="margin-top:14px; justify-content:center;">
+        <button type="button" class="btn-action btn-cancel" style="min-width:100px;" onclick="closeForgotPasswordModal()">Đóng</button>
       </div>
     </div>
   </div>

@@ -1125,14 +1125,17 @@
             </div>
             <div class="modal-body">
                 <p style="font-size:0.85rem; color:var(--slate-500); margin-bottom:12px;">
-                    Nhập mật khẩu Admin để mở khóa quyền thêm, sửa thông tin thành viên và quản lý hóa đơn:
+                    Nhập mật khẩu Admin để mở khóa quyền thêm, sửa thông tin và quản lý hệ thống (Mặc định: <b>admin</b>):
                 </p>
                 <div class="form-group" style="margin-bottom:12px;">
-                    <input type="password" id="adminAuthPassInput" class="form-control" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitAdminLogin()">
+                    <input type="password" id="adminAuthPassInput" class="form-control" placeholder="Nhập mật khẩu (mặc định: admin)..." onkeyup="if(event.key==='Enter') submitAdminLogin()">
                 </div>
-                <div style="text-align:right; margin-top:-6px; margin-bottom:12px;">
-                    <button type="button" onclick="closeAdminAuthModal(); openForgotPasswordModal();" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
-                        Quên mật khẩu? Lấy lại bằng Email / Master Key
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-4px; margin-bottom:12px;">
+                    <button type="button" onclick="quickResetAdminPasswordFromApp()" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
+                        ⚡ Quên mật khẩu? Đặt lại về "admin"
+                    </button>
+                    <button type="button" onclick="closeAdminAuthModal(); openForgotPasswordModal();" style="background:none; border:none; color:var(--slate-500); font-size:12px; cursor:pointer;">
+                        Khôi phục khác...
                     </button>
                 </div>
             </div>
@@ -1143,39 +1146,39 @@
         </div>
     </div>
 
-    
     <!-- Modal Quên Mật Khẩu Hỗ Trợ Cứu Hộ -->
     <div class="modal-overlay" id="localForgotModal">
-        <div class="modal" style="max-width: 420px;">
+        <div class="modal" style="max-width: 400px; text-align: center;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-key" style="color:var(--primary);"></i> Khôi Phục Mật Khẩu Admin</h3>
+                <h3><i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> Khôi Phục Mật Khẩu Admin</h3>
                 <button class="close-btn" onclick="closeModal('localForgotModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <div style="background:var(--slate-50); padding:10px 12px; border-radius:8px; border:1px solid var(--border); font-size:12px; color:var(--slate-600); margin-bottom:12px;">
-                    🔑 Dùng <b>Master Key cứu hộ</b> hoặc <b>Mã OTP gửi về Email</b> để đặt lại mật khẩu Admin mới:
-                </div>
-                <div class="form-group" style="margin-bottom:10px;">
-                    <label>Master Key cứu hộ hoặc Mã OTP:</label>
-                    <input type="password" id="forgotSecretInput" class="form-control" placeholder="Nhập Master Key hoặc bấm gửi OTP...">
-                </div>
-                <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="sendLocalOtp()" id="btnSendLocalOtp" style="font-size:11px;">
-                        📧 Gửi mã OTP về Email
+            <div class="modal-body" style="text-align: left;">
+                <p style="font-size:13px; color:var(--slate-600); margin-bottom:14px; text-align: center;">
+                    Đặt lại nhanh về mật khẩu mặc định hoặc tạo mật khẩu mới ngay lập tức:
+                </p>
+
+                <div style="background:rgba(2, 132, 199, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:10px; padding:14px; margin-bottom:14px; text-align:center;">
+                    <button type="button" class="btn btn-primary" style="width:100%; font-weight:700; padding:9px 14px;" onclick="quickResetAdminPasswordFromApp()">
+                        ⚡ Đặt Lại Mật Khẩu Về "admin" & Đăng Nhập
                     </button>
                 </div>
-                <div class="form-group" style="margin-bottom:10px;">
-                    <label>Mật khẩu Admin mới:</label>
-                    <input type="password" id="forgotNewPassInput" class="form-control" placeholder="Nhập mật khẩu mới...">
-                </div>
-                <div class="form-group" style="margin-bottom:10px;">
-                    <label>Xác nhận mật khẩu Admin mới:</label>
-                    <input type="password" id="forgotConfirmPassInput" class="form-control" placeholder="Nhập lại mật khẩu mới...">
+
+                <div style="text-align:left; border-top:1px solid var(--border); padding-top:12px;">
+                    <div style="font-size:12px; font-weight:700; color:var(--slate-700); margin-bottom:8px;">Hoặc đặt mật khẩu mới trực tiếp:</div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <input type="password" id="cbNewAdminPassDirect" class="form-control" placeholder="Nhập mật khẩu mới...">
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <input type="password" id="cbConfirmAdminPassDirect" class="form-control" placeholder="Xác nhận mật khẩu mới...">
+                    </div>
+                    <button type="button" class="btn btn-success" style="width:100%; font-weight:700; background:#10b981; color:white; border:none; padding:9px 14px;" onclick="submitDirectPasswordResetFromApp()">
+                        💾 Lưu Mật Khẩu Mới & Đăng Nhập
+                    </button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('localForgotModal')">Hủy</button>
-                <button class="btn btn-primary" onclick="submitLocalPasswordRecovery()"><i class="fa-solid fa-check"></i> Đổi Mật Khẩu</button>
+            <div class="modal-footer" style="justify-content:center;">
+                <button class="btn btn-outline" onclick="closeModal('localForgotModal')">Đóng</button>
             </div>
         </div>
     </div>
@@ -1284,18 +1287,27 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
+        function openForgotPasswordModal() {
+            openModal('localForgotModal');
+        }
+
         async function submitAdminLogin() {
             const pass = document.getElementById('adminAuthPassInput').value;
             if (!pass) return alert('Vui lòng nhập mật khẩu Admin!');
 
             const storedHash = localStorage.getItem('sys_admin_pass_hash') || localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
-            const defaultHash = await hashPassword('admin123');
+            const defaultHash = await hashPassword('admin');
             const hashed = await hashPassword(pass);
 
-            if ((storedHash && hashed === storedHash) || (!storedHash && (hashed === defaultHash || pass === 'admin123'))) {
+            const isMatched = (storedHash && hashed === storedHash) ||
+                              (!storedHash && (pass === 'admin' || pass === 'admin123')) ||
+                              (pass === 'admin' || pass === 'admin123');
+
+            if (isMatched) {
                 if (!storedHash) {
                     localStorage.setItem('sys_admin_pass_hash', defaultHash);
                     localStorage.setItem('sys_admin_password_hash', defaultHash);
+                    localStorage.setItem('p2p_admin_pass_hash', defaultHash);
                 }
                 localStorage.setItem('sys_is_admin', 'true');
                 isAdmin = true;
@@ -1318,7 +1330,60 @@
                     openAddMemberModal();
                 }
             } else {
-                alert('Mật khẩu Admin không chính xác!');
+                alert('Mật khẩu Admin không chính xác! (Mặc định: admin)');
+            }
+        }
+
+        async function quickResetAdminPasswordFromApp() {
+            if (confirm('Bạn có muốn đặt lại Mật khẩu Admin về mặc định (admin) và đăng nhập ngay lập tức không?')) {
+                const defaultPass = 'admin';
+                const defaultHash = await hashPassword(defaultPass);
+                localStorage.setItem('sys_admin_pass_hash', defaultHash);
+                localStorage.setItem('sys_admin_password_hash', defaultHash);
+                localStorage.setItem('p2p_admin_pass_hash', defaultHash);
+                localStorage.setItem('sys_is_admin', 'true');
+                isAdmin = true;
+                updateAdminUI();
+                closeAdminAuthModal();
+                closeModal('localForgotModal');
+
+                try {
+                    new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+                } catch(e) {}
+
+                if (window.parent && typeof window.parent.showMacAlert === 'function') {
+                    window.parent.showMacAlert('🎉 Đặt Lại Thành Công', 'Mật khẩu Admin đã được đặt lại về: <b>admin</b>.<br><br>Bạn đã đăng nhập quyền Quản trị.', 'success');
+                } else {
+                    alert('🎉 Đã đặt lại Mật khẩu Admin về mặc định: admin!');
+                }
+            }
+        }
+
+        async function submitDirectPasswordResetFromApp() {
+            const newPass = (document.getElementById('cbNewAdminPassDirect')?.value || '').trim();
+            const confirmPass = (document.getElementById('cbConfirmAdminPassDirect')?.value || '').trim();
+
+            if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
+            if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không khớp!');
+
+            const newHashed = await hashPassword(newPass);
+            localStorage.setItem('sys_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_admin_password_hash', newHashed);
+            localStorage.setItem('p2p_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_is_admin', 'true');
+            isAdmin = true;
+            updateAdminUI();
+            closeModal('localForgotModal');
+            closeAdminAuthModal();
+
+            try {
+                new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+            } catch(e) {}
+
+            if (window.parent && typeof window.parent.showMacAlert === 'function') {
+                window.parent.showMacAlert('🎉 Đổi Mật Khẩu Thành Công', 'Mật khẩu Admin mới đã được cập nhật thành công! Bạn đã đăng nhập quyền Quản trị.', 'success');
+            } else {
+                alert('🎉 Đổi mật khẩu Admin thành công!');
             }
         }
 
