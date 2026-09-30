@@ -28,6 +28,14 @@ function loadEnv() {
   }
 }
 
+// Prevent server crash on unhandled socket errors or client aborts
+process.on('uncaughtException', (err) => {
+  console.error('[Server UncaughtException]', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Server UnhandledRejection]', reason);
+});
+
 loadEnv();
 
 const DB_CONFIG = {
