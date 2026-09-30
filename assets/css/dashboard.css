@@ -1890,3 +1890,83 @@ body.is-admin .admin-only {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.85); }
 }
+
+/* --------------------------------------------------------------------------
+   MACOS NATIVE ALERT DIALOG & TOAST NOTIFICATION STYLES
+   -------------------------------------------------------------------------- */
+.mac-toast {
+  position: fixed;
+  top: 42px;
+  right: 20px;
+  z-index: 99999;
+  min-width: 320px;
+  max-width: 440px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform: translateY(-20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
+}
+
+.mac-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.toast-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-msg {
+  font-size: 13px;
+  color: #f1f5f9;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.toast-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.toast-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+@keyframes macModalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.mac-alert-card {
+  animation: macModalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

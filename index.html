@@ -480,7 +480,23 @@
           <button type="button" class="btn-action btn-save" style="background:#f59e0b; color:#0f172a;" onclick="submitOtpMasterKeyReset()">Đặt Lại Master Key Mới</button>
         </div>
       </div>
+    </div>
+  </div>
 
+  <!-- 12B. MACOS SYSTEM DIALOG / ALERT MODAL (ĐỒNG BỘ GIAO DIỆN HỆ THỐNG - KHÔNG DÙNG POPUP TRÌNH DUYỆT) -->
+  <div class="modal-overlay" id="macSystemAlertModal" style="z-index:99999;" onclick="if(event.target===this) closeMacAlert()">
+    <div class="modal-box mac-alert-card" style="max-width: 420px; text-align: center; border-radius: 18px; padding: 26px 22px; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 30px 70px rgba(0,0,0,0.75);">
+      <div id="macAlertIconWrap" style="width: 58px; height: 58px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: rgba(2, 132, 199, 0.18); border: 1.5px solid rgba(56, 189, 248, 0.4); color: #38bdf8;">
+        <span id="macAlertIcon">🛡️</span>
+      </div>
+      <h3 id="macAlertTitle" style="font-size: 16.5px; font-weight: 700; color: #f8fafc; margin-bottom: 10px; letter-spacing: -0.2px;">Thông Báo Hệ Thống</h3>
+      <div id="macAlertMessage" style="font-size: 13px; color: #cbd5e1; line-height: 1.55; margin-bottom: 22px; word-break: break-word; text-align: left; background: rgba(0,0,0,0.3); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+        Nội dung thông báo
+      </div>
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button type="button" class="btn-action btn-cancel" id="macAlertCancelBtn" style="display: none; padding: 9px 20px;" onclick="closeMacAlert(false)">Hủy</button>
+        <button type="button" class="btn-action btn-save" id="macAlertOkBtn" style="min-width: 120px; padding: 9px 26px; font-weight: 700; font-size: 13.5px;" onclick="closeMacAlert(true)">Đã Hiểu</button>
+      </div>
     </div>
   </div>
 

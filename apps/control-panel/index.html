@@ -2924,13 +2924,54 @@ HƯỚNG DẪN SỬ DỤNG:
             alert(`✅ Đã lưu Email cứu hộ: ${email}`);
         }
 
-        function testSendRecoveryOtp() {
+        async function testSendRecoveryOtp() {
             const email = (document.getElementById('secRecoveryEmailInput')?.value || '').trim() || localStorage.getItem('sys_recovery_email') || 'admin@hethong.com';
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             cpLocalOtp = { code: otp, expiry: Date.now() + 10 * 60 * 1000, email: email };
-            addSecurityAuditLog('Thử Nghiệm Gửi OTP', 'Thành công', `Mã OTP kiểm tra [${otp}] gửi tới ${email}`);
+
+            // Dispatch real email via Supabase Auth OTP + FormSubmit Webhook
+            try {
+                const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+                const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+                fetch(`${supaUrl}/auth/v1/otp`, {
+                    method: 'POST',
+                    headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, create_user: true })
+                }).catch(() => {});
+            } catch(e) {}
+
+            try {
+                fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: `[macOS Web Dashboard] Thử Nghiệm Mã OTP: ${otp}`,
+                        email: email,
+                        "Nội dung": "Kiểm tra hệ thống gửi mã xác thực OTP cứu hộ",
+                        "Mã OTP": otp,
+                        "Thời hạn": "10 phút",
+                        _template: "box"
+                    })
+                }).catch(() => {});
+            } catch(e) {}
+
+            addSecurityAuditLog('Thử Nghiệm Gửi OTP', 'Thành công', `Đã phát lệnh gửi mã OTP xác thực tới hòm thư ${email}`);
             renderSecurityAuditLog();
-            alert(`📧 [TEST OTP THÀNH CÔNG]\n\nMã xác thực OTP giả lập đã được tạo:\nMã số: [ ${otp} ]\nGửi tới hòm thư: ${email}\nThời hạn hiệu lực: 10 phút.`);
+
+            if (window.parent && typeof window.parent.showMacAlert === 'function') {
+                window.parent.showMacAlert(
+                    'Đã Gửi Thử Mã OTP',
+                    `<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:#38bdf8; font-weight:700;">
+                        <span>✉️</span> Hòm thư nhận mã: <b>${email}</b>
+                    </div>
+                    Hệ thống đã gửi mã xác thực 6 chữ số đến địa chỉ email của bạn.<br><br>
+                    👉 <b>Vui lòng mở hộp thư đến (Inbox)</b> hoặc kiểm tra thư mục <b>Spam/Thư rác</b> để kiểm tra mã.<br><br>
+                    <span style="font-size:11.5px; color:#94a3b8;">⏱️ Mã OTP có hiệu lực trong vòng 10 phút.</span>`,
+                    'email'
+                );
+            } else {
+                alert(`📧 ĐÃ GỬI MÃ OTP XÁC THỰC:\n\nHệ thống đã gửi mã OTP kiểm tra đến hòm thư: ${email}\n\nVui lòng kiểm tra Hộp thư đến (Inbox) hoặc thư mục Spam trong Gmail của bạn.`);
+            }
         }
 
         // Security Audit Log & History
@@ -3244,7 +3285,7 @@ HƯỚNG DẪN SỬ DỤNG:
             document.getElementById('cpForgotModal').classList.remove('show');
         }
 
-        function sendCpOtp() {
+        async function sendCpOtp() {
             let email = localStorage.getItem('sys_recovery_email') || 'admin@hethong.com';
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             cpLocalOtp = { code: otp, expiry: Date.now() + 10 * 60 * 1000, email: email };
@@ -3252,16 +3293,78 @@ HƯỚNG DẪN SỬ DỤNG:
             const btn = document.getElementById('btnSendCpOtp');
             if (btn) {
                 btn.disabled = true;
-                btn.innerText = 'Đã gửi OTP (10 phút)';
+                btn.innerText = 'Đang gửi...';
             }
-            document.getElementById('cpForgotSecretInput').value = otp;
-            alert(`📧 MÃ OTP KHÔI PHỤC:\n\nĐã gửi mã xác thực OTP về email: ${email}\nMã OTP của bạn là: [ ${otp} ]\n(Hệ thống đã tự động điền mã vào ô nhập để bạn xác thực dễ dàng).`);
+
+            // Real email dispatch: Supabase Auth OTP + FormSubmit Webhook
+            try {
+                const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+                const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+                fetch(`${supaUrl}/auth/v1/otp`, {
+                    method: 'POST',
+                    headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, create_user: true })
+                }).catch(() => {});
+            } catch(e) {}
+
+            try {
+                fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: `[macOS Web Dashboard] Mã OTP Khôi Phục Admin: ${otp}`,
+                        email: email,
+                        "Nội dung": "Khôi phục Mật khẩu Quản trị Admin",
+                        "Mã OTP": otp,
+                        "Thời hạn": "10 phút",
+                        _template: "box"
+                    })
+                }).catch(() => {});
+            } catch(e) {}
+
+            // DO NOT auto-fill into input to protect security
+            const input = document.getElementById('cpForgotSecretInput');
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 250);
+            }
+
+            if (btn) {
+                let cd = 60;
+                btn.innerText = `Gửi lại (${cd}s)`;
+                const iv = setInterval(() => {
+                    cd--;
+                    if (cd <= 0) {
+                        clearInterval(iv);
+                        btn.disabled = false;
+                        btn.innerText = '📧 Gửi lại OTP';
+                    } else {
+                        btn.innerText = `Gửi lại (${cd}s)`;
+                    }
+                }, 1000);
+            }
+
+            if (window.parent && typeof window.parent.showMacAlert === 'function') {
+                window.parent.showMacAlert(
+                    'Đã Gửi Mã OTP Xác Thực',
+                    `<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:#38bdf8; font-weight:700;">
+                        <span>✉️</span> Hòm thư nhận mã: <b>${email}</b>
+                    </div>
+                    Hệ thống đã gửi mã xác thực 6 chữ số đến hòm thư của bạn.<br><br>
+                    👉 <b>Vui lòng mở Hộp thư đến (hoặc thư mục Spam/Quảng cáo)</b> để lấy mã và nhập vào ô xác nhận.<br><br>
+                    <span style="font-size:11.5px; color:#94a3b8;">⏱️ Mã OTP có hiệu lực trong vòng 10 phút.</span>`,
+                    'email'
+                );
+            } else {
+                alert(`📧 ĐÃ GỬI MÃ OTP XÁC THỰC:\n\nĐã gửi mã xác thực đến email: ${email}\n\nVui lòng kiểm tra Hộp thư đến (Inbox) hoặc thư mục Spam để lấy mã và nhập vào ô xác thực.`);
+            }
         }
 
         async function submitCpPasswordRecovery() {
             const secret = (document.getElementById('cpForgotSecretInput').value || '').trim();
             const newPass = document.getElementById('cpForgotNewPassInput').value;
             const confirmPass = document.getElementById('cpForgotConfirmPassInput').value;
+            const email = localStorage.getItem('sys_recovery_email') || 'admin@hethong.com';
 
             if (!secret) return alert('Vui lòng nhập Master Key cứu hộ hoặc mã OTP gửi về Email!');
             if (!newPass || newPass.length < 4) return alert('Mật khẩu mới phải có ít nhất 4 ký tự!');
@@ -3275,10 +3378,22 @@ HƯỚNG DẪN SỬ DỤNG:
                 isAuthorized = true;
             } else if (cpLocalOtp && cpLocalOtp.code === secret && Date.now() <= cpLocalOtp.expiry) {
                 isAuthorized = true;
+            } else {
+                // Verify with Supabase Auth verify endpoint
+                try {
+                    const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+                    const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+                    const res = await fetch(`${supaUrl}/auth/v1/verify`, {
+                        method: 'POST',
+                        headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'email', email: email, token: secret })
+                    });
+                    if (res.ok) isAuthorized = true;
+                } catch(e) {}
             }
 
             if (!isAuthorized) {
-                return alert('Master Key hoặc Mã OTP không chính xác!');
+                return alert('Master Key hoặc Mã OTP không chính xác hoặc đã hết hạn!');
             }
 
             const newHashed = await hashPassword(newPass);
@@ -3295,7 +3410,11 @@ HƯỚNG DẪN SỬ DỤNG:
             } catch(e) {}
 
             closeCpForgotModal();
-            alert('🎉 Đổi mật khẩu Admin thành công! Bạn đã đăng nhập quyền Quản trị viên.');
+            if (window.parent && typeof window.parent.showMacAlert === 'function') {
+                window.parent.showMacAlert('🎉 Đổi Mật Khẩu Thành Công', 'Mật khẩu Admin mới đã được cập nhật thành công! Bạn đã đăng nhập quyền Quản trị viên.', 'success');
+            } else {
+                alert('🎉 Đổi mật khẩu Admin thành công! Bạn đã đăng nhập quyền Quản trị viên.');
+            }
         }
 
     </script>

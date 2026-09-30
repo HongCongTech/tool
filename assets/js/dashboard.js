@@ -535,7 +535,110 @@
   }
 
   // --------------------------------------------------------------------------
-  // 2.1 RECOVERY & OTP AUTHENTICATION (EMAIL & MASTER KEY)
+  // 2.1 MACOS SYSTEM ALERT DIALOG & TOAST (ĐỒNG BỘ GIAO DIỆN HỆ THỐNG)
+  // --------------------------------------------------------------------------
+  let macAlertCallback = null;
+
+  function showMacAlert(title, message, iconType = 'info', onOk = null, onCancel = null) {
+    const modal = document.getElementById('macSystemAlertModal');
+    if (!modal) {
+      if (typeof onOk === 'function') onOk();
+      return;
+    }
+
+    const titleEl = document.getElementById('macAlertTitle');
+    const msgEl = document.getElementById('macAlertMessage');
+    const iconEl = document.getElementById('macAlertIcon');
+    const iconWrap = document.getElementById('macAlertIconWrap');
+    const cancelBtn = document.getElementById('macAlertCancelBtn');
+    const okBtn = document.getElementById('macAlertOkBtn');
+
+    if (titleEl) titleEl.innerText = title || 'Thông Báo Hệ Thống';
+    if (msgEl) msgEl.innerHTML = message || '';
+
+    if (iconEl && iconWrap) {
+      if (iconType === 'success') {
+        iconEl.innerHTML = '✅';
+        iconWrap.style.background = 'rgba(34, 197, 94, 0.18)';
+        iconWrap.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+        iconWrap.style.color = '#4ade80';
+      } else if (iconType === 'error') {
+        iconEl.innerHTML = '❌';
+        iconWrap.style.background = 'rgba(239, 68, 68, 0.18)';
+        iconWrap.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        iconWrap.style.color = '#f87171';
+      } else if (iconType === 'warning') {
+        iconEl.innerHTML = '⚠️';
+        iconWrap.style.background = 'rgba(245, 158, 11, 0.18)';
+        iconWrap.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        iconWrap.style.color = '#fbbf24';
+      } else if (iconType === 'email') {
+        iconEl.innerHTML = '✉️';
+        iconWrap.style.background = 'rgba(2, 132, 199, 0.18)';
+        iconWrap.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        iconWrap.style.color = '#38bdf8';
+      } else {
+        iconEl.innerHTML = '🛡️';
+        iconWrap.style.background = 'rgba(2, 132, 199, 0.18)';
+        iconWrap.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        iconWrap.style.color = '#38bdf8';
+      }
+    }
+
+    if (cancelBtn) {
+      cancelBtn.style.display = onCancel ? 'inline-block' : 'none';
+    }
+
+    macAlertCallback = { onOk, onCancel };
+    modal.classList.add('active');
+  }
+
+  function closeMacAlert(confirmed = true) {
+    const modal = document.getElementById('macSystemAlertModal');
+    if (modal) modal.classList.remove('active');
+
+    if (macAlertCallback) {
+      if (confirmed && typeof macAlertCallback.onOk === 'function') {
+        macAlertCallback.onOk();
+      } else if (!confirmed && typeof macAlertCallback.onCancel === 'function') {
+        macAlertCallback.onCancel();
+      }
+      macAlertCallback = null;
+    }
+  }
+
+  let toastTimeout = null;
+  function showMacToast(message, type = 'info', duration = 4000) {
+    const toast = DOM.macToast;
+    const msgEl = DOM.toastMsg;
+    const iconEl = DOM.toastIcon;
+    if (!toast || !msgEl) return;
+
+    if (toastTimeout) clearTimeout(toastTimeout);
+
+    msgEl.innerHTML = message;
+    if (iconEl) {
+      if (type === 'success') iconEl.innerText = '✅';
+      else if (type === 'error') iconEl.innerText = '❌';
+      else if (type === 'warning') iconEl.innerText = '⚠️';
+      else iconEl.innerText = 'ℹ️';
+    }
+
+    toast.style.display = 'flex';
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    toastTimeout = setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.style.display = 'none', 300);
+    }, duration);
+  }
+
+  window.showMacAlert = showMacAlert;
+  window.closeMacAlert = closeMacAlert;
+  window.showMacToast = showMacToast;
+
+  // --------------------------------------------------------------------------
+  // 2.2 RECOVERY & OTP AUTHENTICATION (EMAIL & MASTER KEY)
   // --------------------------------------------------------------------------
   let activeOtpData = null; // { code, expiry, type, email }
 
@@ -545,11 +648,39 @@
     if (DOM.masterKeyModal) DOM.masterKeyModal.classList.remove('active');
     if (DOM.forgotPasswordModal) {
       DOM.forgotPasswordModal.classList.add('active');
-      const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
+      const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || '';
       const dispEmail = document.getElementById('displayRecoveryEmail');
       const dispMasterEmail = document.getElementById('displayRecoveryEmailMaster');
-      if (dispEmail) dispEmail.innerText = email;
-      if (dispMasterEmail) dispMasterEmail.innerText = email;
+      
+      const updateDisp = (em) => {
+        const text = em && em !== 'admin@hethong.com' ? em : 'Chưa thiết lập (Bấm vào đây để nhập Email)';
+        if (dispEmail) {
+          dispEmail.innerText = text;
+          dispEmail.style.cursor = 'pointer';
+          dispEmail.title = 'Bấm để thay đổi Email nhận OTP';
+        }
+        if (dispMasterEmail) {
+          dispMasterEmail.innerText = text;
+          dispMasterEmail.style.cursor = 'pointer';
+          dispMasterEmail.title = 'Bấm để thay đổi Email nhận OTP';
+        }
+      };
+      
+      updateDisp(email);
+
+      const changeEmailHandler = () => {
+        const curr = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || '';
+        const newEm = prompt('Nhập Email cứu hộ thực tế của bạn để nhận mã OTP xác thực:', curr && curr !== 'admin@hethong.com' ? curr : '');
+        if (newEm && newEm.includes('@')) {
+          localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, newEm.trim());
+          updateDisp(newEm.trim());
+          showMacToast('Đã lưu Email cứu hộ: ' + newEm.trim(), 'success');
+        }
+      };
+
+      if (dispEmail) dispEmail.onclick = changeEmailHandler;
+      if (dispMasterEmail) dispMasterEmail.onclick = changeEmailHandler;
+
       switchRecoveryTab(tab);
     }
   }
@@ -584,14 +715,15 @@
     }
   }
 
-  function sendRecoveryOtpEmail(type = 'admin') {
+  async function sendRecoveryOtpEmail(type = 'admin') {
     let email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY);
-    if (!email) {
-      email = prompt('Hệ thống chưa có Email cứu hộ. Vui lòng nhập Email của bạn để nhận OTP:');
+    if (!email || email === 'admin@hethong.com') {
+      email = prompt('Vui lòng nhập Email thực tế của bạn để nhận mã OTP xác thực (Ví dụ: hongcong2664@gmail.com):', '');
       if (!email || !email.includes('@')) {
-        alert('Vui lòng cung cấp một địa chỉ Email hợp lệ để nhận OTP!');
+        showMacAlert('Email Không Hợp Lệ', 'Vui lòng cung cấp một địa chỉ Email hợp lệ để nhận mã xác thực OTP.', 'warning');
         return;
       }
+      email = email.trim();
       localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, email);
     }
 
@@ -600,18 +732,64 @@
     if (dispEmail) dispEmail.innerText = email;
     if (dispMasterEmail) dispMasterEmail.innerText = email;
 
+    const btn = type === 'master' ? document.getElementById('btnSendMasterOtp') : document.getElementById('btnSendAdminOtp');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="db-pulse-dot" style="display:inline-block; margin-right:6px;"></span> Đang gửi OTP đến hòm thư...';
+    }
+
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
     activeOtpData = { code: otp, expiry, type, email };
     sessionStorage.setItem('sys_active_otp', JSON.stringify(activeOtpData));
 
-    // Disable button for 30s
-    const btn = type === 'master' ? document.getElementById('btnSendMasterOtp') : document.getElementById('btnSendAdminOtp');
+    // Clear input & focus (DO NOT auto-fill to protect security)
+    const targetInput = type === 'master' ? document.getElementById('masterResetOtpInput') : document.getElementById('recoveryOtpInput');
+    if (targetInput) {
+      targetInput.value = '';
+      setTimeout(() => targetInput.focus(), 250);
+    }
+
+    const typeDesc = type === 'master' ? 'Đặt lại Master Key cứu hộ' : 'Khôi phục Mật khẩu Quản trị Admin';
+
+    // REAL EMAIL DISPATCH: Channel 1 (Supabase Auth OTP) + Channel 2 (Direct FormSubmit Webhook)
+    try {
+      const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+      const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+
+      fetch(`${supaUrl}/auth/v1/otp`, {
+        method: 'POST',
+        headers: {
+          'apikey': supaKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email, create_user: true })
+      }).catch(e => console.warn('Supabase Auth OTP error:', e));
+    } catch(e) {}
+
+    try {
+      fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          _subject: `[macOS Web Dashboard] Mã OTP Xác Thực: ${otp}`,
+          email: email,
+          "Nội dung": typeDesc,
+          "Mã OTP": otp,
+          "Thời hạn": "10 phút",
+          _template: "box"
+        })
+      }).catch(() => {});
+    } catch(e) {}
+
+    // Countdown 60s for resend button
     if (btn) {
-      btn.disabled = true;
-      let countdown = 30;
-      btn.innerText = `⏳ Đã gửi (Chờ ${countdown}s)...`;
+      let countdown = 60;
+      btn.innerText = `⏳ Đã gửi (Gửi lại sau ${countdown}s)...`;
       const iv = setInterval(() => {
         countdown--;
         if (countdown <= 0) {
@@ -619,43 +797,82 @@
           btn.disabled = false;
           btn.innerText = type === 'master' ? '📩 Gửi Lại Mã OTP Về Email' : '📩 Gửi Lại Mã OTP Về Email';
         } else {
-          btn.innerText = `⏳ Đã gửi (Chờ ${countdown}s)...`;
+          btn.innerText = `⏳ Đã gửi (Gửi lại sau ${countdown}s)...`;
         }
       }, 1000);
     }
 
-    // Auto-fill into input for effortless testing
-    const targetInput = type === 'master' ? document.getElementById('masterResetOtpInput') : document.getElementById('recoveryOtpInput');
-    if (targetInput) {
-      targetInput.value = otp;
+    // SHOW BEAUTIFUL MACOS SYSTEM DIALOG - NEVER REVEAL OTP IN POPUP
+    showMacAlert(
+      'Đã Gửi Mã Xác Thực OTP',
+      `<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; color:#38bdf8; font-weight:700;">
+         <span>✉️</span> Hòm thư nhận mã: <b>${email}</b>
+       </div>
+       Hệ thống đã gửi mã xác thực 6 chữ số đến địa chỉ email của bạn.<br><br>
+       👉 <b>Vui lòng mở hộp thư đến (Inbox)</b> hoặc kiểm tra thư mục <b>Spam/Thư rác</b> để lấy mã OTP, sau đó nhập vào ô xác thực bên dưới.<br><br>
+       <span style="font-size:11.5px; color:#94a3b8;">⏱️ Mã OTP có hiệu lực trong vòng 10 phút.</span>`,
+      'email'
+    );
+
+    showMacToast(`✉️ Đã gửi mã xác thực OTP đến ${email}`, 'success');
+  }
+
+  async function verifyOtpSubmission(inputOtp, email, type) {
+    if (!inputOtp) return false;
+
+    // 1. Verify against Supabase Auth verification endpoint
+    try {
+      const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+      const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+
+      const res = await fetch(`${supaUrl}/auth/v1/verify`, {
+        method: 'POST',
+        headers: {
+          'apikey': supaKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: 'email',
+          email: email,
+          token: inputOtp
+        })
+      });
+
+      if (res.ok) {
+        return true;
+      }
+    } catch (e) {
+      console.warn('Supabase Auth verify error:', e);
     }
 
-    const typeDesc = type === 'master' ? 'Đặt lại Master Key cứu hộ' : 'Khôi phục Mật khẩu Quản trị Admin';
-    alert(`📩 HỆ THỐNG XÁC THỰC EMAIL:\n\nĐã gửi mã OTP xác thực đến: ${email}\nNội dung: ${typeDesc}\n\nMã OTP xác thực của bạn: [ ${otp} ]\n(Mã có hiệu lực trong 10 phút. Hệ thống đã tự động điền mã vào ô nhập để bạn xác thực thuận tiện nhất).`);
+    // 2. Verify against active session OTP
+    let savedOtp = activeOtpData;
+    if (!savedOtp) {
+      try { savedOtp = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
+    }
+
+    if (savedOtp && savedOtp.type === type && Date.now() <= savedOtp.expiry) {
+      if (inputOtp === savedOtp.code) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   async function submitOtpPasswordRecovery() {
     const inputOtp = (document.getElementById('recoveryOtpInput')?.value || '').trim();
     const newPass = document.getElementById('newAdminPassByEmail')?.value || '';
     const confirmPass = document.getElementById('confirmAdminPassByEmail')?.value || '';
+    const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
 
-    if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số!');
-    if (!newPass) return alert('Vui lòng nhập mật khẩu Admin mới!');
-    if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không khớp!');
+    if (!inputOtp) return showMacAlert('Chưa Nhập Mã OTP', 'Vui lòng kiểm tra email và nhập mã OTP 6 số!', 'warning');
+    if (!newPass) return showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin mới!', 'warning');
+    if (newPass !== confirmPass) return showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
 
-    let savedOtp = activeOtpData;
-    if (!savedOtp) {
-      try { savedOtp = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
-    }
-
-    if (!savedOtp || savedOtp.type !== 'admin') {
-      return alert('Chưa có mã OTP nào được gửi cho khôi phục Mật khẩu Admin. Vui lòng bấm "Gửi Mã OTP"!');
-    }
-    if (Date.now() > savedOtp.expiry) {
-      return alert('Mã OTP đã hết hiệu lực (quá 10 phút). Vui lòng gửi lại mã mới!');
-    }
-    if (inputOtp !== savedOtp.code) {
-      return alert('Mã OTP xác thực không đúng. Vui lòng kiểm tra lại!');
+    const isVerified = await verifyOtpSubmission(inputOtp, email, 'admin');
+    if (!isVerified) {
+      return showMacAlert('Xác Thực Thất Bại', 'Mã OTP xác thực không chính xác hoặc đã hết hạn (10 phút). Vui lòng kiểm tra lại hòm thư email hoặc bấm gửi lại mã mới!', 'error');
     }
 
     const hashedNew = await hashPassword(newPass);
@@ -668,7 +885,7 @@
 
     setAdminMode(true);
     closeForgotPasswordModal();
-    alert('🎉 Khôi phục thành công!\nMật khẩu Admin của bạn đã được cập nhật qua xác thực Email. Chế độ Quản trị viên đã được kích hoạt.');
+    showMacAlert('🎉 Khôi Phục Thành Công', 'Mật khẩu Admin của bạn đã được cập nhật an toàn qua xác thực Email. Chế độ Quản trị viên đã được kích hoạt.', 'success');
   }
 
   async function submitMasterKeyRecoveryDirect() {
@@ -676,16 +893,16 @@
     const newPass = document.getElementById('newAdminPassByMaster')?.value || '';
     const confirmPass = document.getElementById('confirmAdminPassByMaster')?.value || '';
 
-    if (!mkVal) return alert('Vui lòng nhập Master Key cứu hộ!');
-    if (!newPass) return alert('Vui lòng nhập mật khẩu Admin mới!');
-    if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không khớp!');
+    if (!mkVal) return showMacAlert('Chưa Nhập Master Key', 'Vui lòng nhập Master Key cứu hộ!', 'warning');
+    if (!newPass) return showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin mới!', 'warning');
+    if (newPass !== confirmPass) return showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
 
     const storedMaster = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
-    if (!storedMaster) return alert('Chưa thiết lập Master Key trong hệ thống!');
+    if (!storedMaster) return showMacAlert('Chưa Thiết Lập', 'Chưa thiết lập Master Key trong hệ thống!', 'error');
 
     const hashedMK = await hashPassword(mkVal);
     if (hashedMK !== storedMaster) {
-      return alert('Master Key cứu hộ không chính xác!');
+      return showMacAlert('Master Key Không Đúng', 'Master Key cứu hộ không chính xác! Vui lòng kiểm tra lại.', 'error');
     }
 
     const hashedNew = await hashPassword(newPass);
@@ -696,31 +913,22 @@
 
     setAdminMode(true);
     closeForgotPasswordModal();
-    alert('🎉 Khôi phục thành công bằng Master Key!\nMật khẩu Admin đã được đặt lại và bạn đã đăng nhập quyền Quản trị.');
+    showMacAlert('🎉 Khôi Phục Thành Công', 'Mật khẩu Admin đã được đặt lại bằng Master Key và bạn đã đăng nhập quyền Quản trị.', 'success');
   }
 
   async function submitOtpMasterKeyReset() {
     const inputOtp = (document.getElementById('masterResetOtpInput')?.value || '').trim();
     const newMK = document.getElementById('newMasterKeyInput')?.value || '';
     const confirmMK = document.getElementById('confirmNewMasterKeyInput')?.value || '';
+    const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
 
-    if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số nhận được từ Email!');
-    if (!newMK) return alert('Vui lòng nhập Master Key mới!');
-    if (newMK !== confirmMK) return alert('Xác nhận Master Key mới không khớp!');
+    if (!inputOtp) return showMacAlert('Chưa Nhập Mã OTP', 'Vui lòng kiểm tra email và nhập mã OTP 6 số!', 'warning');
+    if (!newMK) return showMacAlert('Chưa Nhập Master Key', 'Vui lòng nhập Master Key mới!', 'warning');
+    if (newMK !== confirmMK) return showMacAlert('Master Key Không Khớp', 'Xác nhận Master Key mới không trùng khớp!', 'error');
 
-    let savedOtp = activeOtpData;
-    if (!savedOtp) {
-      try { savedOtp = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
-    }
-
-    if (!savedOtp || savedOtp.type !== 'master') {
-      return alert('Chưa có mã OTP nào được gửi cho việc đặt lại Master Key. Vui lòng bấm "Gửi Mã OTP"!');
-    }
-    if (Date.now() > savedOtp.expiry) {
-      return alert('Mã OTP đã hết hiệu lực. Vui lòng yêu cầu mã mới!');
-    }
-    if (inputOtp !== savedOtp.code) {
-      return alert('Mã OTP không chính xác!');
+    const isVerified = await verifyOtpSubmission(inputOtp, email, 'master');
+    if (!isVerified) {
+      return showMacAlert('Xác Thực Thất Bại', 'Mã OTP xác thực không chính xác hoặc đã hết hạn (10 phút). Vui lòng kiểm tra lại hòm thư email hoặc bấm gửi lại mã mới!', 'error');
     }
 
     const hashedMK = await hashPassword(newMK);
@@ -729,7 +937,7 @@
     activeOtpData = null;
 
     closeForgotPasswordModal();
-    alert('🎉 Đặt lại Master Key thành công!\nMaster Key cứu hộ mới đã được cập nhật an toàn qua xác thực Email.');
+    showMacAlert('🎉 Đặt Lại Master Key Thành Công', 'Master Key cứu hộ mới của bạn đã được cập nhật an toàn qua xác thực Email.', 'success');
   }
 
   // --------------------------------------------------------------------------

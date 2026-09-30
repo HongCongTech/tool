@@ -1452,35 +1452,96 @@
             activeRecoveryOtp = { code: otp, expiry: Date.now() + 10 * 60 * 1000, type, email };
             sessionStorage.setItem('sys_active_otp', JSON.stringify(activeRecoveryOtp));
 
+            // Clear target input (DO NOT auto-fill to protect security)
             const targetInput = type === 'master' ? document.getElementById('tcMasterResetOtpInput') : document.getElementById('tcRecoveryOtpInput');
-            if (targetInput) targetInput.value = otp;
+            if (targetInput) {
+                targetInput.value = '';
+                setTimeout(() => targetInput.focus(), 250);
+            }
 
             const typeDesc = type === 'master' ? 'Đặt lại Master Key cứu hộ' : 'Khôi phục Mật khẩu Quản trị Admin';
-            alert(`📩 HỆ THỐNG XÁC THỰC EMAIL:\n\nĐã gửi mã OTP đến: ${email}\nMục đích: ${typeDesc}\n\nMã OTP xác thực của bạn: [ ${otp} ]\n(Có hiệu lực trong 10 phút. Hệ thống đã tự động điền vào ô OTP để bạn kiểm tra thuận tiện).`);
+
+            // Real email dispatch: Supabase Auth OTP + FormSubmit Webhook
+            try {
+                const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+                const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+                fetch(`${supaUrl}/auth/v1/otp`, {
+                    method: 'POST',
+                    headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, create_user: true })
+                }).catch(() => {});
+            } catch(e) {}
+
+            try {
+                fetch(`https://formsubmit.co/ajax/${encodeURIComponent(email)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: `[macOS Web Dashboard] Mã OTP: ${otp}`,
+                        email: email,
+                        "Nội dung": typeDesc,
+                        "Mã OTP": otp,
+                        "Thời hạn": "10 phút",
+                        _template: "box"
+                    })
+                }).catch(() => {});
+            } catch(e) {}
+
+            if (window.parent && typeof window.parent.showMacAlert === 'function') {
+                window.parent.showMacAlert(
+                    'Đã Gửi Mã Xác Thực OTP',
+                    `<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; color:#38bdf8; font-weight:700;">
+                        <span>✉️</span> Hòm thư nhận mã: <b>${email}</b>
+                    </div>
+                    Hệ thống đã gửi mã xác thực 6 chữ số đến địa chỉ email của bạn.<br><br>
+                    👉 <b>Vui lòng mở hộp thư đến (Inbox)</b> hoặc kiểm tra thư mục <b>Spam/Thư rác</b> để lấy mã OTP, sau đó nhập vào ô xác thực bên dưới.<br><br>
+                    <span style="font-size:11.5px; color:#94a3b8;">⏱️ Mã OTP có hiệu lực trong vòng 10 phút.</span>`,
+                    'email'
+                );
+            } else {
+                alert(`📧 ĐÃ GỬI MÃ OTP XÁC THỰC:\n\nĐã gửi mã xác thực đến: ${email}\n\nVui lòng kiểm tra Hộp thư đến (Inbox) hoặc thư mục Spam/Quảng cáo để lấy mã và nhập vào ô xác thực.`);
+            }
         }
 
         async function submitOtpPasswordRecovery() {
             const inputOtp = (document.getElementById('tcRecoveryOtpInput')?.value || '').trim();
             const newPass = document.getElementById('tcNewAdminPassByEmail')?.value || '';
             const confirmPass = document.getElementById('tcConfirmAdminPassByEmail')?.value || '';
+            const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
 
             if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số!');
             if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
             if (newPass !== confirmPass) return alert('Mật khẩu xác nhận không khớp!');
 
+            let isAuthorized = false;
             let saved = activeRecoveryOtp;
             if (!saved) {
                 try { saved = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
             }
-            if (!saved || saved.type !== 'admin') return alert('Chưa gửi OTP cho khôi phục Mật khẩu. Hãy bấm "Gửi Mã OTP"!');
-            if (Date.now() > saved.expiry) return alert('Mã OTP đã hết hạn (quá 10 phút)!');
-            if (inputOtp !== saved.code) return alert('Mã OTP không chính xác!');
+            if (saved && saved.type === 'admin' && Date.now() <= saved.expiry && inputOtp === saved.code) {
+                isAuthorized = true;
+            } else {
+                try {
+                    const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+                    const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+                    const res = await fetch(`${supaUrl}/auth/v1/verify`, {
+                        method: 'POST',
+                        headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'email', email: email, token: inputOtp })
+                    });
+                    if (res.ok) isAuthorized = true;
+                } catch(e) {}
+            }
+
+            if (!isAuthorized) {
+                return alert('Mã OTP không chính xác hoặc đã hết hạn (10 phút)!');
+            }
 
             const hashed = await hashPassword(newPass);
             localStorage.setItem(SYS_ADMIN_HASH_KEY, hashed);
             setAdminMode(true);
             closeModal('adminRecoveryModal');
-            alert('Khôi phục Mật khẩu Admin thành công qua Email!');
+            alert('🎉 Khôi phục Mật khẩu Admin thành công qua Email!');
         }
 
         async function submitMasterKeyRecoveryDirect() {
@@ -1509,18 +1570,35 @@
             const inputOtp = (document.getElementById('tcMasterResetOtpInput')?.value || '').trim();
             const newMK = document.getElementById('tcNewMasterKeyInput')?.value || '';
             const confirmMK = document.getElementById('tcConfirmNewMasterKeyInput')?.value || '';
+            const email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || 'admin@hethong.com';
 
             if (!inputOtp) return alert('Vui lòng nhập mã OTP 6 số từ Email!');
             if (!newMK) return alert('Vui lòng nhập Master Key mới!');
             if (newMK !== confirmMK) return alert('Xác nhận Master Key mới không khớp!');
 
+            let isAuthorized = false;
             let saved = activeRecoveryOtp;
             if (!saved) {
                 try { saved = JSON.parse(sessionStorage.getItem('sys_active_otp')); } catch(e) {}
             }
-            if (!saved || saved.type !== 'master') return alert('Chưa gửi OTP đặt lại Master Key!');
-            if (Date.now() > saved.expiry) return alert('Mã OTP đã hết hạn!');
-            if (inputOtp !== saved.code) return alert('Mã OTP không đúng!');
+            if (saved && saved.type === 'master' && Date.now() <= saved.expiry && inputOtp === saved.code) {
+                isAuthorized = true;
+            } else {
+                try {
+                    const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+                    const supaKey = window.SUPABASE_CONFIG?.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indxend4endyb3picGV0YndiZ3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjA1MzIsImV4cCI6MjEwNjI5NjUzMn0.PMMNYG4AuIpgoSIKvSmqpft17pR53ZmQnruD--wZNiY';
+                    const res = await fetch(`${supaUrl}/auth/v1/verify`, {
+                        method: 'POST',
+                        headers: { 'apikey': supaKey, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'email', email: email, token: inputOtp })
+                    });
+                    if (res.ok) isAuthorized = true;
+                } catch(e) {}
+            }
+
+            if (!isAuthorized) {
+                return alert('Mã OTP không chính xác hoặc đã hết hạn (10 phút)!');
+            }
 
             const hashedMK = await hashPassword(newMK);
             localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedMK);
