@@ -1,17 +1,17 @@
 /**
  * ==============================================================================
- * Supabase Database Storage Bridge (db-storage.js)
- * Đồng bộ hai chiều với Supabase PostgreSQL:
- * 1. Chạy trực tiếp trên GitHub Pages / Mobile qua Supabase Cloud REST API
- * 2. Hỗ trợ chạy nội bộ qua Node.js Server (localhost:3000)
- * 3. Tự động lưu cache an toàn (Offline Fallback) - KHÔNG BAO GIỜ mất dữ liệu
+ * Supabase Database Storage Bridge (db-storage.js) - Version 3.0 (Multi-Device Live Sync)
+ * 1. Nạp đồng bộ tức thì (Synchronous Boot) - Không có độ trễ, không có race condition.
+ * 2. Đồng bộ thời gian thực đa thiết bị (Multi-Device Auto-Sync & Polling).
+ * 3. Hỗ trợ chạy trên GitHub Pages, Mobile & Localhost.
+ * 4. Cache an toàn hai chiều (Offline Cache Fallback).
  * ==============================================================================
  */
 
 (function () {
   'use strict';
 
-  // 1. Chia sẻ vùng nhớ giữa Tab chính và các Tab/Iframe con
+  // 1. Chia sẻ vùng nhớ giữa Tab chính (window.top) và các Iframe ứng dụng con
   let sharedStore = null;
   try {
     if (window.top && window.top !== window && window.top.__DB_SYSTEM_STORE__) {
@@ -26,8 +26,9 @@
   let currentSyncMode = 'OFFLINE_CACHE'; // 'SUPABASE_REST' | 'NODE_SERVER' | 'OFFLINE_CACHE'
   let saveDebounceTimers = {};
   let isSyncing = false;
+  let lastSyncTimestamp = 0;
 
-  // Lưu trữ các hàm nguyên bản của trình duyệt (Native Storage)
+  // Lưu trữ các hàm native của trình duyệt
   const nativeStorage = {
     getItem: Storage.prototype.getItem,
     setItem: Storage.prototype.setItem,
@@ -36,7 +37,6 @@
     key: Storage.prototype.key
   };
 
-  // Cấu hình Supabase mặc định
   const DEFAULT_SUPABASE_URL = 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
 
   function getSupabaseConfig() {
@@ -56,13 +56,10 @@
       if (storedKey && storedKey.trim()) anonKey = storedKey.trim();
     } catch (e) {}
 
-    // Chuẩn hóa URL (bỏ dấu gạch chéo cuối nếu có)
     if (url.endsWith('/')) url = url.slice(0, -1);
-
     return { url, anonKey };
   }
 
-  // Xác định Node.js Server Base URL nếu chạy trên máy tính cá nhân
   function getNodeApiBase() {
     try {
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -75,10 +72,10 @@
     return null;
   }
 
-  // 2. KHỞI ĐỘNG ĐỒNG THỜI (Instant Synchronous Boot):
-  // Nạp toàn bộ dữ liệu từ localStorage vào memoryStore ngay tức khắc
-  // để ứng dụng hiển thị tức thì, không bị nháy trắng màn hình.
-  function bootInstantCache() {
+  // 2. KHỞI ĐỘNG ĐỒNG BỘ CHẶN TỨC THÌ (Synchronous Instant Boot):
+  // Nạp dữ liệu từ Supabase Cloud vào memoryStore NGAY LẬP TỨC trước khi các file script khác chạy
+  function bootSynchronousStore() {
+    // 2.1 Đọc cache sẵn có từ trình duyệt trước tiên
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = nativeStorage.key.call(localStorage, i);
@@ -87,20 +84,78 @@
           if (val !== null) memoryStore[k] = val;
         }
       }
-    } catch (e) {
-      console.warn('[DB-Storage] Không thể đọc cache ban đầu:', e);
+    } catch (e) {}
+
+    // 2.2 Nếu là iframe và window.top đã có sẵn dữ liệu thì tái sử dụng tức thì
+    if (sharedStore && Object.keys(sharedStore).length > 2) {
+      isDbConnected = true;
+      currentSyncMode = 'SUPABASE_REST';
+      return;
+    }
+
+    // 2.3 NẠP TRỰC TIẾP TỪ SUPABASE CLOUD (Đồng bộ qua Simple GET Request với ?apikey=...)
+    const { url, anonKey } = getSupabaseConfig();
+    if (url && anonKey) {
+      try {
+        const syncUrl = `${url}/rest/v1/system_store?select=key,value&apikey=${encodeURIComponent(anonKey)}`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', syncUrl, false); // synchronous GET
+        xhr.send(null);
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const rows = JSON.parse(xhr.responseText);
+          if (Array.isArray(rows)) {
+            rows.forEach(item => {
+              if (item && item.key) {
+                const valStr = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
+                memoryStore[item.key] = valStr;
+                try { nativeStorage.setItem.call(localStorage, item.key, valStr); } catch (e) {}
+              }
+            });
+            isDbConnected = true;
+            currentSyncMode = 'SUPABASE_REST';
+            lastSyncTimestamp = Date.now();
+            console.log(`⚡ [DB-Storage] Đã nạp tức thì ${rows.length} mục dữ liệu từ Supabase Cloud!`);
+          }
+        }
+      } catch (err) {
+        console.warn('[DB-Storage] Nạp đồng bộ thất bại, chuyển sang chế độ nền:', err.message);
+      }
+    } else {
+      // Nếu chạy localhost nội bộ không có anonKey
+      const nodeBase = getNodeApiBase();
+      if (nodeBase) {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', `${nodeBase}/api/storage`, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const res = JSON.parse(xhr.responseText);
+            if (res.success && res.data) {
+              for (const [k, v] of Object.entries(res.data)) {
+                const valStr = typeof v === 'string' ? v : JSON.stringify(v);
+                memoryStore[k] = valStr;
+                try { nativeStorage.setItem.call(localStorage, k, valStr); } catch (e) {}
+              }
+              isDbConnected = true;
+              currentSyncMode = 'NODE_SERVER';
+              lastSyncTimestamp = Date.now();
+            }
+          }
+        } catch (e) {}
+      }
     }
   }
 
-  bootInstantCache();
+  // Chạy ngay khi file JS được nạp
+  bootSynchronousStore();
 
-  // 3. ĐỒNG BỘ CLOUD VỚI SUPABASE REST API
+  // 3. ĐỒNG BỘ NỀN & BẮT DỮ LIỆU TỪ MÁY KHÁC (Asynchronous Pull)
   async function syncFromSupabaseRest(url, key) {
     if (!url || !key) return false;
     try {
-      const endpoint = `${url}/rest/v1/system_store?select=key,value`;
+      const endpoint = `${url}/rest/v1/system_store?select=key,value,updated_at&apikey=${encodeURIComponent(key)}`;
       const res = await fetch(endpoint, {
-        method: 'GET',
         headers: {
           'apikey': key,
           'Authorization': `Bearer ${key}`,
@@ -108,110 +163,141 @@
         }
       });
 
-      if (!res.ok) {
-        console.warn(`[DB-Storage] Supabase REST phản hồi mã: ${res.status}`);
-        return false;
-      }
+      if (!res.ok) return false;
 
       const rows = await res.json();
+      let hasChanges = false;
       if (Array.isArray(rows)) {
         rows.forEach(item => {
           if (item && item.key) {
             const valStr = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
-            memoryStore[item.key] = valStr;
-            // Lưu đệm an toàn vào native localStorage
-            try {
-              nativeStorage.setItem.call(localStorage, item.key, valStr);
-            } catch (e) {}
+            if (memoryStore[item.key] !== valStr) {
+              const oldVal = memoryStore[item.key];
+              memoryStore[item.key] = valStr;
+              try { nativeStorage.setItem.call(localStorage, item.key, valStr); } catch (e) {}
+              hasChanges = true;
+
+              // Phát sự kiện StorageEvent để giao diện các ứng dụng cập nhật ngay
+              dispatchStorageChange(item.key, oldVal, valStr);
+            }
           }
         });
 
         isDbConnected = true;
         currentSyncMode = 'SUPABASE_REST';
-        console.log(`✅ [DB-Storage] Đã đồng bộ thành công ${rows.length} mục từ Supabase Cloud REST!`);
-        notifyDataChanged();
+        lastSyncTimestamp = Date.now();
+
+        if (hasChanges) {
+          console.log(`🔄 [DB-Storage] Đã cập nhật ${rows.length} mục dữ liệu từ máy khác!`);
+          notifyDataChanged();
+        }
         return true;
       }
     } catch (err) {
-      console.warn('[DB-Storage] Lỗi khi kết nối Supabase REST:', err.message);
+      console.warn('[DB-Storage] Lỗi sync nền:', err.message);
     }
     return false;
   }
 
-  // 4. ĐỒNG BỘ VỚI NODE.JS SERVER (Nếu chạy localhost)
-  async function syncFromNodeServer(apiBase) {
-    if (!apiBase) return false;
+  function dispatchStorageChange(key, oldVal, newVal) {
     try {
-      const res = await fetch(`${apiBase}/api/storage`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) {
-          for (const [k, v] of Object.entries(json.data)) {
-            const valStr = typeof v === 'string' ? v : JSON.stringify(v);
-            memoryStore[k] = valStr;
-            try {
-              nativeStorage.setItem.call(localStorage, k, valStr);
-            } catch (e) {}
-          }
-          isDbConnected = true;
-          currentSyncMode = 'NODE_SERVER';
-          console.log(`✅ [DB-Storage] Đã đồng bộ thành công từ Node.js Server (${apiBase})!`);
-          notifyDataChanged();
-          return true;
+      const ev = new StorageEvent('storage', {
+        key: key,
+        oldValue: oldVal,
+        newValue: newVal,
+        url: window.location.href,
+        storageArea: localStorage
+      });
+      window.dispatchEvent(ev);
+
+      // Nếu có iframes con, chuyển tiếp sự kiện vào các iframe
+      if (window.frames && window.frames.length > 0) {
+        for (let i = 0; i < window.frames.length; i++) {
+          try {
+            window.frames[i].dispatchEvent(ev);
+          } catch (e) {}
         }
       }
     } catch (e) {}
-    return false;
   }
 
-  // Kích hoạt đồng bộ thông minh theo thứ tự ưu tiên
+  function notifyDataChanged() {
+    try {
+      const ev = new CustomEvent('db-storage-ready', { detail: { syncMode: currentSyncMode } });
+      window.dispatchEvent(ev);
+
+      if (window.frames && window.frames.length > 0) {
+        for (let i = 0; i < window.frames.length; i++) {
+          try {
+            window.frames[i].dispatchEvent(ev);
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+  }
+
   async function initiateSmartSync() {
     if (isSyncing) return;
     isSyncing = true;
-
     try {
       const { url, anonKey } = getSupabaseConfig();
-
-      // Ưu tiên 1: Kết nối trực tiếp Supabase Cloud REST nếu có Anon Key
       if (anonKey) {
         const ok = await syncFromSupabaseRest(url, anonKey);
         if (ok) return;
       }
 
-      // Ưu tiên 2: Kết nối Node.js Server nếu đang ở localhost
       const nodeBase = getNodeApiBase();
       if (nodeBase) {
-        const okNode = await syncFromNodeServer(nodeBase);
-        if (okNode) return;
-      }
-
-      // Ưu tiên 3: Chạy Offline Cache (Giữ nguyên dữ liệu hiện có trong localStorage)
-      isDbConnected = false;
-      currentSyncMode = 'OFFLINE_CACHE';
-      if (!anonKey && (window.location.hostname.endsWith('github.io') || window.location.protocol === 'https:')) {
-        console.info('💡 [DB-Storage] Đang mở trên GitHub Pages. Hãy nhập mã Supabase `anon` key trong menu Cài đặt để đồng bộ đám mây trực tiếp!');
+        try {
+          const res = await fetch(`${nodeBase}/api/storage`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) {
+              for (const [k, v] of Object.entries(json.data)) {
+                const valStr = typeof v === 'string' ? v : JSON.stringify(v);
+                memoryStore[k] = valStr;
+                try { nativeStorage.setItem.call(localStorage, k, valStr); } catch (e) {}
+              }
+              isDbConnected = true;
+              currentSyncMode = 'NODE_SERVER';
+              notifyDataChanged();
+              return;
+            }
+          }
+        } catch (e) {}
       }
     } finally {
       isSyncing = false;
     }
   }
 
-  // Thông báo các thành phần UI cập nhật khi có dữ liệu mới từ Cloud
-  function notifyDataChanged() {
-    try {
-      const ev = new CustomEvent('db-storage-ready', { detail: { syncMode: currentSyncMode } });
-      window.dispatchEvent(ev);
-    } catch (e) {}
+  // 4. ĐỒNG BỘ NỀN LIÊN TỤC (Multi-Device Auto-Sync Polling)
+  // Kiểm tra dữ liệu mới từ các máy khác mỗi 5 giây
+  let pollTimer = null;
+  function startPolling() {
+    if (pollTimer) clearInterval(pollTimer);
+    // Chỉ kích hoạt ở cửa sổ chính (window.top) để tránh trùng lặp
+    if (window.top === window) {
+      pollTimer = setInterval(() => {
+        initiateSmartSync();
+      }, 5000);
+    }
   }
 
-  // Tự động đồng bộ ngay sau khi DOM sẵn sàng
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initiateSmartSync);
-  } else {
-    setTimeout(initiateSmartSync, 10);
-  }
+  startPolling();
 
-  // 5. GHI DỮ LIỆU LÊN DATABASE (PERSISTENCE)
+  // Tự động kiểm tra ngay khi người dùng chuyển lại tab (Focus / VisibilityChange)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      initiateSmartSync();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    initiateSmartSync();
+  });
+
+  // 5. LƯU DỮ LIỆU LÊN SUPABASE (PERSISTENCE)
   function persistKey(key, value) {
     if (saveDebounceTimers[key]) {
       clearTimeout(saveDebounceTimers[key]);
@@ -224,19 +310,19 @@
     ].includes(key);
 
     const executeSave = async () => {
-      // 1. Luôn lưu vào native storage làm cache an toàn
+      // Luôn ghi vào nativeStorage làm cache an toàn
       try {
         nativeStorage.setItem.call(localStorage, key, value);
       } catch (e) {}
 
-      // 2. Ghi lên Supabase REST API nếu có key
+      // Ghi lên Supabase REST API
       const { url, anonKey } = getSupabaseConfig();
       if (anonKey) {
         try {
           let parsedVal = value;
           try { parsedVal = JSON.parse(value); } catch (e) {}
 
-          const res = await fetch(`${url}/rest/v1/system_store`, {
+          await fetch(`${url}/rest/v1/system_store`, {
             method: 'POST',
             headers: {
               'apikey': anonKey,
@@ -250,24 +336,17 @@
               updated_at: new Date().toISOString()
             })
           });
-
-          if (res.ok) {
-            isDbConnected = true;
-            currentSyncMode = 'SUPABASE_REST';
-            return;
-          }
         } catch (err) {
-          console.warn('[DB-Storage] Không thể ghi Supabase REST:', err.message);
+          console.warn('[DB-Storage] Không thể ghi Supabase Cloud:', err.message);
         }
       }
 
-      // 3. Ghi lên Node.js Server nếu đang kết nối local
+      // Ghi lên Node.js Server nếu local
       const nodeBase = getNodeApiBase();
       if (nodeBase) {
         try {
           let parsedVal = value;
           try { parsedVal = JSON.parse(value); } catch (e) {}
-
           await fetch(`${nodeBase}/api/storage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -280,35 +359,28 @@
     if (isCritical) {
       executeSave();
     } else {
-      saveDebounceTimers[key] = setTimeout(executeSave, 60);
+      saveDebounceTimers[key] = setTimeout(executeSave, 40);
     }
   }
 
   function deleteKeyFromServer(key) {
-    try {
-      nativeStorage.removeItem.call(localStorage, key);
-    } catch (e) {}
+    try { nativeStorage.removeItem.call(localStorage, key); } catch (e) {}
 
     const { url, anonKey } = getSupabaseConfig();
     if (anonKey) {
       fetch(`${url}/rest/v1/system_store?key=eq.${encodeURIComponent(key)}`, {
         method: 'DELETE',
-        headers: {
-          'apikey': anonKey,
-          'Authorization': `Bearer ${anonKey}`
-        }
+        headers: { 'apikey': anonKey, 'Authorization': `Bearer ${anonKey}` }
       }).catch(() => {});
     }
 
     const nodeBase = getNodeApiBase();
     if (nodeBase) {
-      fetch(`${nodeBase}/api/storage/${encodeURIComponent(key)}`, {
-        method: 'DELETE'
-      }).catch(() => {});
+      fetch(`${nodeBase}/api/storage/${encodeURIComponent(key)}`, { method: 'DELETE' }).catch(() => {});
     }
   }
 
-  // 6. GHI ĐÈ CÁC HÀM CỦA TRÌNH DUYỆT (Storage.prototype Interceptor)
+  // 6. GHI ĐÈ Storage.prototype
   Storage.prototype.getItem = function (key) {
     if (this === localStorage) {
       const k = String(key);
@@ -325,21 +397,8 @@
       const oldVal = memoryStore[k];
       memoryStore[k] = strVal;
 
-      // Lưu đồng thời vào cache và database
       persistKey(k, strVal);
-
-      // Kích hoạt StorageEvent chuẩn
-      try {
-        const ev = new StorageEvent('storage', {
-          key: k,
-          oldValue: oldVal,
-          newValue: strVal,
-          url: window.location.href,
-          storageArea: localStorage
-        });
-        window.dispatchEvent(ev);
-      } catch (e) {}
-
+      dispatchStorageChange(k, oldVal, strVal);
       return;
     }
     return nativeStorage.setItem.call(this, key, value);
@@ -348,8 +407,10 @@
   Storage.prototype.removeItem = function (key) {
     if (this === localStorage) {
       const k = String(key);
+      const oldVal = memoryStore[k];
       delete memoryStore[k];
       deleteKeyFromServer(k);
+      dispatchStorageChange(k, oldVal, null);
       return;
     }
     return nativeStorage.removeItem.call(this, key);
@@ -357,7 +418,6 @@
 
   Storage.prototype.clear = function () {
     if (this === localStorage) {
-      // Bảo toàn khóa cấu hình Supabase khi bấm xóa dữ liệu ứng dụng
       const savedKey = memoryStore['supabase_anon_key'] || nativeStorage.getItem.call(localStorage, 'supabase_anon_key');
       const savedUrl = memoryStore['supabase_url'] || nativeStorage.getItem.call(localStorage, 'supabase_url');
 
@@ -371,6 +431,7 @@
       nativeStorage.clear.call(localStorage);
       if (savedKey) nativeStorage.setItem.call(localStorage, 'supabase_anon_key', savedKey);
       if (savedUrl) nativeStorage.setItem.call(localStorage, 'supabase_url', savedUrl);
+      notifyDataChanged();
       return;
     }
     return nativeStorage.clear.call(this);
@@ -394,7 +455,7 @@
     configurable: true
   });
 
-  // 7. BỘ API CHUYÊN DỤNG (window.dbStorage)
+  // 7. PUBLIC API
   window.dbStorage = {
     isConnected: () => isDbConnected,
     getSyncMode: () => currentSyncMode,
@@ -410,47 +471,28 @@
           delete memoryStore['supabase_anon_key'];
         }
       } catch (e) {}
-
-      // Đồng bộ lại ngay
       return await initiateSmartSync();
     },
     syncNow: initiateSmartSync,
     testSupabaseConnection: async function (url, key) {
       const targetUrl = (url || DEFAULT_SUPABASE_URL).trim().replace(/\/$/, '');
       const targetKey = (key || '').trim();
-
-      if (!targetKey) {
-        return { success: false, error: 'Chưa nhập mã Supabase `anon` public key.' };
-      }
+      if (!targetKey) return { success: false, error: 'Chưa nhập mã `anon` key.' };
 
       try {
-        const endpoint = `${targetUrl}/rest/v1/system_store?select=key&limit=5`;
-        const res = await fetch(endpoint, {
-          method: 'GET',
-          headers: {
-            'apikey': targetKey,
-            'Authorization': `Bearer ${targetKey}`
-          }
-        });
-
+        const endpoint = `${targetUrl}/rest/v1/system_store?select=key&limit=5&apikey=${encodeURIComponent(targetKey)}`;
+        const res = await fetch(endpoint);
         if (res.ok) {
           const rows = await res.json();
-          return { success: true, count: rows.length, message: `Kết nối thành công! Tìm thấy bảng dữ liệu.` };
+          return { success: true, count: rows.length, message: `Kết nối thành công! Đã kết nối Supabase Cloud.` };
         } else {
-          const errText = await res.text();
-          let errJson;
-          try { errJson = JSON.parse(errText); } catch (e) {}
-          return {
-            success: false,
-            status: res.status,
-            error: (errJson && (errJson.message || errJson.hint || errJson.error)) || `Lỗi HTTP ${res.status}: ${errText}`
-          };
+          return { success: false, error: `Lỗi kết nối HTTP ${res.status}` };
         }
       } catch (err) {
-        return { success: false, error: `Lỗi kết nối mạng: ${err.message}` };
+        return { success: false, error: err.message };
       }
     }
   };
 
-  console.log('⚡ [DB-Storage v2.0] Đã kích hoạt cơ chế đồng bộ lai: Supabase Cloud REST / Node.js Server / Safe Local Cache.');
+  console.log('⚡ [DB-Storage v3.0] Kích hoạt nạp đồng bộ tức thì & Auto-Sync đa thiết bị.');
 })();

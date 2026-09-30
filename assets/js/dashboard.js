@@ -2471,6 +2471,10 @@
         isAdmin = newStatus;
         updateAdminUI();
       }
+    } else if (e.key === STORAGE_KEY || e.key === LEGACY_STORAGE_KEY_V2) {
+      loadApps();
+    } else if (e.key === WALLPAPER_STORAGE_KEY) {
+      initWallpaper();
     }
   });
 

@@ -1549,9 +1549,37 @@
                     members = JSON.parse(e.newValue) || [];
                     recalculateDebts();
                 } catch(err) {}
+            } else if (e.key === 'p2p_logs') {
+                try {
+                    logs = JSON.parse(e.newValue) || [];
+                    renderHistory();
+                    recalculateDebts();
+                } catch(err) {}
+            } else if (e.key === 'p2p_meal_presets') {
+                try {
+                    mealPresets = JSON.parse(e.newValue) || [];
+                    renderMealPresets();
+                } catch(err) {}
             } else if (e.key === 'sys_bank_config' || e.key === 'p2p_bank_info') {
                 bankInfo = loadCurrentBankInfo();
             }
+        });
+
+        window.addEventListener('db-storage-ready', function () {
+            try {
+                const storedMem = localStorage.getItem('p2p_members');
+                if (storedMem) members = JSON.parse(storedMem);
+                const storedLogs = localStorage.getItem('p2p_logs');
+                if (storedLogs) logs = JSON.parse(storedLogs);
+                const storedPresets = localStorage.getItem('p2p_meal_presets');
+                if (storedPresets) mealPresets = JSON.parse(storedPresets);
+                bankInfo = loadCurrentBankInfo();
+                isAdmin = localStorage.getItem(SYS_IS_ADMIN_KEY) === 'true';
+                updateAdminUI();
+                recalculateDebts();
+                renderHistory();
+                renderMealPresets();
+            } catch(e) {}
         });
 
         if ('BroadcastChannel' in window) {

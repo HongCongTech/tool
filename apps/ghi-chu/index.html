@@ -857,7 +857,15 @@
             if (e.key === 'sys_is_admin') {
                 isAdmin = e.newValue === 'true';
                 updateAdminUI();
+            } else if (e.key === 'sticky_notes_data') {
+                loadNotes();
             }
+        });
+
+        window.addEventListener('db-storage-ready', () => {
+            isAdmin = localStorage.getItem('sys_is_admin') === 'true';
+            updateAdminUI();
+            loadNotes();
         });
 
         let notesData = [];

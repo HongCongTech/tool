@@ -1,19 +1,22 @@
 /**
- * macOS Web Dashboard - Service Worker
+ * macOS Web Dashboard - Service Worker (v3)
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v1';
+const CACHE_NAME = 'macos-dashboard-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './assets/css/dashboard.css',
+  './assets/js/db-config.js',
+  './assets/js/db-storage.js',
   './assets/js/dashboard.js',
   './manifest.json',
   './apps/chia-bill/index.html',
   './apps/tien-com/index.html',
   './apps/lai-suat/index.html',
-  './apps/ghi-chu/index.html'
+  './apps/ghi-chu/index.html',
+  './apps/control-panel/index.html'
 ];
 
 self.addEventListener('install', (event) => {
@@ -42,36 +45,29 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
+  // Supabase REST API requests should always go straight to network
+  if (event.request.url.includes('supabase.co')) {
+    return;
+  }
+
+  // Network-first for HTML and scripts to always get freshest version
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch new version in background (Stale-While-Revalidate)
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {/* Offline fallback */});
-
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
         return networkResponse;
-      }).catch(() => {
-        // Fallback to index if navigating
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      });
-    })
+      })
+      .catch(() => {
+        // Fallback to cache if offline
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
   );
 });

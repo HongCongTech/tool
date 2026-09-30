@@ -1384,7 +1384,31 @@
                     members = JSON.parse(e.newValue) || [];
                     render();
                 } catch(err) {}
+            } else if (e.key === 'nhau_meals') {
+                try {
+                    meals = JSON.parse(e.newValue) || [];
+                    render();
+                } catch(err) {}
+            } else if (e.key === 'nhau_money_logs') {
+                try {
+                    moneyLogs = JSON.parse(e.newValue) || [];
+                    render();
+                } catch(err) {}
             }
+        });
+
+        window.addEventListener('db-storage-ready', () => {
+            try {
+                const storedMem = localStorage.getItem('nhau_members');
+                if (storedMem) members = JSON.parse(storedMem);
+                const storedMeals = localStorage.getItem('nhau_meals');
+                if (storedMeals) meals = JSON.parse(storedMeals);
+                const storedLogs = localStorage.getItem('nhau_money_logs');
+                if (storedLogs) moneyLogs = JSON.parse(storedLogs);
+                isAdmin = localStorage.getItem('sys_is_admin') === 'true';
+                updateAdminUI();
+                render();
+            } catch(e) {}
         });
 
         // =========================================================================
