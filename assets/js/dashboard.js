@@ -1378,7 +1378,7 @@
   }
 
   function handleContextAction(action, appId) {
-    const app = appsList.find(a => a.id === appId);
+    const app = appsList.find(a => String(a.id) === String(appId)) || activeContextApp;
     closeContextMenu();
     if (!app) return;
 
@@ -2650,6 +2650,8 @@
     }
     closeAllMenus();
     if (!DOM.appModal) return;
+    const btnDelete = document.getElementById('btn-delete-app');
+    if (btnDelete) btnDelete.style.display = 'none';
     if (DOM.modalAddTitle) DOM.modalAddTitle.innerText = '➕ Thêm Ứng Dụng Mới';
     if (DOM.appIdInput) DOM.appIdInput.value = '';
     if (DOM.appNameInput) DOM.appNameInput.value = '';
@@ -2664,17 +2666,19 @@
   }
 
   function openEditAppModal(event, id) {
-    if (event) event.stopPropagation();
+    if (event && event.stopPropagation) event.stopPropagation();
     if (!isAdmin) {
       alert('Thao tác sửa ứng dụng yêu cầu quyền Quản trị viên!');
       openAdminAuthModal();
       return;
     }
-    const app = appsList.find(a => a.id === id);
+    const app = appsList.find(a => String(a.id) === String(id));
     if (!app) return;
 
     closeAllMenus();
     if (!DOM.appModal) return;
+    const btnDelete = document.getElementById('btn-delete-app');
+    if (btnDelete) btnDelete.style.display = 'inline-block';
     if (DOM.modalAddTitle) DOM.modalAddTitle.innerText = '✏️ Sửa Ứng Dụng & Phân Quyền';
     if (DOM.appIdInput) DOM.appIdInput.value = app.id;
     if (DOM.appNameInput) DOM.appNameInput.value = app.title || '';
@@ -2691,6 +2695,8 @@
 
   function closeModal() {
     if (DOM.appModal) DOM.appModal.classList.remove('active');
+    const btnDelete = document.getElementById('btn-delete-app');
+    if (btnDelete) btnDelete.style.display = 'none';
     if (DOM.appIdInput) DOM.appIdInput.value = '';
     if (DOM.appNameInput) DOM.appNameInput.value = '';
     if (DOM.appIconInput) DOM.appIconInput.value = '';
@@ -2749,19 +2755,59 @@
     }
   }
 
-  function deleteApp(event, id) {
-    event.stopPropagation();
+  function deleteApp(eventOrId, possibleId) {
+    let event = null;
+    let id = null;
+
+    if (eventOrId && typeof eventOrId === 'object' && 'stopPropagation' in eventOrId) {
+      event = eventOrId;
+      id = possibleId;
+      try { event.stopPropagation(); } catch (e) {}
+    } else if (typeof eventOrId === 'string' || typeof eventOrId === 'number') {
+      id = eventOrId;
+    } else {
+      id = possibleId;
+    }
+
+    if (!id && activeContextApp) {
+      id = activeContextApp.id;
+    }
+
     if (!isAdmin) {
       alert('Chỉ Quản trị viên mới có quyền xóa ứng dụng!');
-      openAdminAuthModal();
+      openAdminAuthModal('🔒 Thao tác xóa ứng dụng yêu cầu quyền Quản trị viên (Admin Mode).\nVui lòng đăng nhập Admin:');
       return;
     }
-    if (confirm('Bạn có chắc chắn muốn xóa ứng dụng này khỏi màn hình chính?')) {
-      appsList = appsList.filter(app => app.id !== id);
+
+    const targetApp = appsList.find(a => String(a.id) === String(id));
+    const appName = targetApp ? targetApp.title : 'ứng dụng này';
+
+    if (confirm(`Bạn có chắc chắn muốn xóa "${appName}" khỏi màn hình chính?`)) {
+      if (id && openWindows[id]) {
+        closeWindow(id);
+      }
+
+      appsList = appsList.filter(app => String(app.id) !== String(id));
       saveAppsToStorage();
       renderAppGrid();
-      renderDockApps(); updateRunningAppIndicators();
+      renderDockApps();
+      updateRunningAppIndicators();
+
+      if (authChannel) {
+        try {
+          authChannel.postMessage({ type: 'APPS_CONFIG_CHANGED', appsList });
+        } catch (e) {}
+      }
+
+      showToast(`🗑️ Đã xóa ứng dụng "${appName}" khỏi màn hình chính`, '🗑️');
     }
+  }
+
+  function handleModalDeleteApp() {
+    const id = DOM.appIdInput ? DOM.appIdInput.value : '';
+    if (!id) return;
+    closeModal();
+    deleteApp(null, id);
   }
 
   // --------------------------------------------------------------------------
@@ -4239,7 +4285,8 @@
     openAnalyticsModal,
     closeAnalyticsModal,
     switchAnalyticsTab,
-    renderAnalyticsModal
+    renderAnalyticsModal,
+    handleModalDeleteApp
   };
 
   Object.assign(window, window.dashboard);
@@ -4255,6 +4302,8 @@
   window.closeAnalyticsModal = closeAnalyticsModal;
   window.switchAnalyticsTab = switchAnalyticsTab;
   window.renderAnalyticsModal = renderAnalyticsModal;
+  window.handleModalDeleteApp = handleModalDeleteApp;
+  window.deleteApp = deleteApp;
 
   let isInitialized = false;
   function init() {

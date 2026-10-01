@@ -278,9 +278,12 @@
         </small>
       </div>
       
-      <div class="modal-actions">
-        <button type="button" class="btn-action btn-cancel" onclick="closeModal()">Hủy</button>
-        <button type="button" class="btn-action btn-save" id="btn-save-app" onclick="saveNewApp()">Lưu Ứng Dụng</button>
+      <div class="modal-actions" style="display:flex; justify-content:space-between; align-items:center;">
+        <button type="button" class="btn-action" id="btn-delete-app" style="display:none; background:rgba(239,68,68,0.25); border:1px solid #ef4444; color:#f87171;" onclick="handleModalDeleteApp()">🗑️ Xóa Ứng Dụng</button>
+        <div style="display:flex; gap:8px; margin-left:auto;">
+          <button type="button" class="btn-action btn-cancel" onclick="closeModal()">Hủy</button>
+          <button type="button" class="btn-action btn-save" id="btn-save-app" onclick="saveNewApp()">Lưu Ứng Dụng</button>
+        </div>
       </div>
     </div>
   </div>
@@ -623,6 +626,6 @@
   </div>
 
   <!-- Controller Logic -->
-  <script src="assets/js/dashboard.js?v=v14widgets"></script>
+  <script src="assets/js/dashboard.js?v=v15deletefix"></script>
 </body>
 </html>
