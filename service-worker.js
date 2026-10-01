@@ -3,7 +3,7 @@
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v13-cardlayout';
+const CACHE_NAME = 'macos-dashboard-v14-widgets';
 const STATIC_ASSETS = [
   './',
   './index.html',
