@@ -335,7 +335,7 @@
             transform: scale(1.08);
         }
         .member-primary-nick {
-            font-size: 1.15rem;
+            font-size: 1.18rem;
             font-weight: 800;
             color: var(--slate-900);
             display: inline-flex;
@@ -343,8 +343,9 @@
             gap: 5px;
             line-height: 1.25;
             transition: color 0.15s ease;
-            white-space: normal;
-            word-break: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .member-profile:hover .member-primary-nick {
             color: var(--primary);

@@ -247,43 +247,55 @@
             gap: 9px;
         }
 
-        /* MEMBER GRID */
+        /* MEMBER GRID & PROFESSIONAL CARD REDESIGN */
         .member-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
         }
         .member-card {
             background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px 16px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.02);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .member-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+            transform: translateY(-2px);
+        }
+        .member-card.is-credit {
+            border-top: 4px solid #10b981;
+        }
+        .member-card.is-debt {
+            border-top: 4px solid #ef4444;
+        }
+        .member-card.is-zero {
+            border-top: 4px solid #cbd5e1;
+        }
+
+        /* Top Row: Avatar + Name (left) & Balance Pill (right) */
+        .member-card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            transition: all 0.2s ease;
+            cursor: pointer;
         }
-        .member-card:hover {
-            border-color: var(--primary-border);
-            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.08);
-            transform: translateY(-2px);
-        }
-        .member-card.is-debt {
-            border-left: 4px solid var(--danger);
-            background: linear-gradient(to right, #fffdfd, #ffffff);
-        }
-        .member-card.is-credit {
-            border-left: 4px solid var(--success);
-            background: linear-gradient(to right, #fcfdfc, #ffffff);
-        }
-        .member-left {
+        .member-card-profile {
             display: flex;
             align-items: center;
             gap: 12px;
             min-width: 0;
             flex: 1;
-            cursor: pointer;
         }
         .member-avatar {
             width: 44px;
@@ -293,67 +305,176 @@
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             color: #ffffff;
             flex-shrink: 0;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-            transition: transform 0.18s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            transition: transform 0.2s ease;
         }
-        .member-left:hover .member-avatar {
-            transform: scale(1.08);
+        .member-card:hover .member-avatar {
+            transform: scale(1.06);
         }
         .member-meta {
             min-width: 0;
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 2px;
         }
         .member-primary-nick {
             font-weight: 800;
-            font-size: 1.15rem;
-            color: var(--slate-900);
-            cursor: pointer;
-            display: inline-flex;
+            font-size: 1.22rem;
+            color: #0f172a;
+            display: flex;
             align-items: center;
-            gap: 5px;
-            line-height: 1.25;
-            transition: color 0.15s ease;
-            white-space: normal;
-            word-break: break-word;
+            gap: 6px;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .member-left:hover .member-primary-nick {
+        .member-primary-nick .nick-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .member-card:hover .member-primary-nick {
             color: var(--primary);
         }
         .member-primary-nick .nick-hint-icon {
             font-size: 11px;
             color: var(--primary);
             opacity: 0.6;
-            transition: opacity 0.15s ease;
+            flex-shrink: 0;
         }
-        .member-left:hover .nick-hint-icon {
+        .member-card:hover .nick-hint-icon {
             opacity: 1;
         }
         .member-fullname-sub {
-            font-size: 0.8rem;
-            color: var(--slate-500);
+            font-size: 0.82rem;
+            color: #64748b;
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 140px;
+            line-height: 1.25;
         }
-        .member-sub {
-            font-size: 0.75rem;
-            color: var(--slate-500);
-            margin-top: 1px;
-            font-weight: 500;
-        }
-        .member-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 6px;
+
+        /* Balance badge: Top right pill */
+        .balance-badge {
+            font-weight: 800;
+            font-size: 0.95rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             flex-shrink: 0;
+            letter-spacing: -0.01em;
+        }
+        .balance-badge.green {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+        .balance-badge.red {
+            background: #fff1f2;
+            color: #e11d48;
+            border: 1px solid #fecdd3;
+        }
+        .balance-badge.zero {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Middle Row: Status indicator text */
+        .member-card-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2px 0 2px;
+            cursor: pointer;
+        }
+        .fund-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .fund-status-pill.green {
+            color: #059669;
+        }
+        .fund-status-pill.red {
+            color: #e11d48;
+        }
+        .fund-status-pill.zero {
+            color: #64748b;
+        }
+        .member-role-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 6px;
+        }
+
+        /* Bottom Row: Action Toolbar */
+        .member-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .member-card-actions .action-btn {
+            flex: 1;
+            height: 33px;
+            padding: 0 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .member-card-actions .action-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .member-card-actions .action-btn-pay {
+            background: #faf5ff;
+            border-color: #e9d5ff;
+            color: #7e22ce;
+        }
+        .member-card-actions .action-btn-pay:hover {
+            background: #f3e8ff;
+            border-color: #d8b4fe;
+            color: #6b21a8;
+        }
+        .member-card-actions .action-btn-edit {
+            flex: 0 0 34px;
+            width: 34px;
+            padding: 0;
+            color: #64748b;
+        }
+        .member-card-actions .action-btn-edit:hover {
+            color: var(--primary);
+            background: #eef2ff;
+            border-color: #c7d2fe;
         }
 
         /* PROFILE DETAIL MODAL STYLES */
@@ -520,23 +641,6 @@
         .profile-qr-img:hover {
             transform: scale(1.05);
         }
-        .balance-badge {
-            font-weight: 800;
-            font-size: 0.88rem;
-            padding: 4px 10px;
-            border-radius: 20px;
-            white-space: nowrap;
-        }
-        .balance-badge.green { background: var(--success-light); color: var(--success); border: 1px solid var(--success-border); }
-        .balance-badge.red { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger-border); }
-        .balance-badge.zero { background: var(--slate-100); color: var(--slate-500); }
-
-        .member-btn-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
         /* TAB CONTROLS FOR LOGS & MEALS */
         .tab-nav {
             display: flex;
@@ -1845,19 +1949,22 @@
             members.forEach(m => {
                 let badgeClass = "zero";
                 let badgeText = formatMoney(m.balance);
-                let cardClass = "";
-                let subText = "Đã cân bằng";
+                let cardClass = "is-zero";
+                let subText = "Đã cân bằng quỹ";
+                let statusIcon = "fa-check";
 
                 if (m.balance > 0) {
                     badgeClass = "green";
                     badgeText = "+" + formatMoney(m.balance);
                     cardClass = "is-credit";
                     subText = "Quỹ thừa (Được nhận lại)";
+                    statusIcon = "fa-circle-check";
                 } else if (m.balance < 0) {
                     badgeClass = "red";
                     badgeText = "-" + formatMoney(Math.abs(m.balance));
                     cardClass = "is-debt";
                     subText = "Cần nộp vào quỹ";
+                    statusIcon = "fa-circle-exclamation";
                 }
 
                 const displayNick = m.nickname || m.name || 'Thành viên';
@@ -1871,32 +1978,43 @@
                 const card = document.createElement('div');
                 card.className = `member-card ${cardClass}`;
                 card.innerHTML = `
-                    <div class="member-left" onclick="openMemberProfileModal('${m.id}')" title="Bấm xem hồ sơ đầy đủ của ${displayNick}">
-                        <div class="member-avatar" style="background: ${getAvatarColor(displayNick)}">
-                            ${displayNick.charAt(0).toUpperCase()}
-                        </div>
-                        <div class="member-meta">
-                            <div class="member-primary-nick">
-                                <span>${displayNick}</span>
-                                <i class="fa-solid fa-circle-info nick-hint-icon" title="Xem hồ sơ"></i>
+                    <!-- 1. Header: Avatar + Nickname & Balance Pill -->
+                    <div class="member-card-header" onclick="openMemberProfileModal('${m.id}')" title="Bấm xem hồ sơ đầy đủ của ${displayNick}">
+                        <div class="member-card-profile">
+                            <div class="member-avatar" style="background: ${getAvatarColor(displayNick)}">
+                                ${displayNick.charAt(0).toUpperCase()}
                             </div>
-                            ${hasDiffFull ? `<div class="member-fullname-sub" title="${displayFull}">${displayFull}</div>` : ''}
-                            <div class="member-sub">${subText}</div>
+                            <div class="member-meta">
+                                <div class="member-primary-nick">
+                                    <span class="nick-text">${displayNick}</span>
+                                    <i class="fa-solid fa-circle-info nick-hint-icon" title="Xem hồ sơ"></i>
+                                </div>
+                                ${hasDiffFull ? `<div class="member-fullname-sub" title="${displayFull}">${displayFull}</div>` : ''}
+                            </div>
                         </div>
-                    </div>
-                    <div class="member-right">
                         <span class="balance-badge ${badgeClass}">${badgeText}</span>
-                        <div class="member-btn-group">
-                            <button class="btn btn-outline btn-sm admin-edit-btn" onclick="openEditMemberModal('${m.id}')" title="Sửa thông tin thành viên" style="font-weight:600; color:var(--primary);">
-                                <i class="fa-solid fa-pen-to-square"></i> Sửa
-                            </button>
-                            <button class="btn btn-outline btn-sm" onclick="openQrModal('${m.id}')" title="${qrTitle}">
-                                <i class="fa-solid fa-qrcode"></i> QR
-                            </button>
-                            <button class="btn btn-outline btn-sm admin-only" onclick="openPayModal('${m.id}')" title="Cấn trừ / Nộp quỹ">
-                                <i class="fa-solid fa-money-bill-transfer"></i> Cấn trừ
-                            </button>
-                        </div>
+                    </div>
+
+                    <!-- 2. Status Row -->
+                    <div class="member-card-body" onclick="openMemberProfileModal('${m.id}')" title="Xem hồ sơ đầy đủ của ${displayNick}">
+                        <span class="fund-status-pill ${badgeClass}">
+                            <i class="fa-solid ${statusIcon}"></i>
+                            <span>${subText}</span>
+                        </span>
+                        ${m.note ? `<span class="member-role-badge">${m.note}</span>` : ''}
+                    </div>
+
+                    <!-- 3. Actions Toolbar -->
+                    <div class="member-card-actions">
+                        <button type="button" class="action-btn action-btn-qr" onclick="openQrModal('${m.id}')" title="${qrTitle}">
+                            <i class="fa-solid fa-qrcode"></i> <span>Mã QR</span>
+                        </button>
+                        <button type="button" class="action-btn action-btn-pay admin-only" onclick="openPayModal('${m.id}')" title="Cấn trừ / Nộp quỹ">
+                            <i class="fa-solid fa-money-bill-transfer"></i> <span>Cấn trừ</span>
+                        </button>
+                        <button type="button" class="action-btn action-btn-edit admin-edit-btn" onclick="openEditMemberModal('${m.id}')" title="Sửa thông tin thành viên">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
                     </div>
                 `;
                 container.appendChild(card);
