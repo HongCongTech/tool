@@ -181,7 +181,8 @@
         .cp-section {
             display: none;
             animation: fadeIn 0.25s ease-out;
-            max-width: 820px;
+            width: 100%;
+            max-width: 100%;
         }
         .cp-section.active {
             display: block;
@@ -287,13 +288,14 @@
         /* VIETQR CARD PREVIEW */
         .vietqr-box {
             display: flex;
-            gap: 20px;
-            align-items: center;
+            gap: 24px;
+            align-items: flex-start;
             background: var(--slate-50);
-            padding: 16px;
+            padding: 20px;
             border-radius: var(--radius-md);
             border: 1px solid var(--border);
             flex-wrap: wrap;
+            max-width: 780px;
         }
         .qr-display {
             background: white;
@@ -333,11 +335,12 @@
             background: white;
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
-            padding: 14px 16px;
-            margin-bottom: 10px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
             display: flex;
-            gap: 14px;
+            gap: 16px;
             align-items: flex-start;
+            max-width: 1000px;
         }
         .proposal-badge {
             width: 38px;
@@ -499,28 +502,53 @@
         }
 
         /* MEMBER DIRECTORY STYLES */
+        .table-scroll-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: white;
+        }
+        .table-scroll-wrap::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .table-scroll-wrap::-webkit-scrollbar-track {
+            background: var(--slate-100);
+            border-radius: 4px;
+        }
+        .table-scroll-wrap::-webkit-scrollbar-thumb {
+            background: var(--slate-300);
+            border-radius: 4px;
+        }
+        .table-scroll-wrap::-webkit-scrollbar-thumb:hover {
+            background: var(--slate-400);
+        }
+
         .member-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
         }
         .member-table th {
             background: var(--slate-100);
-            padding: 10px 14px;
+            padding: 12px 16px;
             font-weight: 700;
             color: var(--slate-700);
             text-align: left;
             border-bottom: 1px solid var(--border);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
         .member-table td {
-            padding: 12px 14px;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
             background: white;
         }
         .member-table tr:hover td {
-            background: var(--slate-50);
+            background: #f8fafc;
         }
         .member-avatar {
             width: 38px;
@@ -953,7 +981,7 @@
 
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-                        <div style="position:relative; flex:1; min-width:240px; max-width:420px;">
+                        <div style="position:relative; flex:1; min-width:240px; max-width:480px;">
                             <input type="text" id="memberSearchInput" class="form-control" placeholder="🔍 Tìm theo Họ tên, Nickname, SĐT, STK..." oninput="filterGlobalMembers(this.value)">
                         </div>
                         <div style="display:flex; gap:8px; align-items:center;">
@@ -967,23 +995,23 @@
                     </div>
 
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <div style="font-size:0.85rem; font-weight:700; color:var(--slate-700);">
+                        <div style="font-size:0.88rem; font-weight:700; color:var(--slate-700);">
                             Danh sách thành viên (<span id="globalMemberCount" style="color:var(--primary);">0</span>)
                         </div>
-                        <div style="font-size:0.78rem; color:var(--slate-500);">
+                        <div style="font-size:0.8rem; color:var(--slate-500);">
                             <i class="fa-solid fa-circle-info"></i> Bấm "Mã QR" để tạo mã quét trả tiền hoặc hoàn tiền trực tiếp
                         </div>
                     </div>
 
-                    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-sm); max-height:480px; overflow-y:auto;">
+                    <div class="table-scroll-wrap" style="max-height:calc(100vh - 270px); min-height:380px; overflow-y:auto;">
                         <table class="member-table">
                             <thead>
                                 <tr>
-                                    <th>Thành viên</th>
-                                    <th>Sinh nhật</th>
-                                    <th>Số điện thoại</th>
-                                    <th>Tài khoản ngân hàng (STK)</th>
-                                    <th style="text-align:center; min-width:180px;">Thao tác</th>
+                                    <th style="min-width: 220px; width: 28%;">Thành viên</th>
+                                    <th style="min-width: 140px; width: 16%;">Sinh nhật</th>
+                                    <th style="min-width: 150px; width: 18%;">Số điện thoại</th>
+                                    <th style="min-width: 240px; width: 24%;">Tài khoản ngân hàng (STK)</th>
+                                    <th style="text-align:center; min-width: 180px; width: 14%;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="globalMemberListBody">
@@ -1026,25 +1054,27 @@
                     <div class="section-desc">Bảo vệ dữ liệu công nợ, nhật ký chi tiêu và danh sách ứng dụng an toàn.</div>
                 </div>
 
-                <div class="card">
-                    <div class="card-title">Xuất bản sao lưu toàn bộ hệ thống</div>
-                    <p style="font-size:0.85rem; color:var(--slate-500); margin-bottom:12px;">
-                        Tạo 1 file sao lưu <code>.json</code> chứa toàn bộ danh sách thành viên, các hóa đơn chia bill, suất ăn tiền cơm, ghi chú và cấu hình ngân hàng.
-                    </p>
-                    <button class="btn btn-primary" onclick="exportFullBackup()">
-                        <i class="fa-solid fa-download"></i> Tải File Sao Lưu (.JSON)
-                    </button>
-                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap:20px;">
+                    <div class="card" style="margin-bottom:0;">
+                        <div class="card-title">Xuất bản sao lưu toàn bộ hệ thống</div>
+                        <p style="font-size:0.85rem; color:var(--slate-500); margin-bottom:12px;">
+                            Tạo 1 file sao lưu <code>.json</code> chứa toàn bộ danh sách thành viên, các hóa đơn chia bill, suất ăn tiền cơm, ghi chú và cấu hình ngân hàng.
+                        </p>
+                        <button class="btn btn-primary" onclick="exportFullBackup()">
+                            <i class="fa-solid fa-download"></i> Tải File Sao Lưu (.JSON)
+                        </button>
+                    </div>
 
-                <div class="card">
-                    <div class="card-title">Khôi phục dữ liệu từ file backup</div>
-                    <p style="font-size:0.85rem; color:var(--slate-500); margin-bottom:12px;">
-                        Chọn file backup <code>.json</code> đã lưu trước đây để phục hồi lại dữ liệu.
-                    </p>
-                    <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
-                    <button class="btn btn-outline" onclick="document.getElementById('restoreFileInput').click()">
-                        <i class="fa-solid fa-upload"></i> Chọn File Khôi Phục
-                    </button>
+                    <div class="card" style="margin-bottom:0;">
+                        <div class="card-title">Khôi phục dữ liệu từ file backup</div>
+                        <p style="font-size:0.85rem; color:var(--slate-500); margin-bottom:12px;">
+                            Chọn file backup <code>.json</code> đã lưu trước đây để phục hồi lại dữ liệu.
+                        </p>
+                        <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="handleRestoreFile(this)">
+                        <button class="btn btn-outline" onclick="document.getElementById('restoreFileInput').click()">
+                            <i class="fa-solid fa-upload"></i> Chọn File Khôi Phục
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -1248,7 +1278,7 @@
                         </div>
                     </div>
 
-                    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-md);">
+                    <div class="table-scroll-wrap">
                         <table class="member-table" style="font-size:12.5px;">
                             <thead>
                                 <tr>
@@ -1288,7 +1318,7 @@
                         <button class="btn btn-primary btn-sm admin-only" onclick="openCpAddAppModal()"><i class="fa-solid fa-plus"></i> Thêm App Mới</button>
                     </div>
 
-                    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-md);">
+                    <div class="table-scroll-wrap">
                         <table class="member-table" style="font-size:13px;">
                             <thead>
                                 <tr>
@@ -1872,7 +1902,7 @@
                             </div>
                         ` : '<span style="color:var(--slate-400); font-style:italic;">Chưa cập nhật STK</span>'}
                     </td>
-                    <td style="text-align:center;">
+                    <td style="text-align:center; white-space:nowrap;">
                         <div style="display:inline-flex; gap:6px;">
                             <button class="btn btn-primary btn-sm" onclick="openMemberQrModal(${m.id})" title="Tạo mã QR chuyển tiền / trả tiền lại">
                                 <i class="fa-solid fa-qrcode"></i> Mã QR
