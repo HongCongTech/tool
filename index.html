@@ -274,10 +274,10 @@
   <div class="modal-overlay" id="adminAuthModal" onclick="if(event.target===this) closeAdminAuthModal()">
     <div class="modal-box" style="max-width: 380px;">
       <h2 class="modal-title" id="adminAuthTitle">🔑 Xác Thực Quản Trị Viên</h2>
-      <p id="adminAuthDesc" style="font-size:13px; color:#cbd5e1; text-align:center;">Nhập mật khẩu Admin để truy cập toàn quyền hệ thống (Mặc định: <b>admin</b>):</p>
+      <p id="adminAuthDesc" style="font-size:13px; color:#cbd5e1; text-align:center;">Nhập mật khẩu Admin để truy cập toàn quyền hệ thống:</p>
       
       <div class="input-group">
-        <input type="password" id="adminAuthInput" placeholder="Nhập mật khẩu (mặc định: admin)..." onkeyup="if(event.key==='Enter') submitAdminAuth()">
+        <input type="password" id="adminAuthInput" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitAdminAuth()">
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-4px; margin-bottom:14px;">
@@ -320,7 +320,7 @@
     <div class="modal-box" style="max-width: 400px; text-align:center;">
       <h2 class="modal-title" style="color:#38bdf8;">Khôi Phục Mật Khẩu Admin</h2>
       <p style="font-size:13px; color:#cbd5e1; margin-bottom:16px; line-height:1.5;">
-        Hệ thống sẽ gửi mã OTP tới email cứu hộ đã cấu hình. Mã OTP chỉ có hiệu lực trong 1 phút.
+        Supabase Auth sẽ gửi mã OTP tới email cứu hộ đã cấu hình. Thời hạn mã được quản lý trong cài đặt Supabase.
       </p>
 
       <div id="otpRequestStep" style="text-align:left;">
@@ -520,6 +520,6 @@
   </div>
 
   <!-- Controller Logic -->
-  <script src="assets/js/dashboard.js?v=otp5"></script>
+  <script src="assets/js/dashboard.js?v=static-auth1"></script>
 </body>
 </html>

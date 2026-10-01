@@ -23,7 +23,7 @@
 
   const memoryStore = sharedStore || (window.__DB_SYSTEM_STORE__ = {});
   let isDbConnected = false;
-  let currentSyncMode = 'OFFLINE_CACHE'; // 'SUPABASE_REST' | 'NODE_SERVER' | 'OFFLINE_CACHE'
+  let currentSyncMode = 'OFFLINE_CACHE'; // 'SUPABASE_REST' | 'OFFLINE_CACHE'
   let saveDebounceTimers = {};
   let isSyncing = false;
   let lastSyncTimestamp = 0;
@@ -58,18 +58,6 @@
 
     if (url.endsWith('/')) url = url.slice(0, -1);
     return { url, anonKey };
-  }
-
-  function getNodeApiBase() {
-    try {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return window.location.origin;
-      }
-      if (window.location.protocol === 'file:') {
-        return 'http://localhost:3001';
-      }
-    } catch (e) {}
-    return null;
   }
 
   // 2. KHỞI ĐỘNG ĐỒNG BỘ CHẶN TỨC THÌ (Synchronous Instant Boot):
@@ -120,29 +108,6 @@
         }
       } catch (err) {
         console.warn('[DB-Storage] Nạp đồng bộ thất bại, chuyển sang chế độ nền:', err.message);
-      }
-    } else {
-      // Nếu chạy localhost nội bộ không có anonKey
-      const nodeBase = getNodeApiBase();
-      if (nodeBase) {
-        try {
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', `${nodeBase}/api/storage`, false);
-          xhr.send(null);
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const res = JSON.parse(xhr.responseText);
-            if (res.success && res.data) {
-              for (const [k, v] of Object.entries(res.data)) {
-                const valStr = typeof v === 'string' ? v : JSON.stringify(v);
-                memoryStore[k] = valStr;
-                try { nativeStorage.setItem.call(localStorage, k, valStr); } catch (e) {}
-              }
-              isDbConnected = true;
-              currentSyncMode = 'NODE_SERVER';
-              lastSyncTimestamp = Date.now();
-            }
-          }
-        } catch (e) {}
       }
     }
   }
@@ -246,26 +211,6 @@
         if (ok) return;
       }
 
-      const nodeBase = getNodeApiBase();
-      if (nodeBase) {
-        try {
-          const res = await fetch(`${nodeBase}/api/storage`);
-          if (res.ok) {
-            const json = await res.json();
-            if (json.success && json.data) {
-              for (const [k, v] of Object.entries(json.data)) {
-                const valStr = typeof v === 'string' ? v : JSON.stringify(v);
-                memoryStore[k] = valStr;
-                try { nativeStorage.setItem.call(localStorage, k, valStr); } catch (e) {}
-              }
-              isDbConnected = true;
-              currentSyncMode = 'NODE_SERVER';
-              notifyDataChanged();
-              return;
-            }
-          }
-        } catch (e) {}
-      }
     } finally {
       isSyncing = false;
     }
@@ -341,19 +286,6 @@
         }
       }
 
-      // Ghi lên Node.js Server nếu local
-      const nodeBase = getNodeApiBase();
-      if (nodeBase) {
-        try {
-          let parsedVal = value;
-          try { parsedVal = JSON.parse(value); } catch (e) {}
-          await fetch(`${nodeBase}/api/storage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key, value: parsedVal })
-          });
-        } catch (e) {}
-      }
     };
 
     if (isCritical) {
@@ -374,10 +306,6 @@
       }).catch(() => {});
     }
 
-    const nodeBase = getNodeApiBase();
-    if (nodeBase) {
-      fetch(`${nodeBase}/api/storage/${encodeURIComponent(key)}`, { method: 'DELETE' }).catch(() => {});
-    }
   }
 
   // 6. GHI ĐÈ Storage.prototype
@@ -460,6 +388,14 @@
     isConnected: () => isDbConnected,
     getSyncMode: () => currentSyncMode,
     getSupabaseConfig,
+    setCachedValue: function (key, value) {
+      const k = String(key);
+      const strVal = String(value);
+      const oldVal = memoryStore[k];
+      memoryStore[k] = strVal;
+      try { nativeStorage.setItem.call(localStorage, k, strVal); } catch (e) {}
+      dispatchStorageChange(k, oldVal, strVal);
+    },
     setSupabaseAnonKey: async function (newKey) {
       const trimmed = (newKey || '').trim();
       try {

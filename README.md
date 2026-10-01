@@ -1,6 +1,6 @@
-#  macOS Web Dashboard Workspace (Pro Edition)
+# macOS Web Dashboard Workspace
 
-Hệ thống điều hành và cổng quản lý ứng dụng văn phòng phong cách giao diện macOS hiện đại. Dự án được cấu trúc theo tiêu chuẩn **Clean Architecture / Modular Micro-Frontend**, tích hợp đầy đủ tính năng tương tác thực tế, hỗ trợ PWA offline và sao lưu dữ liệu toàn diện.
+Dashboard web tĩnh chạy trực tiếp trên GitHub Pages. Dữ liệu được đồng bộ qua Supabase REST và luồng OTP khôi phục Admin sử dụng Supabase Auth, không cần chạy Node.js server.
 
 ---
 
@@ -31,6 +31,8 @@ website/
 ├── index.html                  # Entry point chính - Shell giao diện macOS Dashboard
 ├── manifest.json               # Cấu hình PWA Web App Manifest (Cài đặt làm ứng dụng)
 ├── service-worker.js           # Bộ nhớ đệm ngoại tuyến (Offline Caching)
+├── assets/js/db-config.js      # Supabase URL và anon public key
+├── assets/js/db-storage.js     # Đồng bộ trực tiếp với Supabase REST
 ├── .editorconfig               # Chuẩn hóa format mã nguồn (UTF-8, 2 spaces, CRLF/LF)
 ├── .gitignore                  # Loại trừ file rác hệ điều hành (.DS_Store, Thumbs.db)
 └── README.md                   # Tài liệu kiến trúc và hướng dẫn vận hành
@@ -78,13 +80,30 @@ website/
 
 ---
 
-## 🚀 Hướng Dẫn Vận Hành
+## Triển khai GitHub Pages
 
-### Chạy trực tiếp qua trình duyệt:
-Mở trực tiếp file [index.html](file:///y:/website/index.html) bằng Chrome, Edge, Safari hoặc Firefox.
+1. Push các file tĩnh lên repository GitHub.
+2. Vào `Settings > Pages`.
+3. Chọn `Deploy from a branch`, branch `main`, thư mục `/ (root)`.
+4. Mở địa chỉ Pages sau khi quá trình deploy hoàn tất.
 
-### Chạy qua Local HTTP Server:
-```bash
-npx serve .
-# Hoặc: python -m http.server 8000
+Không đưa database password, `service_role` key hoặc Gmail App Password vào repository. `SUPABASE_URL` và anon/publishable key trong `assets/js/db-config.js` là thông tin dành cho client; bảo mật dữ liệu phải được thực thi bằng Supabase Row Level Security.
+
+## Cấu hình OTP Admin
+
+1. Trong Supabase Dashboard, mở `Authentication > Providers > Email` và bật Email Auth.
+2. Mở `Authentication > Email Templates > Magic Link` và dùng `{{ .Token }}` trong nội dung email để Supabase gửi mã OTP thay vì chỉ gửi magic link.
+3. Trong `Authentication > SMTP Settings`, cấu hình SMTP của nhà cung cấp email. Gmail cần dùng App Password, không dùng mật khẩu đăng nhập Gmail.
+4. Đặt thời hạn OTP trong phần cấu hình Email Auth. Giao diện áp dụng thời gian chờ gửi lại 60 giây theo giới hạn mặc định của Supabase.
+5. Trong Dashboard web, lưu đúng email cứu hộ Admin. Lần gửi OTP đầu tiên sẽ tạo Supabase Auth user cho email này nếu chưa tồn tại.
+
+Mẫu tối thiểu cho email template:
+
+```html
+<h2>Mã OTP khôi phục Admin</h2>
+<p>Mã xác minh của bạn:</p>
+<p style="font-size: 28px; font-weight: 700;">{{ .Token }}</p>
+<p>Nếu bạn không yêu cầu mã này, hãy bỏ qua email.</p>
 ```
+
+Supabase Auth gửi và xác minh OTP. Sau khi mã hợp lệ, access token của phiên xác thực mới được dùng để cập nhật hash mật khẩu Admin trong `system_store`.

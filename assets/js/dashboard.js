@@ -67,6 +67,7 @@
   let failedAttempts = parseInt(localStorage.getItem(SYS_FAILED_KEY) || '0');
   const authChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('system_admin_auth') : null;
   let adminPasswordResetToken = '';
+  let adminOtpEmail = '';
   let adminOtpCountdownTimer = null;
 
   // DOM Getters
@@ -315,26 +316,17 @@
   async function submitAdminAuth() {
     const passInput = (DOM.adminAuthInput ? DOM.adminAuthInput.value : '').trim();
     if (!passInput) {
-      showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin (Mặc định: <b>admin</b>).', 'warning');
+      showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin.', 'warning');
       return;
     }
 
     const hashedInput = await hashPassword(passInput);
     const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY);
-    const defaultHash = await hashPassword('admin');
-
-    // Chấp nhận mật khẩu đã lưu, hoặc mật khẩu mặc định 'admin' hoặc 'admin123'
-    const isMatched = (storedHash && hashedInput === storedHash) ||
-                      (!storedHash && (passInput === 'admin' || passInput === 'admin123')) ||
-                      (passInput === 'admin');
+    const isMatched = Boolean(storedHash && hashedInput === storedHash);
 
     if (isMatched) {
       failedAttempts = 0;
       localStorage.setItem(SYS_FAILED_KEY, '0');
-      if (!storedHash) {
-        localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
-        localStorage.setItem('p2p_admin_pass_hash', defaultHash);
-      }
       setAdminMode(true);
       closeAdminAuthModal();
       showMacAlert('🎉 Đăng Nhập Thành Công', 'Chế độ Quản trị viên đã được kích hoạt. Bạn hiện có toàn quyền chỉnh sửa và quản lý hệ thống.', 'success');
@@ -344,8 +336,7 @@
       showMacAlert(
         'Mật Khẩu Không Đúng',
         `Mật khẩu Admin vừa nhập không chính xác.<br><br>
-         💡 <i>Mật khẩu mặc định của hệ thống là: <b>admin</b></i><br><br>
-         Nếu bạn quên mật khẩu, hãy nhấn nút <b>"Quên mật khẩu? Đặt lại về admin"</b> bên dưới để mở khóa ngay lập tức!`,
+         Nếu bạn quên mật khẩu, hãy dùng chức năng <b>Gửi mã OTP</b> để khôi phục.`,
         'warning'
       );
       if (DOM.adminAuthInput) {
@@ -612,14 +603,71 @@
   // --------------------------------------------------------------------------
   // 2.2 RECOVERY & PASSWORD MANAGEMENT WITH EMAIL OTP
   // --------------------------------------------------------------------------
-  function getAuthApiBase() {
+  function getSupabaseAuthConfig() {
+    const config = window.dbStorage?.getSupabaseConfig?.() || window.__SUPABASE_CONFIG__ || {};
+    const url = String(config.url || '').trim().replace(/\/$/, '');
+    const anonKey = String(config.anonKey || '').trim();
+    if (!url || !anonKey) {
+      throw new Error('Chưa cấu hình Supabase URL hoặc anon public key.');
+    }
+    return { url, anonKey };
+  }
+
+  function getRecoveryEmail() {
+    let email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || '';
     try {
-      if (window.location.protocol === 'file:') return 'http://localhost:3001';
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return window.location.origin;
-      }
+      const parsed = JSON.parse(email);
+      if (typeof parsed === 'string') email = parsed;
     } catch (e) {}
-    return '';
+    email = String(email).trim().toLowerCase();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
+  }
+
+  function maskEmail(email) {
+    const [name, domain] = String(email).split('@');
+    if (!name || !domain) return 'email cứu hộ';
+    return `${name.slice(0, 2)}***@${domain}`;
+  }
+
+  async function supabaseRequest(path, body, accessToken = '') {
+    const { url, anonKey } = getSupabaseAuthConfig();
+    const res = await fetch(`${url}${path}`, {
+      method: 'POST',
+      headers: {
+        'apikey': anonKey,
+        'Authorization': `Bearer ${accessToken || anonKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.msg || data.message || data.error_description || data.error || `Supabase HTTP ${res.status}`);
+    }
+    return data;
+  }
+
+  async function saveAdminPasswordWithSession(passwordHash, accessToken) {
+    const { url, anonKey } = getSupabaseAuthConfig();
+    const rows = [SYS_ADMIN_HASH_KEY, 'p2p_admin_pass_hash'].map(key => ({
+      key,
+      value: passwordHash,
+      updated_at: new Date().toISOString()
+    }));
+    const res = await fetch(`${url}/rest/v1/system_store?on_conflict=key`, {
+      method: 'POST',
+      headers: {
+        'apikey': anonKey,
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify(rows)
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || data.error || `Không thể cập nhật mật khẩu (HTTP ${res.status})`);
+    }
   }
 
   function openForgotPasswordModal() {
@@ -639,6 +687,7 @@
       const resendBtn = document.getElementById('btnResendAdminOtp');
       const verifyBtn = document.getElementById('btnVerifyAdminOtp');
       adminPasswordResetToken = '';
+      adminOtpEmail = '';
       stopAdminOtpCountdown();
       if (requestStep) requestStep.style.display = 'block';
       if (verifyStep) verifyStep.style.display = 'none';
@@ -661,6 +710,7 @@
 
   function closeForgotPasswordModal() {
     adminPasswordResetToken = '';
+    adminOtpEmail = '';
     stopAdminOtpCountdown();
     if (DOM.forgotPasswordModal) DOM.forgotPasswordModal.classList.remove('active');
   }
@@ -688,7 +738,7 @@
 
     if (timerText) {
       timerText.style.display = 'block';
-      timerText.textContent = `Mã OTP hết hạn sau ${formatOtpSeconds(remaining)}`;
+      timerText.textContent = `Có thể gửi lại mã sau ${formatOtpSeconds(remaining)}`;
     }
     if (resendBtn) resendBtn.style.display = 'none';
     if (verifyBtn) verifyBtn.disabled = false;
@@ -698,15 +748,15 @@
       remaining -= 1;
       if (timerText) {
         timerText.textContent = remaining > 0
-          ? `Mã OTP hết hạn sau ${formatOtpSeconds(remaining)}`
-          : 'Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.';
+          ? `Có thể gửi lại mã sau ${formatOtpSeconds(remaining)}`
+          : 'Bạn có thể gửi lại mã OTP mới.';
       }
 
       if (remaining <= 0) {
         stopAdminOtpCountdown();
         if (resendBtn) resendBtn.style.display = 'block';
-        if (verifyBtn) verifyBtn.disabled = true;
-        if (otpInput) otpInput.disabled = true;
+        if (verifyBtn) verifyBtn.disabled = false;
+        if (otpInput) otpInput.disabled = false;
       }
     }, 1000);
   }
@@ -716,11 +766,11 @@
     if (!emailHint) return;
 
     try {
-      const res = await fetch(`${getAuthApiBase()}/api/auth/recovery-email`);
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Không đọc được email nhận OTP');
+      await window.dbStorage?.syncNow?.();
+      const email = getRecoveryEmail();
+      if (!email) throw new Error('Chưa cấu hình email nhận OTP');
       emailHint.style.display = 'block';
-      emailHint.textContent = `Email nhận OTP: ${data.email}`;
+      emailHint.textContent = `Email nhận OTP: ${maskEmail(email)}`;
     } catch (err) {
       emailHint.style.display = 'block';
       emailHint.textContent = 'Chưa cấu hình email nhận OTP';
@@ -741,13 +791,16 @@
     }
 
     try {
-      const res = await fetch(`${getAuthApiBase()}/api/auth/request-admin-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+      await window.dbStorage?.syncNow?.();
+      const email = getRecoveryEmail();
+      if (!email) throw new Error('Chưa cấu hình email cứu hộ trong phần cài đặt Admin.');
+
+      await supabaseRequest('/auth/v1/otp', {
+        email,
+        create_user: true
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Không gửi được OTP');
+      adminOtpEmail = email;
+      const maskedEmail = maskEmail(email);
 
       const verifyStep = document.getElementById('otpVerifyStep');
       const resetStep = document.getElementById('passwordResetStep');
@@ -767,13 +820,13 @@
       if (verifyBtn) verifyBtn.disabled = false;
       if (emailHint) {
         emailHint.style.display = 'block';
-        emailHint.textContent = `Mã OTP đã gửi tới: ${data.email || 'email cứu hộ'}`;
+        emailHint.textContent = `Mã OTP đã gửi tới: ${maskedEmail}`;
       }
-      startAdminOtpCountdown((parseInt(data.expiresInMinutes, 10) || 1) * 60);
-      showMacAlert('Đã Gửi OTP', `Mã OTP đã được gửi tới <b>${data.email || 'email cứu hộ'}</b>. Mã có hiệu lực trong ${data.expiresInMinutes} phút.`, 'success');
+      startAdminOtpCountdown(60);
+      showMacAlert('Đã Gửi OTP', `Mã OTP đã được Supabase gửi tới <b>${maskedEmail}</b>.`, 'success');
       if (otp) setTimeout(() => otp.focus(), 100);
     } catch (err) {
-      showMacAlert('Gửi OTP Thất Bại', err.message || 'Không thể gửi OTP. Vui lòng kiểm tra cấu hình SMTP trong .env.', 'error');
+      showMacAlert('Gửi OTP Thất Bại', err.message || 'Không thể gửi OTP. Vui lòng kiểm tra Email Auth và SMTP trong Supabase.', 'error');
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -800,15 +853,20 @@
     }
 
     try {
-      const verifyRes = await fetch(`${getAuthApiBase()}/api/auth/verify-admin-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp })
+      const email = adminOtpEmail || getRecoveryEmail();
+      if (!email) throw new Error('Không xác định được email nhận OTP.');
+      const verifyData = await supabaseRequest('/auth/v1/verify', {
+        email,
+        token: otp,
+        type: 'email'
       });
-      const verifyData = await verifyRes.json();
-      if (!verifyRes.ok || !verifyData.success) throw new Error(verifyData.error || 'OTP không hợp lệ');
+      const session = verifyData.session || verifyData;
+      const verifiedEmail = String(verifyData.user?.email || session.user?.email || '').toLowerCase();
+      if (!session.access_token || (verifiedEmail && verifiedEmail !== email)) {
+        throw new Error('Phiên xác minh OTP không hợp lệ.');
+      }
 
-      adminPasswordResetToken = verifyData.resetToken;
+      adminPasswordResetToken = session.access_token;
       const resetStep = document.getElementById('passwordResetStep');
       if (resetStep) resetStep.style.display = 'block';
       const passInput = document.getElementById('newAdminPassDirect');
@@ -854,20 +912,20 @@
 
     try {
       const hashedNew = await hashPassword(newPass);
-      const resetRes = await fetch(`${getAuthApiBase()}/api/auth/reset-admin-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resetToken: adminPasswordResetToken, passwordHash: hashedNew })
-      });
-      const resetData = await resetRes.json();
-      if (!resetRes.ok || !resetData.success) throw new Error(resetData.error || 'Không thể đổi mật khẩu');
+      await saveAdminPasswordWithSession(hashedNew, adminPasswordResetToken);
 
-      localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
-      localStorage.setItem('p2p_admin_pass_hash', hashedNew);
+      if (window.dbStorage?.setCachedValue) {
+        window.dbStorage.setCachedValue(SYS_ADMIN_HASH_KEY, hashedNew);
+        window.dbStorage.setCachedValue('p2p_admin_pass_hash', hashedNew);
+      } else {
+        localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
+        localStorage.setItem('p2p_admin_pass_hash', hashedNew);
+      }
       localStorage.setItem('sys_admin_password_hash', hashedNew);
       localStorage.setItem(SYS_FAILED_KEY, '0');
       failedAttempts = 0;
       adminPasswordResetToken = '';
+      adminOtpEmail = '';
 
       try {
         const bc = new BroadcastChannel('system_admin_auth');
@@ -890,98 +948,12 @@
     }
   }
 
-  // Đặt lại mật khẩu về mặc định 'admin' chỉ với 1 cú nhấp chuột
-  async function quickResetAdminPassword() {
-    showMacAlert(
-      'Đặt Lại Mật Khẩu Admin',
-      `Bạn có muốn đặt lại Mật khẩu Admin về mặc định (<b>admin</b>) và đăng nhập ngay lập tức không?`,
-      'info',
-      async () => {
-        const defaultPass = 'admin';
-        const defaultHash = await hashPassword(defaultPass);
-
-        localStorage.setItem(SYS_ADMIN_HASH_KEY, defaultHash);
-        localStorage.setItem('p2p_admin_pass_hash', defaultHash);
-        localStorage.setItem('sys_admin_password_hash', defaultHash);
-        localStorage.setItem(SYS_FAILED_KEY, '0');
-        failedAttempts = 0;
-
-        // Đồng bộ database Supabase
-        try {
-          if (window.SUPABASE_CLIENT) {
-            window.SUPABASE_CLIENT.from('system_store').upsert({
-              key: SYS_ADMIN_HASH_KEY,
-              value: JSON.stringify(defaultHash),
-              updated_at: new Date().toISOString()
-            }).catch(() => {});
-          }
-        } catch(e) {}
-
-        // Đồng bộ qua BroadcastChannel tới các tab và iframe
-        try {
-          const bc = new BroadcastChannel('system_admin_auth');
-          bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
-          bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
-        } catch(e) {}
-
-        setAdminMode(true);
-        closeAdminAuthModal();
-        closeForgotPasswordModal();
-
-        showMacAlert(
-          '🎉 Đặt Lại Thành Công',
-          `Mật khẩu Admin đã được đặt lại về mặc định:<br><br>
-           🔑 Mật khẩu: <b style="color:#38bdf8; font-size:16px;">admin</b><br><br>
-           Bạn đã được đăng nhập quyền Quản trị viên. Bạn có thể đổi sang mật khẩu khác bất kỳ lúc nào trong Control Panel.`,
-          'success'
-        );
-        showMacToast('Mật khẩu Admin đã đặt lại về: admin', 'success');
-      },
-      () => {}
-    );
+  function quickResetAdminPassword() {
+    openForgotPasswordModal();
   }
 
-  // Đặt mật khẩu mới trực tiếp khi quên mật khẩu
-  async function submitDirectPasswordReset() {
-    const newPass = (document.getElementById('newAdminPassDirect')?.value || '').trim();
-    const confirmPass = (document.getElementById('confirmAdminPassDirect')?.value || '').trim();
-
-    if (!newPass) {
-      return showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu mới bạn muốn đặt!', 'warning');
-    }
-    if (newPass !== confirmPass) {
-      return showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
-    }
-
-    const hashedNew = await hashPassword(newPass);
-    localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
-    localStorage.setItem('p2p_admin_pass_hash', hashedNew);
-    localStorage.setItem('sys_admin_password_hash', hashedNew);
-    localStorage.setItem(SYS_FAILED_KEY, '0');
-    failedAttempts = 0;
-
-    try {
-      if (window.SUPABASE_CLIENT) {
-        window.SUPABASE_CLIENT.from('system_store').upsert({
-          key: SYS_ADMIN_HASH_KEY,
-          value: JSON.stringify(hashedNew),
-          updated_at: new Date().toISOString()
-        }).catch(() => {});
-      }
-    } catch(e) {}
-
-    try {
-      const bc = new BroadcastChannel('system_admin_auth');
-      bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
-      bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
-    } catch(e) {}
-
-    setAdminMode(true);
-    closeAdminAuthModal();
-    closeForgotPasswordModal();
-
-    showMacAlert('🎉 Khôi Phục Thành Công', 'Mật khẩu Admin mới của bạn đã được thiết lập thành công! Quyền Quản trị viên đã được kích hoạt.', 'success');
-    showMacToast('Đã đặt mật khẩu mới và đăng nhập Admin', 'success');
+  function submitDirectPasswordReset() {
+    openForgotPasswordModal();
   }
 
   function resetSecurityToNull() {
