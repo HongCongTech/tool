@@ -3,7 +3,7 @@
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v8-authfix';
+const CACHE_NAME = 'macos-dashboard-v12-nicknames';
 const STATIC_ASSETS = [
   './',
   './index.html',

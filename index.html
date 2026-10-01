@@ -47,11 +47,7 @@
   <header class="top-bar">
     <div class="top-bar-left">
       <button class="top-bar-btn apple-logo-btn" onclick="toggleAppleMenu(event)" title="Menu hệ thống"></button>
-      <span style="font-weight: 600; padding: 0 4px;">Finder</span>
-      <span class="top-bar-btn admin-only" onclick="openControlPanel()">Cài đặt</span>
-      <span class="top-bar-btn" onclick="openAboutModal()">Giới thiệu</span>
-      <span class="top-bar-btn" onclick="openWallpapersModal()">Hình nền</span>
-      <span class="top-bar-btn admin-only" onclick="openModal()">Cài đặt App</span>
+      <span style="font-weight: 600; padding: 0 6px;">Finder</span>
     </div>
 
     <!-- Dropdown Apple Menu -->
@@ -115,7 +111,6 @@
       </button>
 
       <span id="mac-battery" title="Tình trạng pin thiết bị" style="font-size:12px;">🔋 100%</span>
-      <button class="top-bar-btn admin-only" onclick="openControlPanel()" title="Cài đặt hệ thống & VietQR (Control Panel)">🎛️</button>
       <button class="top-bar-btn" onclick="openSpotlight()" title="Tìm kiếm Spotlight (Ctrl+K)">🔍</button>
       <span id="mac-clock" class="top-bar-btn" onclick="toggleCalendar(event)" title="Bấm để xem lịch tháng">00:00</span>
     </div>
@@ -149,11 +144,6 @@
 
         <!-- Các app ghim trên Dock -->
         <div id="dock-apps" style="display:flex; align-items:center; gap:8px;"></div>
-
-        <div class="dock-divider admin-only"></div>
-
-        <!-- Nút Thêm App (Chỉ hiện khi là Admin) -->
-        <button class="dock-btn dock-btn-add admin-only" onclick="openModal()" title="Thêm ứng dụng mới (Admin)">➕</button>
       </nav>
     </div>
   </main>
@@ -570,7 +560,24 @@
     </div>
   </div>
 
+  <!-- 10. NOTIFICATION CENTER (THÔNG BÁO ĐẨY GÓC DƯỚI BÊN PHẢI) -->
+  <div id="macNotificationContainer" class="mac-notification-container" style="display:none;" aria-live="polite">
+    <div class="mac-notif-header" id="macNotifHeader">
+      <div class="mac-notif-header-title">
+        <span class="mac-notif-header-icon">🔔</span>
+        <span class="mac-notif-header-text">Thông Báo Hệ Thống</span>
+        <span class="mac-notif-header-badge" id="macNotifCountBadge">0</span>
+      </div>
+      <button type="button" class="mac-notif-clear-btn" id="macNotifClearAllBtn" onclick="clearAllSystemNotifications()" title="Dọn sạch tất cả thông báo">
+        <span style="font-size:12px;">🧹</span> Xóa tất cả
+      </button>
+    </div>
+    <div class="mac-notif-list" id="macNotifList">
+      <!-- Notification Cards dynamically injected here -->
+    </div>
+  </div>
+
   <!-- Controller Logic -->
-  <script src="assets/js/dashboard.js?v=static-auth1"></script>
+  <script src="assets/js/dashboard.js?v=v12nick"></script>
 </body>
 </html>

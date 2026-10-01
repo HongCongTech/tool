@@ -282,35 +282,71 @@
             align-items: center;
             gap: 12px;
             min-width: 0;
+            flex: 1;
+            cursor: pointer;
         }
         .member-avatar {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: #ffffff;
             flex-shrink: 0;
             box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            transition: transform 0.18s ease;
+        }
+        .member-left:hover .member-avatar {
+            transform: scale(1.08);
         }
         .member-meta {
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
-        .member-name {
-            font-weight: 700;
-            font-size: 0.95rem;
+        .member-primary-nick {
+            font-weight: 800;
+            font-size: 1.15rem;
             color: var(--slate-900);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            line-height: 1.25;
+            transition: color 0.15s ease;
+            white-space: normal;
+            word-break: break-word;
+        }
+        .member-left:hover .member-primary-nick {
+            color: var(--primary);
+        }
+        .member-primary-nick .nick-hint-icon {
+            font-size: 11px;
+            color: var(--primary);
+            opacity: 0.6;
+            transition: opacity 0.15s ease;
+        }
+        .member-left:hover .nick-hint-icon {
+            opacity: 1;
+        }
+        .member-fullname-sub {
+            font-size: 0.8rem;
+            color: var(--slate-500);
+            font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 140px;
         }
         .member-sub {
             font-size: 0.75rem;
             color: var(--slate-500);
             margin-top: 1px;
+            font-weight: 500;
         }
         .member-right {
             display: flex;
@@ -318,6 +354,171 @@
             align-items: flex-end;
             gap: 6px;
             flex-shrink: 0;
+        }
+
+        /* PROFILE DETAIL MODAL STYLES */
+        .profile-banner {
+            height: 90px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+            position: relative;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+        .profile-banner-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s ease;
+        }
+        .profile-banner-close:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+        .profile-header-wrap {
+            padding: 0 24px 16px;
+            position: relative;
+            margin-top: -38px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .profile-avatar-big {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffffff;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        }
+        .profile-title-block {
+            flex: 1;
+            min-width: 180px;
+            padding-top: 40px;
+        }
+        .profile-nick-title {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.2;
+        }
+        .profile-nick-badge-tag {
+            font-size: 11px;
+            font-weight: 700;
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .profile-fullname-text {
+            font-size: 0.95rem;
+            color: var(--slate-600);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .profile-role-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--slate-500);
+            background: var(--slate-100);
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        .profile-section-card {
+            background: var(--slate-50);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+        .profile-section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .profile-data-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 7px 0;
+            border-bottom: 1px dashed rgba(203, 213, 225, 0.6);
+            font-size: 0.88rem;
+        }
+        .profile-data-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .profile-data-label {
+            color: var(--slate-500);
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .profile-data-val {
+            font-weight: 700;
+            color: var(--slate-900);
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .profile-qr-box {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        .profile-qr-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            object-fit: contain;
+            cursor: pointer;
+            background: #ffffff;
+            transition: transform 0.15s ease;
+        }
+        .profile-qr-img:hover {
+            transform: scale(1.05);
         }
         .balance-badge {
             font-weight: 800;
@@ -749,14 +950,8 @@
                 <button class="btn btn-outline btn-sm" onclick="exportZaloReport()" title="Sao chép báo cáo nợ để gửi nhóm Zalo/Telegram">
                     <i class="fa-solid fa-share-nodes"></i> Báo Cáo Zalo
                 </button>
-                <button class="btn btn-outline btn-sm" onclick="openMemberDirectoryModal()" title="Danh bạ thành viên & STK ngân hàng">
-                    <i class="fa-solid fa-address-book" style="color:var(--primary);"></i> Danh Bạ TV
-                </button>
                 <button class="btn btn-primary btn-sm admin-only" onclick="openAddMealModal()">
                     <i class="fa-solid fa-plus"></i> Tạo Bill Mới
-                </button>
-                <button class="btn btn-outline btn-sm admin-only" onclick="openMemberModal()">
-                    <i class="fa-solid fa-user-plus"></i> Quản Lý TV
                 </button>
                 <button class="btn btn-outline btn-sm admin-only" onclick="resetData()" title="Đặt lại dữ liệu ban đầu">
                     <i class="fa-solid fa-rotate-right"></i>
@@ -801,6 +996,7 @@
                 </div>
                 <div style="font-size: 0.8rem; color: var(--slate-500); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <button class="btn btn-outline btn-sm" onclick="openMemberDirectoryModal()"><i class="fa-solid fa-address-book" style="color:var(--primary);"></i> Xem Danh Bạ & STK</button>
+                    <button class="btn btn-success btn-sm admin-only" onclick="openAddMemberModal()"><i class="fa-solid fa-user-plus"></i> Thêm TV</button>
                     <span>Nhấn <strong>"QR"</strong> để chuyển tiền / trả tiền lại</span>
                 </div>
             </div>
@@ -980,31 +1176,7 @@
         </div>
     </div>
 
-    <!-- 4. Modal Manage Members -->
-    <div class="modal-overlay" id="memberModal">
-        <div class="modal" style="max-width: 460px;">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-users-gear"></i> Quản Lý Danh Sách Thành Viên</h3>
-                <button class="close-btn" onclick="closeModal('memberModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group" style="flex-direction: row; gap: 8px;">
-                    <input type="text" id="newMemberName" class="form-control" placeholder="Nhập tên thành viên mới..." style="flex:1;">
-                    <button class="btn btn-primary" onclick="addMember()"><i class="fa-solid fa-plus"></i> Thêm</button>
-                </div>
 
-                <div class="form-group">
-                    <label>Danh sách thành viên hiện hữu:</label>
-                    <div id="manageMemberList" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto;">
-                        <!-- Dynamically listed -->
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('memberModal')">Đóng</button>
-            </div>
-        </div>
-    </div>
 
     <!-- 5. Modal Bill Details -->
     <div class="modal-overlay" id="logDetailModal">
@@ -1053,6 +1225,49 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal('memberDirectoryModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+    <!-- 6.5 Modal Chọn Thành Viên Từ Danh Bạ (Đồng bộ hệ thống) -->
+    <div class="modal-overlay" id="memberPickerModal">
+        <div class="modal" style="max-width: 620px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="display:flex; align-items:center; gap:8px; margin:0;"><i class="fa-solid fa-address-book" style="color:var(--primary);"></i> Chọn Thành Viên Từ Danh Bạ</h3>
+                    <div style="font-size:12px; color:var(--slate-500); margin-top:2px;">Tích chọn thành viên từ Danh Bạ để đưa vào nhóm chia bill</div>
+                </div>
+                <button class="close-btn" onclick="closeModal('memberPickerModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:16px;">
+                <!-- Toolbar Tìm kiếm & Tích chọn tất cả -->
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+                    <div style="position:relative; flex:1; min-width:200px;">
+                        <input type="text" id="dirPickerSearchInput" class="form-control" placeholder="🔍 Tìm theo tên, biệt danh, sđt, ngân hàng..." style="font-size:13px;" oninput="filterDirectoryPicker(this.value)">
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--slate-600); cursor:pointer; user-select:none; font-weight:600;">
+                            <input type="checkbox" id="pickerSelectAllCb" onchange="toggleSelectAllDirectoryPicker(this.checked)" style="width:16px; height:16px; cursor:pointer;">
+                            <span>Chọn tất cả</span>
+                        </label>
+                        <span style="font-size:12px; color:var(--primary); font-weight:600;" id="pickerCountLabel">Đã chọn: 0</span>
+                    </div>
+                </div>
+
+                <!-- Danh sách thành viên có checkbox -->
+                <div id="dirPickerListContainer" style="max-height:360px; overflow-y:auto; border:1px solid var(--border); border-radius:10px; padding:6px; display:flex; flex-direction:column; gap:6px; background:var(--slate-50);">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline btn-sm admin-only" onclick="openDirectAddMemberModal()" style="color:var(--primary); border-color:#bae6fd;">
+                    <i class="fa-solid fa-user-plus"></i> Tạo mới vào Danh Bạ
+                </button>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('memberPickerModal')">Hủy</button>
+                    <button type="button" class="btn btn-success btn-sm" id="btnConfirmPickerAdd" onclick="confirmImportSelectedMembers()">
+                        <i class="fa-solid fa-check"></i> Thêm vào nhóm (<span id="pickerSelectedCountBtn">0</span>)
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1179,6 +1394,120 @@
             </div>
             <div class="modal-footer" style="justify-content:center;">
                 <button class="btn btn-outline" onclick="closeModal('localForgotModal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Modal Bảng Thông Tin Đầy Đủ Thành Viên (Member Profile Modal) -->
+    <div class="modal-overlay" id="memberProfileModal" onclick="if(event.target===this) closeModal('memberProfileModal')">
+        <div class="modal" style="max-width: 520px; padding: 0; overflow: hidden; border-radius: 18px;">
+            <div class="profile-banner">
+                <button type="button" class="profile-banner-close" onclick="closeModal('memberProfileModal')" title="Đóng">&times;</button>
+            </div>
+            <div class="profile-header-wrap">
+                <div class="profile-avatar-big" id="profAvatar">Đ</div>
+                <div class="profile-title-block">
+                    <div class="profile-nick-title">
+                        <span id="profNickname">Nickname</span>
+                        <span class="profile-nick-badge-tag">Biệt danh</span>
+                    </div>
+                    <div class="profile-fullname-text" id="profFullName">Họ và tên đầy đủ</div>
+                    <div class="profile-role-pill" id="profRolePill"><i class="fa-solid fa-id-badge"></i> <span id="profNote">Thành viên</span></div>
+                </div>
+            </div>
+
+            <div style="padding: 0 22px 20px; max-height: 520px; overflow-y: auto;">
+                <!-- 1. Tình trạng tài chính trong app Chia Bill -->
+                <div class="profile-section-card" id="profFinanceSection" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-color: #cbd5e1;">
+                    <div class="profile-section-title">
+                        <i class="fa-solid fa-wallet" style="color:var(--primary);"></i> Tình Trạng Quỹ Chia Bill
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="font-size:0.75rem; color:var(--slate-500);">Số dư hiện tại:</div>
+                            <div id="profBalanceBadge" style="font-size:1.25rem; font-weight:900;">0đ</div>
+                            <div id="profBalanceSub" style="font-size:0.78rem; color:var(--slate-600); margin-top:2px;">Đã cân bằng</div>
+                        </div>
+                        <div style="display:flex; gap:6px;" id="profFinanceActions">
+                            <!-- Populated dynamically: QR button, Cấn trừ button -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Thông tin liên lạc & Cá nhân -->
+                <div class="profile-section-card">
+                    <div class="profile-section-title">
+                        <i class="fa-solid fa-address-card" style="color:#0ea5e9;"></i> Thông Tin Cá Nhân & Liên Hệ
+                    </div>
+                    <div class="profile-data-row">
+                        <span class="profile-data-label"><i class="fa-solid fa-phone" style="color:#10b981;"></i> Số điện thoại:</span>
+                        <div class="profile-data-val" id="profPhoneWrap">
+                            <span id="profPhoneVal">--</span>
+                        </div>
+                    </div>
+                    <div class="profile-data-row">
+                        <span class="profile-data-label"><i class="fa-solid fa-cake-candles" style="color:#f59e0b;"></i> Ngày sinh:</span>
+                        <div class="profile-data-val" id="profDobWrap">
+                            <span id="profDobVal">--</span>
+                        </div>
+                    </div>
+                    <div class="profile-data-row" id="profZodiacRow" style="display:none;">
+                        <span class="profile-data-label"><i class="fa-solid fa-star-and-crescent" style="color:#8b5cf6;"></i> Cung hoàng đạo:</span>
+                        <div class="profile-data-val" id="profZodiacVal">--</div>
+                    </div>
+                    <div class="profile-data-row" id="profBdayCountdownRow" style="display:none;">
+                        <span class="profile-data-label"><i class="fa-solid fa-gift" style="color:#ec4899;"></i> Sinh nhật:</span>
+                        <div class="profile-data-val" id="profBdayCountdownVal" style="color:#ec4899; font-weight:700;">--</div>
+                    </div>
+                </div>
+
+                <!-- 3. Thông tin Ngân hàng & Mã VietQR -->
+                <div class="profile-section-card">
+                    <div class="profile-section-title">
+                        <i class="fa-solid fa-building-columns" style="color:#3b82f6;"></i> Tài Khoản Ngân Hàng & VietQR
+                    </div>
+                    <div class="profile-data-row">
+                        <span class="profile-data-label"><i class="fa-solid fa-landmark"></i> Ngân hàng:</span>
+                        <div class="profile-data-val" id="profBankId">--</div>
+                    </div>
+                    <div class="profile-data-row">
+                        <span class="profile-data-label"><i class="fa-solid fa-credit-card"></i> Số tài khoản:</span>
+                        <div class="profile-data-val">
+                            <span id="profAccountNo" style="font-family:monospace; font-size:14.5px;">--</span>
+                            <button type="button" class="btn btn-outline btn-sm" id="profCopyStkBtn" style="padding:1px 7px; font-size:11px;" title="Chép số tài khoản"><i class="fa-regular fa-copy"></i> Chép</button>
+                        </div>
+                    </div>
+                    <div class="profile-data-row">
+                        <span class="profile-data-label"><i class="fa-solid fa-user-check"></i> Chủ tài khoản:</span>
+                        <div class="profile-data-val" id="profAccountName" style="text-transform:uppercase;">--</div>
+                    </div>
+
+                    <!-- Live VietQR View Box -->
+                    <div class="profile-qr-box" id="profQrBox" style="display:none;">
+                        <img id="profQrImg" class="profile-qr-img" src="" alt="Mã VietQR" title="Bấm để phóng to hoặc tải về" onclick="openMemberTransferQrFromProfile()">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:700; font-size:0.88rem; color:var(--slate-800);">Mã VietQR Tự Động</div>
+                            <div style="font-size:0.75rem; color:var(--slate-500); margin-top:2px;">Quét trực tiếp bằng app ngân hàng (Momo, VCB, MB, v.v.) để chuyển khoản tức thì.</div>
+                            <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="openMemberTransferQrFromProfile()" style="font-size:11.5px; padding:4px 9px;">
+                                    <i class="fa-solid fa-expand"></i> Phóng to QR
+                                </button>
+                                <a id="profDownloadQrLink" href="" download="VietQR.png" class="btn btn-outline btn-sm" style="font-size:11.5px; padding:4px 9px;" target="_blank">
+                                    <i class="fa-solid fa-download"></i> Tải ảnh
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background:var(--slate-50); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <button type="button" class="btn btn-outline" id="profEditBtn" style="font-weight:600; color:var(--primary);">
+                    <i class="fa-solid fa-pen-to-square"></i> Sửa Thông Tin
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('memberProfileModal')">
+                    Đóng
+                </button>
             </div>
         </div>
     </div>
@@ -1531,22 +1860,27 @@
                     subText = "Cần nộp vào quỹ";
                 }
 
+                const displayNick = m.nickname || m.name || 'Thành viên';
+                const displayFull = m.fullName || (m.nickname !== m.name ? m.name : '');
+                const hasDiffFull = displayFull && displayFull !== displayNick;
+
                 const qrTitle = m.balance > 0 
-                    ? `Mã QR hoàn trả tiền lại cho ${m.nickname || m.name}` 
-                    : (m.balance < 0 ? `Mã QR nộp tiền vào quỹ cho ${m.nickname || m.name}` : `Mã QR đóng góp quỹ`);
+                    ? `Mã QR hoàn trả tiền lại cho ${displayNick}` 
+                    : (m.balance < 0 ? `Mã QR nộp tiền vào quỹ cho ${displayNick}` : `Mã QR đóng góp quỹ`);
 
                 const card = document.createElement('div');
                 card.className = `member-card ${cardClass}`;
                 card.innerHTML = `
-                    <div class="member-left">
-                        <div class="member-avatar" style="background: ${getAvatarColor(m.name)}">
-                            ${(m.nickname || m.name).charAt(0).toUpperCase()}
+                    <div class="member-left" onclick="openMemberProfileModal('${m.id}')" title="Bấm xem hồ sơ đầy đủ của ${displayNick}">
+                        <div class="member-avatar" style="background: ${getAvatarColor(displayNick)}">
+                            ${displayNick.charAt(0).toUpperCase()}
                         </div>
                         <div class="member-meta">
-                            <div class="member-name">
-                                ${m.fullName || m.name}
-                                ${m.nickname && m.nickname !== m.fullName ? `<span class="member-nick-badge">${m.nickname}</span>` : ''}
+                            <div class="member-primary-nick">
+                                <span>${displayNick}</span>
+                                <i class="fa-solid fa-circle-info nick-hint-icon" title="Xem hồ sơ"></i>
                             </div>
+                            ${hasDiffFull ? `<div class="member-fullname-sub" title="${displayFull}">${displayFull}</div>` : ''}
                             <div class="member-sub">${subText}</div>
                         </div>
                     </div>
@@ -1754,9 +2088,12 @@
                 const row = document.createElement('div');
                 row.className = 'meal-member-row';
                 row.innerHTML = `
-                    <div class="meal-member-info">
+                    <div class="meal-member-info" style="display:flex; align-items:center; gap:8px;">
                         <input type="checkbox" class="meal-check" value="${m.id}" checked onchange="updateMealCalculation()">
-                        <span style="font-size:0.9rem; font-weight:700;">${m.name}</span>
+                        <div>
+                            <span style="font-size:0.95rem; font-weight:800; color:var(--dark);">${m.nickname || m.name}</span>
+                            ${(m.fullName && m.fullName !== (m.nickname || m.name)) ? `<span style="font-size:0.8rem; color:var(--slate-500); margin-left:4px;">(${m.fullName})</span>` : ''}
+                        </div>
                     </div>
                     <input type="number" inputmode="decimal" class="meal-member-input meal-paid" data-id="${m.id}" placeholder="0"
                            onfocus="handleInputFocus(this)">
@@ -1802,9 +2139,12 @@
                 const row = document.createElement('div');
                 row.className = 'meal-member-row';
                 row.innerHTML = `
-                    <div class="meal-member-info">
+                    <div class="meal-member-info" style="display:flex; align-items:center; gap:8px;">
                         <input type="checkbox" class="meal-check" value="${m.id}" ${isChecked ? 'checked' : ''} onchange="updateMealCalculation()">
-                        <span style="font-size:0.9rem; font-weight:700;">${m.name}</span>
+                        <div>
+                            <span style="font-size:0.95rem; font-weight:800; color:var(--dark);">${m.nickname || m.name}</span>
+                            ${(m.fullName && m.fullName !== (m.nickname || m.name)) ? `<span style="font-size:0.8rem; color:var(--slate-500); margin-left:4px;">(${m.fullName})</span>` : ''}
+                        </div>
                     </div>
                     <input type="number" inputmode="decimal" class="meal-member-input meal-paid" data-id="${m.id}" value="${paidVal}" placeholder="0"
                            onfocus="handleInputFocus(this)">
@@ -1957,7 +2297,9 @@
             }
 
             document.getElementById('payMemberId').value = member.id;
-            document.getElementById('payMemberName').innerText = member.fullName || member.name;
+            const payNick = member.nickname || member.name;
+            const payFull = member.fullName || (member.nickname !== member.name ? member.name : '');
+            document.getElementById('payMemberName').innerText = (payFull && payFull !== payNick) ? `${payNick} (${payFull})` : payNick;
             
             let badgeText = formatMoney(member.balance);
             if (member.balance > 0) {
@@ -2391,6 +2733,10 @@
         // =========================================================================
         // MEMBER DIRECTORY & EXTENDED PROFILE MANAGEMENT
         // =========================================================================
+        function copyText(text, msg = 'Đã sao chép') {
+            copyQrAccountText(text, msg);
+        }
+
         function formatDob(dobStr) {
             if (!dobStr) return '';
             const parts = dobStr.split('-');
@@ -2405,6 +2751,263 @@
             const diff = Date.now() - birth.getTime();
             const age = new Date(diff).getUTCFullYear() - 1970;
             return age > 0 ? `(${age} tuổi)` : '';
+        }
+
+        function calcAgeFromDob(dobStr) {
+            if (!dobStr) return '';
+            const birth = new Date(dobStr);
+            if (isNaN(birth.getTime())) return '';
+            const diff = Date.now() - birth.getTime();
+            const age = new Date(diff).getUTCFullYear() - 1970;
+            return age > 0 ? `${age} tuổi` : '';
+        }
+
+        function getZodiacSignFromDob(dobStr) {
+            if (!dobStr) return '';
+            try {
+                const parts = dobStr.split('-');
+                if (parts.length < 3) return '';
+                const day = parseInt(parts[2], 10);
+                const month = parseInt(parts[1], 10);
+                const signs = [
+                    { name: "Ma Kết ♑", start: [12, 22], end: [1, 19] },
+                    { name: "Bảo Bình ♒", start: [1, 20], end: [2, 18] },
+                    { name: "Song Ngư ♓", start: [2, 19], end: [3, 20] },
+                    { name: "Bạch Dương ♈", start: [3, 21], end: [4, 19] },
+                    { name: "Kim Ngưu ♉", start: [4, 20], end: [5, 20] },
+                    { name: "Song Tử ♊", start: [5, 21], end: [6, 21] },
+                    { name: "Cự Giải ♋", start: [6, 22], end: [7, 22] },
+                    { name: "Sư Tử ♌", start: [7, 23], end: [8, 22] },
+                    { name: "Xử Nữ ♍", start: [8, 23], end: [9, 22] },
+                    { name: "Thiên Bình ♎", start: [9, 23], end: [10, 23] },
+                    { name: "Bọ Cạp ♏", start: [10, 24], end: [11, 21] },
+                    { name: "Nhân Mã ♐", start: [11, 22], end: [12, 21] }
+                ];
+                for (let s of signs) {
+                    if ((month === s.start[0] && day >= s.start[1]) || (month === s.end[0] && day <= s.end[1])) {
+                        return s.name;
+                    }
+                }
+            } catch(e) {}
+            return '';
+        }
+
+        function getBirthdayCountdown(dobStr) {
+            if (!dobStr) return null;
+            try {
+                const parts = dobStr.split('-');
+                if (parts.length < 3) return null;
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                const today = new Date();
+                let nextBday = new Date(today.getFullYear(), month, day);
+                const curMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                if (nextBday < curMidnight) {
+                    nextBday.setFullYear(today.getFullYear() + 1);
+                }
+                const diffTime = nextBday.getTime() - curMidnight.getTime();
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays === 0) return { isToday: true, text: '🎉 Sinh nhật hôm nay! 🎂' };
+                if (diffDays <= 30) return { isToday: false, text: `🎂 Còn ${diffDays} ngày nữa đến sinh nhật` };
+                return null;
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function getDetailedMember(id) {
+            let m = members.find(item => String(item.id) === String(id) || item.name === id || item.nickname === id);
+            let globalMems = [];
+            try { globalMems = JSON.parse(localStorage.getItem('sys_global_members')) || []; } catch(e) {}
+            
+            if (!m) {
+                m = globalMems.find(item => String(item.id) === String(id) || item.name === id || item.nickname === id);
+            }
+            if (!m) return null;
+
+            const g = globalMems.find(item => String(item.id) === String(m.id) || (item.name && item.name === m.name) || (item.nickname && item.nickname === m.nickname)) || {};
+            
+            return {
+                id: m.id,
+                name: m.nickname || g.nickname || m.name || g.name || '',
+                nickname: m.nickname || g.nickname || m.name || g.name || '',
+                fullName: m.fullName || g.fullName || m.name || g.name || '',
+                balance: typeof m.balance === 'number' ? m.balance : 0,
+                dob: m.dob || g.dob || '',
+                phone: m.phone || g.phone || '',
+                bankId: m.bankId || g.bankId || '',
+                accountNo: m.accountNo || g.accountNo || '',
+                accountName: m.accountName || g.accountName || '',
+                note: m.note || g.note || ''
+            };
+        }
+
+        let activeProfileMember = null;
+
+        function openMemberProfileModal(memberId) {
+            const member = getDetailedMember(memberId);
+            if (!member) return;
+            activeProfileMember = member;
+
+            const displayNick = member.nickname || member.name || 'Thành viên';
+            const displayFull = member.fullName || (member.nickname !== member.name ? member.name : '');
+            const hasDiffFull = displayFull && displayFull !== displayNick;
+
+            const avatarEl = document.getElementById('profAvatar');
+            if (avatarEl) {
+                avatarEl.innerText = displayNick.charAt(0).toUpperCase();
+                avatarEl.style.background = getAvatarColor(displayNick);
+            }
+
+            const nickEl = document.getElementById('profNickname');
+            if (nickEl) nickEl.innerText = displayNick;
+
+            const fullEl = document.getElementById('profFullName');
+            if (fullEl) {
+                fullEl.innerText = hasDiffFull ? displayFull : 'Thành viên hệ thống';
+            }
+
+            const noteEl = document.getElementById('profNote');
+            if (noteEl) noteEl.innerText = member.note || 'Thành viên nhóm';
+
+            // Finance in Chia Bill
+            const bal = typeof member.balance === 'number' ? member.balance : 0;
+            const balBadge = document.getElementById('profBalanceBadge');
+            const balSub = document.getElementById('profBalanceSub');
+            const finActions = document.getElementById('profFinanceActions');
+
+            if (balBadge && balSub && finActions) {
+                finActions.innerHTML = '';
+                if (bal > 0) {
+                    balBadge.style.color = 'var(--success)';
+                    balBadge.innerText = '+' + formatMoney(bal);
+                    balSub.innerText = 'Quỹ thừa (Được nhận lại từ quỹ)';
+                    finActions.innerHTML = `
+                        <button class="btn btn-primary btn-sm" onclick="closeModal('memberProfileModal'); openQrModal('${member.id}')" title="Mã QR hoàn tiền">
+                            <i class="fa-solid fa-qrcode"></i> QR Nhận Lại
+                        </button>
+                        <button class="btn btn-outline btn-sm admin-only" onclick="closeModal('memberProfileModal'); openPayModal('${member.id}')" title="Cấn trừ quỹ">
+                            <i class="fa-solid fa-money-bill-transfer"></i> Cấn trừ
+                        </button>
+                    `;
+                } else if (bal < 0) {
+                    balBadge.style.color = 'var(--danger)';
+                    balBadge.innerText = '-' + formatMoney(Math.abs(bal));
+                    balSub.innerText = 'Cần nộp vào quỹ';
+                    finActions.innerHTML = `
+                        <button class="btn btn-danger btn-sm" onclick="closeModal('memberProfileModal'); openQrModal('${member.id}')" title="Mã QR nộp tiền">
+                            <i class="fa-solid fa-qrcode"></i> Nộp Quỹ QR
+                        </button>
+                        <button class="btn btn-outline btn-sm admin-only" onclick="closeModal('memberProfileModal'); openPayModal('${member.id}')" title="Cấn trừ quỹ">
+                            <i class="fa-solid fa-money-bill-transfer"></i> Cấn trừ
+                        </button>
+                    `;
+                } else {
+                    balBadge.style.color = 'var(--slate-600)';
+                    balBadge.innerText = '0đ';
+                    balSub.innerText = 'Đã hoàn tất, không có công nợ';
+                    finActions.innerHTML = `
+                        <button class="btn btn-outline btn-sm" onclick="closeModal('memberProfileModal'); openQrModal('${member.id}')">
+                            <i class="fa-solid fa-qrcode"></i> QR
+                        </button>
+                    `;
+                }
+            }
+
+            // Phone
+            const phoneWrap = document.getElementById('profPhoneWrap');
+            if (phoneWrap) {
+                if (member.phone) {
+                    phoneWrap.innerHTML = `
+                        <a href="tel:${member.phone}" style="color:var(--primary); text-decoration:none; font-family:monospace; font-size:14px; font-weight:700;">${member.phone}</a>
+                        <button type="button" class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:10px; margin-left:4px;" onclick="copyText('${member.phone}', 'Đã chép số điện thoại')"><i class="fa-regular fa-copy"></i></button>
+                        <a href="https://zalo.me/${member.phone}" target="_blank" class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:10px; color:#0068ff; margin-left:2px;" title="Nhắn Zalo">Zalo</a>
+                    `;
+                } else {
+                    phoneWrap.innerHTML = '<span style="color:var(--slate-400); font-style:italic;">Chưa cập nhật</span>';
+                }
+            }
+
+            // DOB, Age, Zodiac, Countdown
+            const dobWrap = document.getElementById('profDobWrap');
+            const zodiacRow = document.getElementById('profZodiacRow');
+            const zodiacVal = document.getElementById('profZodiacVal');
+            const bdayRow = document.getElementById('profBdayCountdownRow');
+            const bdayVal = document.getElementById('profBdayCountdownVal');
+
+            if (member.dob) {
+                const ageStr = calcAgeFromDob(member.dob);
+                if (dobWrap) dobWrap.innerHTML = `<span>${formatDob(member.dob)}</span> ${ageStr ? `<span style="font-size:11px; color:var(--slate-500); background:var(--slate-100); padding:2px 6px; border-radius:4px; margin-left:4px;">${ageStr}</span>` : ''}`;
+                
+                const zodiac = getZodiacSignFromDob(member.dob);
+                if (zodiac && zodiacRow && zodiacVal) {
+                    zodiacRow.style.display = 'flex';
+                    zodiacVal.innerText = zodiac;
+                } else if (zodiacRow) {
+                    zodiacRow.style.display = 'none';
+                }
+
+                const bdayInfo = getBirthdayCountdown(member.dob);
+                if (bdayInfo && bdayRow && bdayVal) {
+                    bdayRow.style.display = 'flex';
+                    bdayVal.innerText = bdayInfo.text;
+                } else if (bdayRow) {
+                    bdayRow.style.display = 'none';
+                }
+            } else {
+                if (dobWrap) dobWrap.innerHTML = '<span style="color:var(--slate-400); font-style:italic;">Chưa cập nhật</span>';
+                if (zodiacRow) zodiacRow.style.display = 'none';
+                if (bdayRow) bdayRow.style.display = 'none';
+            }
+
+            // Bank & VietQR
+            const bankEl = document.getElementById('profBankId');
+            if (bankEl) bankEl.innerText = member.bankId || 'Chưa cập nhật';
+
+            const accEl = document.getElementById('profAccountNo');
+            if (accEl) accEl.innerText = member.accountNo || 'Chưa có';
+
+            const nameEl = document.getElementById('profAccountName');
+            if (nameEl) nameEl.innerText = member.accountName || member.fullName || '--';
+
+            const copyStkBtn = document.getElementById('profCopyStkBtn');
+            if (copyStkBtn) {
+                if (member.accountNo) {
+                    copyStkBtn.style.display = 'inline-flex';
+                    copyStkBtn.onclick = () => copyText(member.accountNo, 'Đã chép số tài khoản');
+                } else {
+                    copyStkBtn.style.display = 'none';
+                }
+            }
+
+            const qrBox = document.getElementById('profQrBox');
+            if (qrBox) {
+                if (member.bankId && member.accountNo) {
+                    qrBox.style.display = 'flex';
+                    const qrUrl = `https://img.vietqr.io/image/${member.bankId}-${member.accountNo}-compact2.png?accountName=${encodeURIComponent(member.accountName || member.fullName || '')}`;
+                    document.getElementById('profQrImg').src = qrUrl;
+                    document.getElementById('profDownloadQrLink').href = qrUrl;
+                } else {
+                    qrBox.style.display = 'none';
+                }
+            }
+
+            // Edit button handler
+            const editBtn = document.getElementById('profEditBtn');
+            if (editBtn) {
+                editBtn.onclick = () => {
+                    closeModal('memberProfileModal');
+                    openEditMemberModal(member.id);
+                };
+            }
+
+            openModal('memberProfileModal');
+        }
+
+        function openMemberTransferQrFromProfile() {
+            if (!activeProfileMember) return;
+            closeModal('memberProfileModal');
+            openQrModal(activeProfileMember.id);
         }
 
         function copyQrAccountText(text, msg = 'Đã sao chép') {
@@ -2455,15 +3058,20 @@
                     ? `<span style="color:var(--success); font-weight:700;">+${formatMoney(m.balance)}</span>` 
                     : (m.balance < 0 ? `<span style="color:var(--danger); font-weight:700;">-${formatMoney(Math.abs(m.balance))}</span>` : `<span style="color:var(--slate-500);">0đ</span>`);
 
+                const displayNick = m.nickname || m.name || 'Thành viên';
+                const displayFull = m.fullName || (m.nickname !== m.name ? m.name : '');
+                const hasDiffFull = displayFull && displayFull !== displayNick;
+
                 tr.innerHTML = `
                     <td>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <div class="member-avatar" style="width:34px; height:34px; font-size:12px; background:${getAvatarColor(m.name)};">${(m.nickname || m.name).charAt(0).toUpperCase()}</div>
+                        <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="openMemberProfileModal('${m.id}')" title="Bấm xem hồ sơ của ${displayNick}">
+                            <div class="member-avatar" style="width:34px; height:34px; font-size:12px; background:${getAvatarColor(displayNick)};">${displayNick.charAt(0).toUpperCase()}</div>
                             <div>
-                                <div style="font-weight:700; color:var(--slate-900);">
-                                    ${m.fullName || m.name}
-                                    ${m.nickname && m.nickname !== m.fullName ? `<span class="member-nick-badge">${m.nickname}</span>` : ''}
+                                <div style="font-weight:800; font-size:14px; color:var(--slate-900); display:flex; align-items:center; gap:5px;">
+                                    <span>${displayNick}</span>
+                                    <i class="fa-solid fa-circle-info" style="font-size:11px; color:var(--primary); opacity:0.6;"></i>
                                 </div>
+                                ${hasDiffFull ? `<div style="font-size:11.5px; color:var(--slate-500); font-weight:500;">${displayFull}</div>` : ''}
                                 ${m.note ? `<div style="font-size:11px; color:var(--slate-500);"><i class="fa-solid fa-tag"></i> ${m.note}</div>` : ''}
                             </div>
                         </div>
@@ -2500,6 +3108,30 @@
             });
         }
 
+        // -------------------------------------------------------------------------
+        // DIRECTORY MEMBER PICKER & TWO-WAY SYNC
+        // -------------------------------------------------------------------------
+        let pickerSelectedMemberIds = new Set();
+
+        function getGlobalDirectoryMembers() {
+            let globalMems = [];
+            try {
+                const raw = localStorage.getItem('sys_global_members');
+                if (raw) globalMems = JSON.parse(raw);
+            } catch(e) {}
+            if (!Array.isArray(globalMems) || globalMems.length === 0) {
+                globalMems = [
+                    { id: 1, name: "Thành", fullName: "Nguyễn Văn Thành", nickname: "Thành Ken", dob: "1994-05-15", phone: "0981234561", bankId: "MB", accountNo: "0981234561", accountName: "NGUYEN VAN THANH", note: "Trưởng nhóm" },
+                    { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt Còi", dob: "1996-08-20", phone: "0972345672", bankId: "VCB", accountNo: "1012345672", accountName: "TRAN THANH DAT", note: "Kỹ thuật" },
+                    { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", dob: "1995-11-12", phone: "0963456783", bankId: "TCB", accountNo: "1903456783", accountName: "LE THANH CONG", note: "Kế toán" },
+                    { id: 4, name: "Hạnh", fullName: "Phạm Mỹ Hạnh", nickname: "Hạnh", dob: "1998-03-28", phone: "0914567894", bankId: "ACB", accountNo: "214567894", accountName: "PHAM MY HANH", note: "Thiết kế" },
+                    { id: 5, name: "Quyền", fullName: "Vũ Đình Quyền", nickname: "Quyền", dob: "1997-07-09", phone: "0935678905", bankId: "VPB", accountNo: "0935678905", accountName: "VU DINH QUYEN", note: "Marketing" },
+                    { id: 6, name: "Duy", fullName: "Hoàng Đức Duy", nickname: "Duy", dob: "1999-12-05", phone: "0906789016", bankId: "BIDV", accountNo: "1206789016", accountName: "HOANG DUC DUY", note: "Phát triển" }
+                ];
+            }
+            return globalMems;
+        }
+
         function openAddMemberModal() {
             if (!isAdmin) {
                 pendingAddMember = true;
@@ -2508,7 +3140,195 @@
                 }
                 return;
             }
-            document.getElementById('editMemberModalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color:var(--success);"></i> Thêm Thành Viên Mới';
+            // Đóng modal danh bạ trước nếu đang mở để tránh xếp chồng backdrop
+            closeModal('memberDirectoryModal');
+            openDirectoryMemberPicker();
+        }
+
+        function openDirectoryMemberPicker() {
+            const searchInput = document.getElementById('dirPickerSearchInput');
+            if (searchInput) searchInput.value = '';
+            const selectAll = document.getElementById('pickerSelectAllCb');
+            if (selectAll) selectAll.checked = false;
+
+            renderDirectoryPickerList();
+            openModal('memberPickerModal');
+        }
+
+        function filterDirectoryPicker(query) {
+            renderDirectoryPickerList(query);
+        }
+
+        function renderDirectoryPickerList(query = '') {
+            const container = document.getElementById('dirPickerListContainer');
+            if (!container) return;
+
+            const q = (query || '').toLowerCase().trim();
+            const globalList = getGlobalDirectoryMembers();
+
+            pickerSelectedMemberIds.clear();
+
+            let filtered = globalList;
+            if (q) {
+                filtered = globalList.filter(m => 
+                    (m.name || '').toLowerCase().includes(q) ||
+                    (m.fullName || '').toLowerCase().includes(q) ||
+                    (m.nickname || '').toLowerCase().includes(q) ||
+                    (m.phone || '').toLowerCase().includes(q) ||
+                    (m.bankId || '').toLowerCase().includes(q) ||
+                    (m.accountNo || '').toLowerCase().includes(q)
+                );
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="padding:30px 10px; text-align:center; color:var(--slate-400); font-size:13px;">
+                        <i class="fa-solid fa-address-book" style="font-size:24px; margin-bottom:8px; opacity:0.6; display:block;"></i>
+                        Không tìm thấy thành viên phù hợp trong Danh Bạ.
+                        <div style="margin-top:8px;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="openDirectAddMemberModal()" style="font-size:12px;">
+                                ➕ Tạo thành viên mới vào Danh Bạ
+                            </button>
+                        </div>
+                    </div>`;
+                updatePickerCountUI();
+                return;
+            }
+
+            container.innerHTML = filtered.map(m => {
+                const memIdStr = String(m.id);
+                const mNick = String(m.nickname || m.name || '').trim().toLowerCase();
+                const isAlreadyInGroup = members.some(cur => {
+                    if (String(cur.id) === memIdStr) return true;
+                    const curNick = String(cur.nickname || cur.name || '').trim().toLowerCase();
+                    return mNick && curNick && mNick === curNick;
+                });
+                const avatarBg = 'linear-gradient(135deg, #0284c7, #0369a1)';
+                const initial = (m.nickname || m.name || m.fullName || '?').charAt(0).toUpperCase();
+
+                return `
+                    <div class="picker-member-row ${isAlreadyInGroup ? 'already-joined' : ''}" 
+                         style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:#ffffff; border:1px solid ${isAlreadyInGroup ? '#bbf7d0' : 'var(--border)'}; border-radius:8px; cursor:${isAlreadyInGroup ? 'default' : 'pointer'}; transition:all 0.15s ease;"
+                         ${!isAlreadyInGroup ? `onclick="togglePickerRow('${memIdStr}', event)"` : ''}>
+                        
+                        <input type="checkbox" class="picker-cb" data-id="${memIdStr}" 
+                               ${isAlreadyInGroup ? 'checked disabled' : ''} 
+                               onchange="onPickerCheckboxChange('${memIdStr}', this.checked)"
+                               onclick="event.stopPropagation()"
+                               style="width:18px; height:18px; cursor:${isAlreadyInGroup ? 'default' : 'pointer'}; flex-shrink:0;">
+                        
+                        <div style="width:34px; height:34px; border-radius:50%; background:${avatarBg}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0;">
+                            ${initial}
+                        </div>
+
+                        <div style="flex:1; min-width:0;">
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <span style="font-weight:600; font-size:13px; color:var(--slate-800);">${m.fullName || m.name || 'Thành viên'}</span>
+                                ${m.nickname ? `<span style="font-size:11px; color:#0284c7; background:#e0f2fe; padding:1px 6px; border-radius:4px; font-weight:600;">@${m.nickname}</span>` : ''}
+                                ${isAlreadyInGroup ? `<span style="font-size:10px; color:#16a34a; background:#dcfce7; padding:1px 6px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-check"></i> Đã trong nhóm</span>` : ''}
+                            </div>
+                            <div style="font-size:11.5px; color:var(--slate-500); margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;">
+                                ${m.phone ? `<span><i class="fa-solid fa-phone" style="font-size:10px;"></i> ${m.phone}</span>` : ''}
+                                ${m.bankId && m.accountNo ? `<span><i class="fa-solid fa-building-columns" style="font-size:10px;"></i> <b>${m.bankId}</b>: ${m.accountNo}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updatePickerCountUI();
+        }
+
+        function togglePickerRow(idStr, event) {
+            const cb = document.querySelector(`.picker-cb[data-id="${idStr}"]`);
+            if (cb && !cb.disabled) {
+                cb.checked = !cb.checked;
+                onPickerCheckboxChange(idStr, cb.checked);
+            }
+        }
+
+        function onPickerCheckboxChange(idStr, isChecked) {
+            if (isChecked) {
+                pickerSelectedMemberIds.add(idStr);
+            } else {
+                pickerSelectedMemberIds.delete(idStr);
+            }
+            updatePickerCountUI();
+        }
+
+        function toggleSelectAllDirectoryPicker(isSelectAll) {
+            const checkboxes = document.querySelectorAll('.picker-cb:not(:disabled)');
+            checkboxes.forEach(cb => {
+                cb.checked = isSelectAll;
+                const id = cb.getAttribute('data-id');
+                if (isSelectAll) pickerSelectedMemberIds.add(id);
+                else pickerSelectedMemberIds.delete(id);
+            });
+            updatePickerCountUI();
+        }
+
+        function updatePickerCountUI() {
+            const count = pickerSelectedMemberIds.size;
+            const label = document.getElementById('pickerCountLabel');
+            if (label) label.innerText = `Đã chọn: ${count}`;
+            const btnCount = document.getElementById('pickerSelectedCountBtn');
+            if (btnCount) btnCount.innerText = String(count);
+            const btnConfirm = document.getElementById('btnConfirmPickerAdd');
+            if (btnConfirm) btnConfirm.disabled = count === 0;
+        }
+
+        function confirmImportSelectedMembers() {
+            if (pickerSelectedMemberIds.size === 0) {
+                alert('Vui lòng tích chọn ít nhất một thành viên từ Danh Bạ để thêm vào nhóm!');
+                return;
+            }
+
+            const globalList = getGlobalDirectoryMembers();
+            let addedCount = 0;
+
+            pickerSelectedMemberIds.forEach(id => {
+                const target = globalList.find(m => String(m.id) === String(id));
+                if (target) {
+                    const alreadyExists = members.some(cur => String(cur.id) === String(target.id) || (cur.nickname && target.nickname && cur.nickname.toLowerCase() === target.nickname.toLowerCase()));
+                    if (!alreadyExists) {
+                        members.push({
+                            id: target.id,
+                            name: target.nickname || target.name || target.fullName || '',
+                            fullName: target.fullName || target.name || '',
+                            nickname: target.nickname || target.name || '',
+                            balance: 0,
+                            dob: target.dob || '',
+                            phone: target.phone || '',
+                            bankId: target.bankId || '',
+                            accountNo: target.accountNo || '',
+                            accountName: target.accountName || '',
+                            note: target.note || ''
+                        });
+                        addedCount++;
+                    }
+                }
+            });
+
+            if (addedCount > 0) {
+                saveData();
+                render();
+                if (document.getElementById('memberDirectoryModal')?.classList.contains('active')) {
+                    renderMemberDirectory();
+                }
+                closeModal('memberPickerModal');
+                try {
+                    const bc = new BroadcastChannel('system_member_sync');
+                    bc.postMessage({ type: 'MEMBERS_UPDATED', nhauMembers: members });
+                } catch(e) {}
+                alert(`🎉 Đã thêm thành công ${addedCount} thành viên từ Danh Bạ vào nhóm Chia Bill!`);
+            } else {
+                closeModal('memberPickerModal');
+            }
+        }
+
+        function openDirectAddMemberModal() {
+            closeModal('memberPickerModal');
+            document.getElementById('editMemberModalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color:var(--success);"></i> Thêm Mới Vào Danh Bạ';
             document.getElementById('editMemberId').value = '';
             document.getElementById('editMemberFullName').value = '';
             document.getElementById('editMemberNickname').value = '';
@@ -2546,6 +3366,19 @@
             setTimeout(() => document.getElementById('editMemberFullName').focus(), 150);
         }
 
+        function syncSingleMemberToGlobalDirectory(memberObj) {
+            try {
+                let globalMems = JSON.parse(localStorage.getItem('sys_global_members')) || [];
+                const existIdx = globalMems.findIndex(m => String(m.id) === String(memberObj.id) || (m.nickname && memberObj.nickname && m.nickname.toLowerCase() === memberObj.nickname.toLowerCase()));
+                if (existIdx !== -1) {
+                    globalMems[existIdx] = { ...globalMems[existIdx], ...memberObj };
+                } else {
+                    globalMems.push(memberObj);
+                }
+                localStorage.setItem('sys_global_members', JSON.stringify(globalMems));
+            } catch(e) {}
+        }
+
         function saveMemberDetails() {
             if (!checkAdminPermission()) return;
             const id = document.getElementById('editMemberId').value;
@@ -2561,6 +3394,11 @@
             if (!fullName && !nickname) return alert('Vui lòng nhập Họ tên hoặc Nickname thành viên!');
 
             const name = nickname || fullName;
+            const memberObj = {
+                id: id || Date.now(),
+                name, fullName: fullName || name, nickname: nickname || name,
+                dob, phone, bankId, accountNo, accountName, note
+            };
 
             if (id) {
                 // Update
@@ -2568,19 +3406,19 @@
                 if (idx !== -1) {
                     members[idx] = {
                         ...members[idx],
-                        name, fullName: fullName || name, nickname: nickname || name,
-                        dob, phone, bankId, accountNo, accountName, note
+                        ...memberObj
                     };
                 }
             } else {
                 // Add new
                 members.push({
-                    id: Date.now(),
-                    name, fullName: fullName || name, nickname: nickname || name,
-                    balance: 0,
-                    dob, phone, bankId, accountNo, accountName, note
+                    ...memberObj,
+                    balance: 0
                 });
             }
+
+            // Tự động đồng bộ sang Danh Bạ hệ thống (sys_global_members)
+            syncSingleMemberToGlobalDirectory(memberObj);
 
             saveData();
             render();
@@ -2594,14 +3432,12 @@
 
             try {
                 const bc = new BroadcastChannel('system_member_sync');
-                bc.postMessage({ type: 'MEMBERS_UPDATED', nhauMembers: members });
+                bc.postMessage({ type: 'MEMBERS_UPDATED', nhauMembers: members, globalMembers: JSON.parse(localStorage.getItem('sys_global_members')) });
             } catch(e) {}
         }
 
         function openMemberModal() {
-            if (!checkAdminPermission()) return;
-            renderManageMemberList();
-            openModal('memberModal');
+            openMemberDirectoryModal();
         }
 
         function renderManageMemberList() {
@@ -2612,11 +3448,14 @@
             members.forEach(m => {
                 const item = document.createElement('div');
                 item.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--slate-50); border:1px solid var(--border); border-radius:8px;";
+                const mNick = m.nickname || m.name;
+                const mFull = m.fullName || (m.nickname !== m.name ? m.name : '');
                 item.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-weight:700;">${m.fullName || m.name}</span>
-                        ${m.nickname && m.nickname !== m.fullName ? `<span class="member-nick-badge">${m.nickname}</span>` : ''}
-                        <span style="font-size:0.8rem; color:var(--slate-500);">(${formatMoney(m.balance)})</span>
+                    <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="openMemberProfileModal('${m.id}')" title="Xem hồ sơ của ${mNick}">
+                        <span style="font-weight:800; font-size:1rem; color:var(--dark);">${mNick}</span>
+                        ${mFull && mFull !== mNick ? `<span style="font-size:0.8rem; color:var(--slate-500);">(${mFull})</span>` : ''}
+                        <i class="fa-solid fa-circle-info" style="font-size:11px; color:var(--primary); opacity:0.6;"></i>
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--primary); margin-left:4px;">(${formatMoney(m.balance)})</span>
                     </div>
                     <div style="display:flex; gap:4px;">
                         <button class="btn btn-outline btn-sm admin-only" onclick="openEditMemberModal('${m.id}')" title="Sửa thông tin">
@@ -2705,15 +3544,22 @@
             `;
 
             meal.participants.forEach(p => {
+                const mem = members.find(x => String(x.id) === String(p.id) || x.name === p.name);
+                const pNick = (mem && (mem.nickname || mem.name)) || p.name;
+                const pFull = (mem && mem.fullName && mem.fullName !== pNick) ? mem.fullName : '';
                 const netChange = p.paid - p.cost;
                 const balColor = netChange >= 0 ? 'var(--success)' : 'var(--danger)';
                 const netText = netChange >= 0 ? `+${formatMoney(netChange)}` : `-${formatMoney(Math.abs(netChange))}`;
 
                 html += `
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--slate-50); border:1px solid var(--border); border-radius:8px;">
-                        <div>
-                            <strong style="font-size:0.9rem;">${p.name}</strong> 
-                            <div style="font-size:0.75rem; color:var(--slate-500);">Phải trả: ${formatMoney(p.cost)}</div>
+                        <div style="cursor:pointer;" onclick="openMemberProfileModal('${p.id}')" title="Xem hồ sơ đầy đủ của ${pNick}">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <strong style="font-size:0.95rem; font-weight:800; color:var(--dark);">${pNick}</strong> 
+                                ${pFull ? `<span style="font-size:0.8rem; color:var(--slate-500);">(${pFull})</span>` : ''}
+                                <i class="fa-solid fa-circle-info" style="font-size:11px; color:var(--primary); opacity:0.6;"></i>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--slate-500); margin-top:2px;">Phải trả: ${formatMoney(p.cost)}</div>
                         </div>
                         <div style="text-align:right;">
                             <div style="font-weight:700; color:var(--primary); font-size:0.85rem;">Trả trước: ${formatMoney(p.paid)}</div>

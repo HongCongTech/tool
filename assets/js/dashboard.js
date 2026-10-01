@@ -1117,15 +1117,6 @@
       DOM.appGrid.appendChild(item);
     });
 
-    // Nút Thêm App (Admin only)
-    const addBtn = document.createElement('div');
-    addBtn.className = 'app-item btn-add-item admin-only';
-    addBtn.onclick = openModal;
-    addBtn.innerHTML = `
-      <div class="app-icon btn-add-icon">➕</div>
-      <div class="app-label">Thêm App</div>
-    `;
-    DOM.appGrid.appendChild(addBtn);
     updateRunningAppIndicators();
   }
 
@@ -2946,6 +2937,361 @@
   }
 
   // --------------------------------------------------------------------------
+  // 12C. NOTIFICATION ENGINE (THÔNG BÁO ĐẨY GÓC DƯỚI BÊN PHẢI)
+  // --------------------------------------------------------------------------
+  let systemNotifications = [];
+  const DISMISSED_NOTIFS_KEY = 'sys_dismissed_notifications_v1';
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function getDismissedNotifMap() {
+    try {
+      const raw = localStorage.getItem(DISMISSED_NOTIFS_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      // Dọn các mục cũ hơn 24 giờ để tự động giải phóng bộ nhớ
+      const now = Date.now();
+      const cleaned = {};
+      for (const [k, ts] of Object.entries(parsed)) {
+        if (now - ts < 24 * 3600 * 1000) {
+          cleaned[k] = ts;
+        }
+      }
+      return cleaned;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function markNotifDismissed(id) {
+    if (!id) return;
+    try {
+      const map = getDismissedNotifMap();
+      map[id] = Date.now();
+      localStorage.setItem(DISMISSED_NOTIFS_KEY, JSON.stringify(map));
+    } catch (e) {}
+  }
+
+  function pushSystemNotification(notif) {
+    if (!notif || !notif.title) return;
+    const dismissedMap = getDismissedNotifMap();
+    const notifId = notif.id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+
+    // Nếu người dùng đã bấm đóng thông báo này trong vòng 24h thì không hiện lại
+    if (dismissedMap[notifId]) return;
+
+    // Kiểm tra xem đã có trong danh sách đang hiện chưa (cập nhật hoặc thêm mới)
+    const existingIndex = systemNotifications.findIndex(n => n.id === notifId);
+    const item = {
+      id: notifId,
+      title: notif.title,
+      message: notif.message || notif.desc || '',
+      icon: notif.icon || '🔔',
+      tag: notif.tag || 'Hệ Thống',
+      tagClass: notif.tagClass || 'app-push',
+      appUrl: notif.appUrl || '',
+      btnText: notif.btnText || 'Mở Ứng Dụng',
+      time: notif.time || new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+      createdAt: notif.createdAt || Date.now()
+    };
+
+    if (existingIndex >= 0) {
+      systemNotifications[existingIndex] = item;
+    } else {
+      systemNotifications.unshift(item);
+    }
+
+    renderSystemNotifications();
+  }
+
+  function dismissSystemNotification(id, event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    const cardEl = document.getElementById(`macNotifCard_${id}`);
+    if (cardEl) {
+      cardEl.classList.add('removing');
+      setTimeout(() => {
+        markNotifDismissed(id);
+        systemNotifications = systemNotifications.filter(n => n.id !== id);
+        renderSystemNotifications();
+      }, 240);
+    } else {
+      markNotifDismissed(id);
+      systemNotifications = systemNotifications.filter(n => n.id !== id);
+      renderSystemNotifications();
+    }
+  }
+
+  function clearAllSystemNotifications() {
+    if (!systemNotifications.length) return;
+    systemNotifications.forEach(n => markNotifDismissed(n.id));
+    systemNotifications = [];
+    renderSystemNotifications();
+    showToast('🧹 Đã dọn sạch tất cả thông báo!');
+  }
+
+  function renderSystemNotifications() {
+    const container = document.getElementById('macNotificationContainer');
+    const listEl = document.getElementById('macNotifList');
+    const badgeEl = document.getElementById('macNotifCountBadge');
+
+    if (!container || !listEl) return;
+
+    const count = systemNotifications.length;
+    if (badgeEl) badgeEl.textContent = count;
+
+    if (count === 0) {
+      container.style.display = 'none';
+      listEl.innerHTML = '';
+      return;
+    }
+
+    container.style.display = 'flex';
+
+    listEl.innerHTML = systemNotifications.map(n => `
+      <div class="mac-notif-card" id="macNotifCard_${n.id}">
+        <div class="mac-notif-top">
+          <div class="mac-notif-source">
+            <span class="mac-notif-tag ${escapeHtml(n.tagClass)}">${escapeHtml(n.tag)}</span>
+            <span class="mac-notif-time">${escapeHtml(n.time)}</span>
+          </div>
+          <button type="button" class="mac-notif-close-btn" onclick="dismissSystemNotification('${escapeHtml(n.id)}', event)" title="Đóng thông báo">✕</button>
+        </div>
+        <div class="mac-notif-body">
+          <div class="mac-notif-icon-circle">${n.icon}</div>
+          <div class="mac-notif-content">
+            <div class="mac-notif-title">${escapeHtml(n.title)}</div>
+            <div class="mac-notif-desc">${escapeHtml(n.message)}</div>
+            ${n.appUrl ? `
+              <button type="button" class="mac-notif-action-btn" onclick="openAppFromNotif('${escapeHtml(n.appUrl)}')">
+                <span>↗</span> ${escapeHtml(n.btnText)}
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openAppFromNotif(url) {
+    if (!url) return;
+    const cleanUrl = url.replace(/^\.\//, '');
+    const targetApp = appsList.find(a => a.url === url || a.url === cleanUrl);
+    if (targetApp) {
+      openApp(targetApp.id);
+    } else {
+      // Tìm app phù hợp theo từ khóa đường dẫn
+      const matched = appsList.find(a => a.url.includes('danh-ba') && cleanUrl.includes('danh-ba')) ||
+                      appsList.find(a => a.url.includes('ghi-chu') && cleanUrl.includes('ghi-chu')) ||
+                      appsList.find(a => a.url.includes('tien-com') && cleanUrl.includes('tien-com')) ||
+                      appsList.find(a => a.url.includes('chia-bill') && cleanUrl.includes('chia-bill'));
+      if (matched) {
+        openApp(matched.id);
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+  }
+
+  // 1. Quét sinh nhật sắp tới trong tuần từ Danh Bạ (sys_global_members)
+  function scanUpcomingBirthdays() {
+    try {
+      let members = [];
+      const raw = localStorage.getItem('sys_global_members');
+      if (raw) {
+        try { members = JSON.parse(raw); } catch (e) {}
+      }
+      if (!Array.isArray(members) || !members.length) {
+        members = [
+          { id: 1, name: "Thành", fullName: "Nguyễn Văn Thành", nickname: "Thành Ken", dob: "1994-05-15", phone: "0981234561", note: "Trưởng nhóm" },
+          { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt Còi", dob: "1996-08-20", phone: "0972345672", note: "Kỹ thuật" },
+          { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", dob: "1995-11-12", phone: "0963456783", note: "Kế toán" },
+          { id: 4, name: "Hạnh", fullName: "Phạm Mỹ Hạnh", nickname: "Hạnh", dob: "1998-03-28", phone: "0914567894", note: "Thiết kế" },
+          { id: 5, name: "Quyền", fullName: "Vũ Đình Quyền", nickname: "Quyền", dob: "1997-07-09", phone: "0935678905", note: "Marketing" },
+          { id: 6, name: "Duy", fullName: "Hoàng Đức Duy", nickname: "Duy", dob: "1999-12-05", phone: "0906789016", note: "Phát triển" }
+        ];
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+      members.forEach(m => {
+        if (!m.dob) return;
+        const parts = m.dob.split('-');
+        if (parts.length < 3) return;
+        const bMonth = parseInt(parts[1], 10) - 1;
+        const bDay = parseInt(parts[2], 10);
+
+        if (isNaN(bMonth) || isNaN(bDay)) return;
+
+        // Tính ngày sinh nhật trong năm hiện tại
+        let bdayDate = new Date(currentYear, bMonth, bDay, 0, 0, 0, 0);
+        let diffDays = Math.round((bdayDate.getTime() - startOfToday) / 86400000);
+
+        // Nếu đã qua trong năm nay, kiểm tra đầu năm tới (cho trường hợp cuối tháng 12 sang tháng 1)
+        if (diffDays < 0) {
+          const nextYearBday = new Date(currentYear + 1, bMonth, bDay, 0, 0, 0, 0);
+          const nextDiff = Math.round((nextYearBday.getTime() - startOfToday) / 86400000);
+          if (nextDiff <= 7) {
+            diffDays = nextDiff;
+            bdayDate = nextYearBday;
+          }
+        }
+
+        // Báo nếu sinh nhật rơi vào trong vòng 7 ngày tới (kể cả hôm nay)
+        if (diffDays >= 0 && diffDays <= 7) {
+          const name = m.fullName || m.name || 'Thành viên';
+          const dobFormatted = `${String(bDay).padStart(2, '0')}/${String(bMonth + 1).padStart(2, '0')}`;
+          let dayNotice = '';
+          if (diffDays === 0) {
+            dayNotice = '🎉 Hôm nay là sinh nhật!';
+          } else if (diffDays === 1) {
+            dayNotice = '🎂 Ngày mai là sinh nhật!';
+          } else {
+            dayNotice = `🎂 Còn ${diffDays} ngày nữa (${dobFormatted})`;
+          }
+
+          const notifId = `bday_${m.id}_${bdayDate.getFullYear()}_${bMonth}_${bDay}`;
+          pushSystemNotification({
+            id: notifId,
+            title: `${dayNotice} - ${name}`,
+            message: `Sinh nhật thành viên ${name} (${m.nickname ? `"${m.nickname}"` : (m.note || 'Danh bạ')}). Hãy gửi lời chúc mừng!`,
+            icon: '🎂',
+            tag: 'Sinh Nhật',
+            tagClass: 'birthday',
+            appUrl: 'apps/danh-ba/index.html',
+            btnText: 'Mở Danh Bạ'
+          });
+        }
+      });
+    } catch (e) {
+      console.warn('[Dashboard] Lỗi quét sinh nhật:', e);
+    }
+  }
+
+  // 2. Quét các task sắp tới hạn hoặc quá hạn từ Ghi Chú (sticky_notes_data)
+  function scanUpcomingTasks() {
+    try {
+      const raw = localStorage.getItem('sticky_notes_data');
+      if (!raw) return;
+      const notes = JSON.parse(raw);
+      if (!Array.isArray(notes) || !notes.length) return;
+
+      const now = Date.now();
+      const oneDayMs = 24 * 3600 * 1000;
+      const sevenDaysMs = 7 * 24 * 3600 * 1000;
+
+      notes.forEach(note => {
+        if (!note || note.status === 'done' || !note.deadline) return;
+
+        const diffMs = note.deadline - now;
+        const diffHours = diffMs / (3600 * 1000);
+        const deadlineDate = new Date(note.deadline);
+        const timeFormatted = deadlineDate.toLocaleString('vi-VN', {
+          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+        const taskText = (note.text || 'Nhiệm vụ không tên').trim();
+        const shortText = taskText.length > 40 ? taskText.substring(0, 40) + '...' : taskText;
+
+        // Quá hạn (trong vòng 7 ngày qua)
+        if (diffMs < 0 && Math.abs(diffMs) <= sevenDaysMs) {
+          const overdueHours = Math.abs(Math.round(diffHours));
+          const overdueText = overdueHours < 24 ? `quá hạn ${overdueHours} giờ` : `quá hạn ${Math.floor(overdueHours / 24)} ngày`;
+          const notifId = `task_overdue_${note.id}`;
+
+          pushSystemNotification({
+            id: notifId,
+            title: `⚠️ Task quá hạn: ${shortText}`,
+            message: `Hạn chót đã qua vào lúc ${timeFormatted} (${overdueText}). Vui lòng kiểm tra và xử lý ngay!`,
+            icon: '⚠️',
+            tag: 'Quá Hạn',
+            tagClass: 'task-overdue',
+            appUrl: 'apps/ghi-chu/index.html',
+            btnText: 'Mở Ghi Chú'
+          });
+        }
+        // Sắp tới hạn (trong vòng 24 giờ tới)
+        else if (diffMs >= 0 && diffMs <= oneDayMs) {
+          let remainText = '';
+          if (diffHours < 1) {
+            remainText = `chỉ còn ${Math.max(1, Math.round(diffMs / 60000))} phút`;
+          } else {
+            remainText = `còn khoảng ${Math.round(diffHours)} giờ`;
+          }
+          const notifId = `task_due_${note.id}`;
+
+          pushSystemNotification({
+            id: notifId,
+            title: `⏰ Sắp tới hạn: ${shortText}`,
+            message: `Hạn chót lúc ${timeFormatted} (${remainText}). Đừng quên hoàn thành nhé!`,
+            icon: '⏰',
+            tag: 'Sắp Hết Hạn',
+            tagClass: 'task-due',
+            appUrl: 'apps/ghi-chu/index.html',
+            btnText: 'Mở Ghi Chú'
+          });
+        }
+      });
+    } catch (e) {
+      console.warn('[Dashboard] Lỗi quét task ghi chú:', e);
+    }
+  }
+
+  function scanAllProactiveNotifications() {
+    scanUpcomingBirthdays();
+    scanUpcomingTasks();
+  }
+
+  // 3. Lắng nghe thông báo đẩy từ các ứng dụng con qua BroadcastChannel
+  if ('BroadcastChannel' in window) {
+    try {
+      const notifBroadcast = new BroadcastChannel('system_notifications');
+      notifBroadcast.onmessage = function (e) {
+        if (e.data && e.data.type === 'PUSH_NOTIFICATION' && e.data.notification) {
+          pushSystemNotification(e.data.notification);
+        } else if (e.data && e.data.type === 'CLEAR_ALL_NOTIFICATIONS') {
+          clearAllSystemNotifications();
+        }
+      };
+    } catch (e) {}
+
+    // Lắng nghe cập nhật danh bạ để quét lại thông báo sinh nhật
+    try {
+      const memberSyncChannel = new BroadcastChannel('system_member_sync');
+      memberSyncChannel.onmessage = function () {
+        setTimeout(scanUpcomingBirthdays, 800);
+      };
+    } catch (e) {}
+  }
+
+  // Lắng nghe postMessage từ iframe (các sub-app)
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'PUSH_NOTIFICATION' && e.data.notification) {
+      pushSystemNotification(e.data.notification);
+    }
+  });
+
+  // Lắng nghe thay đổi storage từ tab khác
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'sys_global_members') {
+      setTimeout(scanUpcomingBirthdays, 800);
+    } else if (e.key === 'sticky_notes_data') {
+      setTimeout(scanUpcomingTasks, 800);
+    }
+  });
+
+  // --------------------------------------------------------------------------
   // 13. EXPORT API & SAFE INITIALIZATION
   // --------------------------------------------------------------------------
   window.dashboard = {
@@ -3005,10 +3351,19 @@
     closeAppInfoModal,
     showToast,
     hideToast,
-    attachAppTouchHandler
+    attachAppTouchHandler,
+    pushSystemNotification,
+    dismissSystemNotification,
+    clearAllSystemNotifications,
+    scanAllProactiveNotifications,
+    openAppFromNotif
   };
 
   Object.assign(window, window.dashboard);
+  window.pushSystemNotification = pushSystemNotification;
+  window.dismissSystemNotification = dismissSystemNotification;
+  window.clearAllSystemNotifications = clearAllSystemNotifications;
+  window.openAppFromNotif = openAppFromNotif;
 
   let isInitialized = false;
   function init() {
@@ -3048,6 +3403,10 @@
     if (!hasAdminConfigured()) {
       setTimeout(openAdminSetupModal, 400);
     }
+
+    // Quét thông báo chủ động (Sinh nhật, Task quá hạn / sắp tới hạn)
+    setTimeout(scanAllProactiveNotifications, 1200);
+    setInterval(scanAllProactiveNotifications, 300000);
 
     checkDbConnection(false);
     setInterval(() => checkDbConnection(false), 15000);
