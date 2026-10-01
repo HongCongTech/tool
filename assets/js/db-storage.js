@@ -28,6 +28,15 @@
   let isSyncing = false;
   let lastSyncTimestamp = 0;
 
+  // Danh sách các key chỉ lưu cục bộ trên phiên trình duyệt của máy hiện tại, tuyệt đối không đẩy lên Cloud
+  // và không cho phép Cloud ghi đè (đặc biệt là trạng thái đăng nhập sys_is_admin)
+  const LOCAL_ONLY_KEYS = new Set([
+    'sys_is_admin',
+    'mac_admin_mode',
+    'sys_failed_attempts',
+    'sys_raw_master_key'
+  ]);
+
   // Lưu trữ các hàm native của trình duyệt
   const nativeStorage = {
     getItem: Storage.prototype.getItem,
@@ -94,7 +103,7 @@
           const rows = JSON.parse(xhr.responseText);
           if (Array.isArray(rows)) {
             rows.forEach(item => {
-              if (item && item.key) {
+              if (item && item.key && !LOCAL_ONLY_KEYS.has(item.key)) {
                 const valStr = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
                 memoryStore[item.key] = valStr;
                 try { nativeStorage.setItem.call(localStorage, item.key, valStr); } catch (e) {}
@@ -134,7 +143,7 @@
       let hasChanges = false;
       if (Array.isArray(rows)) {
         rows.forEach(item => {
-          if (item && item.key) {
+          if (item && item.key && !LOCAL_ONLY_KEYS.has(item.key)) {
             const valStr = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
             if (memoryStore[item.key] !== valStr) {
               const oldVal = memoryStore[item.key];
@@ -244,6 +253,14 @@
 
   // 5. LƯU DỮ LIỆU LÊN SUPABASE (PERSISTENCE)
   function persistKey(key, value) {
+    // Nếu là key cục bộ (như phiên đăng nhập Admin), chỉ lưu native localStorage, không gửi lên Supabase
+    if (LOCAL_ONLY_KEYS.has(key)) {
+      try {
+        nativeStorage.setItem.call(localStorage, key, value);
+      } catch (e) {}
+      return;
+    }
+
     if (saveDebounceTimers[key]) {
       clearTimeout(saveDebounceTimers[key]);
       delete saveDebounceTimers[key];
@@ -251,7 +268,7 @@
 
     const isCritical = [
       'sys_admin_pass_hash', 'sys_master_key_hash', 'sys_recovery_email',
-      'sys_is_admin', 'p2p_admin_pass_hash', 'supabase_anon_key'
+      'p2p_admin_pass_hash', 'supabase_anon_key'
     ].includes(key);
 
     const executeSave = async () => {
@@ -296,6 +313,11 @@
   }
 
   function deleteKeyFromServer(key) {
+    if (LOCAL_ONLY_KEYS.has(key)) {
+      try { nativeStorage.removeItem.call(localStorage, key); } catch (e) {}
+      return;
+    }
+
     try { nativeStorage.removeItem.call(localStorage, key); } catch (e) {}
 
     const { url, anonKey } = getSupabaseConfig();
@@ -312,6 +334,9 @@
   Storage.prototype.getItem = function (key) {
     if (this === localStorage) {
       const k = String(key);
+      if (LOCAL_ONLY_KEYS.has(k)) {
+        return nativeStorage.getItem.call(this, k);
+      }
       if (memoryStore.hasOwnProperty(k)) return memoryStore[k];
       return nativeStorage.getItem.call(this, k);
     }
@@ -325,6 +350,9 @@
       const oldVal = memoryStore[k];
       memoryStore[k] = strVal;
 
+      // Ghi tức thì vào nativeStorage trước để không bị mất khi reload ngay sau đó
+      try { nativeStorage.setItem.call(localStorage, k, strVal); } catch (e) {}
+
       persistKey(k, strVal);
       dispatchStorageChange(k, oldVal, strVal);
       return;
@@ -337,6 +365,7 @@
       const k = String(key);
       const oldVal = memoryStore[k];
       delete memoryStore[k];
+      try { nativeStorage.removeItem.call(localStorage, k); } catch (e) {}
       deleteKeyFromServer(k);
       dispatchStorageChange(k, oldVal, null);
       return;

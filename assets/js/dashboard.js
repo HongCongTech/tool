@@ -35,6 +35,7 @@
     { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'apps/tien-com/index.html', adminOnly: false },
     { id: '3', title: 'Lãi Suất', icon: '💵', url: 'apps/lai-suat/index.html', adminOnly: false },
     { id: '4', title: 'Ghi Chú', icon: '📝', url: 'apps/ghi-chu/index.html', adminOnly: false },
+    { id: '5', title: 'Danh Bạ', icon: '👥', url: 'apps/danh-ba/index.html', adminOnly: false },
     { id: 'control-panel', title: 'Cài Đặt', icon: '⚙️', url: 'apps/control-panel/index.html', adminOnly: true }
   ];
 
@@ -124,10 +125,41 @@
   // --------------------------------------------------------------------------
   // 2. CENTRALIZED SYSTEM-WIDE ADMIN AUTHENTICATION (SHA-256 + MASTER KEY)
   // --------------------------------------------------------------------------
+  const CRYPTO_SALT_PEPPER = 'ANTIGRAVITY_SECURE_SALT_VAULT_v3_99482';
+
   async function hashPassword(text) {
-    const msgBuffer = new TextEncoder().encode(text);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (!text) return '';
+    const encoder = new TextEncoder();
+    const data1 = encoder.encode(text + ':' + CRYPTO_SALT_PEPPER);
+    const buf1 = await crypto.subtle.digest('SHA-256', data1);
+
+    const combined = new Uint8Array(CRYPTO_SALT_PEPPER.length + buf1.byteLength);
+    combined.set(encoder.encode(CRYPTO_SALT_PEPPER), 0);
+    combined.set(new Uint8Array(buf1), CRYPTO_SALT_PEPPER.length);
+    const buf2 = await crypto.subtle.digest('SHA-256', combined);
+
+    return Array.from(new Uint8Array(buf2)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function verifyPassword(inputPass, storedHash) {
+    if (!inputPass || !storedHash) return false;
+    const saltedHash = await hashPassword(inputPass);
+    if (saltedHash === storedHash) return true;
+
+    try {
+      const encoder = new TextEncoder();
+      const legacyBuf = await crypto.subtle.digest('SHA-256', encoder.encode(inputPass));
+      const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      if (legacyHash === storedHash) {
+        try {
+          localStorage.setItem(SYS_ADMIN_HASH_KEY, saltedHash);
+          localStorage.setItem('sys_admin_password_hash', saltedHash);
+          localStorage.setItem('p2p_admin_pass_hash', saltedHash);
+        } catch (e) {}
+        return true;
+      }
+    } catch (e) {}
+    return false;
   }
 
   function hasAdminConfigured() {
@@ -291,7 +323,7 @@
 
     setAdminMode(true);
     closeAdminSetupModal();
-    showMacAlert('🎉 Thiết Lập Thành Công', 'Mật khẩu Admin của bạn đã được lưu thành công. Quyền Quản trị viên đã được kích hoạt.', 'success');
+    window.location.reload();
   }
 
   function resetSecurityToNull() {
@@ -320,17 +352,15 @@
       return;
     }
 
-    const hashedInput = await hashPassword(passInput);
-    const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY);
-    const isMatched = Boolean(storedHash && hashedInput === storedHash);
+    const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
+    const isMatched = await verifyPassword(passInput, storedHash);
 
     if (isMatched) {
       failedAttempts = 0;
       localStorage.setItem(SYS_FAILED_KEY, '0');
       setAdminMode(true);
       closeAdminAuthModal();
-      showMacAlert('🎉 Đăng Nhập Thành Công', 'Chế độ Quản trị viên đã được kích hoạt. Bạn hiện có toàn quyền chỉnh sửa và quản lý hệ thống.', 'success');
-      showMacToast('Đã đăng nhập Quản trị viên (Admin Mode)', 'success');
+      window.location.reload();
     } else {
       failedAttempts++;
       showMacAlert(
@@ -349,7 +379,7 @@
   function logoutAdmin() {
     setAdminMode(false);
     closeAllMenus();
-    showMacToast('Đã chuyển về Chế độ xem (Chỉ đọc)', 'info');
+    window.location.reload();
   }
 
   function openChangeAdminPassModal() {
@@ -1007,6 +1037,13 @@
           return updated;
         });
 
+        // Tự động thêm Danh Bạ nếu chưa có trong danh sách apps
+        const hasDanhBa = appsList.some(app => app.id === 'danh-ba' || (app.url && app.url.includes('danh-ba')));
+        if (!hasDanhBa) {
+          appsList.push({ id: 'danh-ba', title: 'Danh Bạ', icon: '👥', url: 'apps/danh-ba/index.html', adminOnly: false });
+          needsSave = true;
+        }
+
         // Tự động thêm Control Panel nếu chưa có trong danh sách apps
         const hasControlPanel = appsList.some(app => app.id === 'control-panel' || (app.url && app.url.includes('control-panel')));
         if (!hasControlPanel) {
@@ -1072,7 +1109,7 @@
       item.innerHTML = `
         <div class="delete-btn" onclick="window.dashboard.deleteApp(event, '${app.id}')" title="Xóa ứng dụng">✕</div>
         <div class="app-icon" style="position:relative;">
-          ${app.icon}
+          ${formatAppIcon(app.icon, '📱')}
           ${app.adminOnly ? `<span class="app-lock-badge" title="Chỉ hiển thị ở Admin">🔒</span>` : ''}
         </div>
         <div class="app-label" title="${app.title}">${app.title}</div>
@@ -1220,7 +1257,7 @@
 
     menu.innerHTML = `
       <div class="mac-context-header">
-        <div class="ctx-app-icon">${app.icon}</div>
+        <div class="ctx-app-icon">${formatAppIcon(app.icon, '📱')}</div>
         <div class="ctx-app-info">
           <div class="ctx-app-title">${app.title}</div>
           <div class="ctx-app-sub">
@@ -1502,7 +1539,7 @@
       }
     }
 
-    if (DOM.infoAppIcon) DOM.infoAppIcon.innerText = app.icon || '📱';
+    if (DOM.infoAppIcon) DOM.infoAppIcon.innerHTML = formatAppIcon(app.icon, '📱');
     if (DOM.infoAppTitle) DOM.infoAppTitle.innerText = app.title;
     if (DOM.infoAppBadge) {
       DOM.infoAppBadge.innerText = app.adminOnly ? '🔒 Chỉ Admin' : '🌐 Công khai';
@@ -1583,7 +1620,7 @@
       btn.className = 'dock-btn';
       btn.dataset.appId = app.id;
       btn.title = app.adminOnly ? `${app.title} (🔒 Chỉ Admin)` : app.title;
-      btn.innerHTML = app.icon;
+      btn.innerHTML = formatAppIcon(app.icon, '📱');
 
       if (winData) {
         btn.classList.add('running-app');
@@ -1696,7 +1733,7 @@
         </div>
         
         <div class="window-title">
-          <span class="window-icon">${app.icon}</span>
+          <span class="window-icon">${formatAppIcon(app.icon, '🪟')}</span>
           <span class="window-name">${app.title}</span>
         </div>
 
@@ -2453,6 +2490,129 @@
   }
 
   // --------------------------------------------------------------------------
+  // APP ICON HELPER & ICON PICKER SYSTEM
+  // --------------------------------------------------------------------------
+  function formatAppIcon(icon, fallback = '🚀') {
+    if (!icon) return fallback;
+    const s = String(icon).trim();
+    if (s.startsWith('data:image') || s.startsWith('http://') || s.startsWith('https://') || s.startsWith('assets/') || s.startsWith('./') || s.startsWith('/') || /\.(png|jpg|jpeg|svg|webp|gif)(\?.*)?$/i.test(s) || s.includes('<img')) {
+      if (s.includes('<img')) return s;
+      return `<img src="${s}" alt="Icon" class="app-icon-img" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`;
+    }
+    return s;
+  }
+
+  const PRESET_ICONS = {
+    work: ['👥', '📋', '📊', '📈', '📅', '📝', '📂', '🗄️', '✉️', '📞', '🖨️', '📎', '📌', '💻', '📱', '🏢', '🏷️', '📑'],
+    finance: ['💵', '💳', '🏦', '🪙', '🧾', '🛍️', '🛒', '💰', '💎', '🏷️', '💲', '🏧', '💸', '🧧'],
+    tools: ['⚙️', '🔧', '🔨', '🔒', '🔑', '🛡️', '🌐', '🔍', '⚡', '🔋', '📡', '⏰', '🧭', '🧮', '🕹️', '🔌', '💡'],
+    media: ['🎨', '📷', '🖼️', '🎵', '🎬', '🎧', '🎮', '🚀', '⭐', '🔔', '🎯', '💬', '📣', '✨', '🔥', '🏆', '🎉'],
+    life: ['🍱', '🍚', '☕', '🍻', '🍕', '🍔', '🍜', '🧋', '🍎', '⚽', '🚗', '✈️', '🏠', '🎁', '🩺', '💊']
+  };
+
+  window.switchIconTab = function(tabName, scope = 'desktop') {
+    const tabsContainer = document.getElementById(scope === 'desktop' ? 'desktop-icon-tabs' : 'cp-icon-tabs');
+    const gridContainer = document.getElementById(scope === 'desktop' ? 'desktop-icon-grid' : 'cp-icon-grid');
+    if (!tabsContainer || !gridContainer) return;
+
+    tabsContainer.querySelectorAll('.icon-tab-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = Array.from(tabsContainer.querySelectorAll('.icon-tab-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(tabName));
+    if (activeBtn) activeBtn.classList.add('active');
+
+    const icons = PRESET_ICONS[tabName] || PRESET_ICONS.work;
+    const inputId = scope === 'desktop' ? 'app-icon-input' : 'cpAppIconInput';
+    const inputEl = document.getElementById(inputId);
+    const currentVal = inputEl ? inputEl.value.trim() : '';
+
+    gridContainer.innerHTML = icons.map(ic => `
+      <div class="icon-preset-item ${currentVal === ic ? 'selected' : ''}" onclick="selectPresetIcon('${ic}', '${scope}')" title="${ic}">
+        ${ic}
+      </div>
+    `).join('');
+  };
+
+  window.selectPresetIcon = function(iconChar, scope = 'desktop') {
+    const input = document.getElementById(scope === 'desktop' ? 'app-icon-input' : 'cpAppIconInput');
+    if (!input) return;
+    input.value = iconChar;
+    updateAppIconPreview(iconChar, scope);
+
+    const gridContainer = document.getElementById(scope === 'desktop' ? 'desktop-icon-grid' : 'cp-icon-grid');
+    if (gridContainer) {
+      gridContainer.querySelectorAll('.icon-preset-item').forEach(el => {
+        el.classList.toggle('selected', el.innerText.trim() === iconChar);
+      });
+    }
+  };
+
+  window.updateAppIconPreview = function(val, scope = 'desktop') {
+    const preview = document.getElementById(scope === 'desktop' ? 'app-icon-preview' : 'cp-app-icon-preview');
+    const removeBtn = document.getElementById(scope === 'desktop' ? 'btn-remove-icon-img' : 'cp-btn-remove-icon-img');
+    if (!preview) return;
+
+    const trimmed = (val || '').trim();
+    const isImg = trimmed.startsWith('data:image') || trimmed.startsWith('http') || trimmed.startsWith('assets/');
+    if (removeBtn) removeBtn.style.display = isImg ? 'inline-block' : 'none';
+
+    if (isImg) {
+      preview.innerHTML = `<img src="${trimmed}" alt="Icon Preview" style="width:100%;height:100%;object-fit:cover;" />`;
+    } else {
+      preview.innerHTML = trimmed || '🚀';
+    }
+  };
+
+  window.removeAppIconImage = function(scope = 'desktop') {
+    const input = document.getElementById(scope === 'desktop' ? 'app-icon-input' : 'cpAppIconInput');
+    if (input) input.value = '🚀';
+    updateAppIconPreview('🚀', scope);
+  };
+
+  window.handleAppIconFileUpload = function(event, scope = 'desktop') {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn tệp hình ảnh hợp lệ (PNG, JPG, SVG, WebP)!');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        // Resize to 128x128 for crisp retina rendering & tiny storage footprint
+        const canvas = document.createElement('canvas');
+        const maxDim = 128;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const dataUrl = canvas.toDataURL('image/png', 0.9);
+        const input = document.getElementById(scope === 'desktop' ? 'app-icon-input' : 'cpAppIconInput');
+        if (input) {
+          input.value = dataUrl;
+          updateAppIconPreview(dataUrl, scope);
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+
+  // --------------------------------------------------------------------------
   // 11. MODAL FORM: ADD / DELETE APP (ADMIN PROTECTED)
   // --------------------------------------------------------------------------
   function openModal() {
@@ -2466,10 +2626,12 @@
     if (DOM.modalAddTitle) DOM.modalAddTitle.innerText = '➕ Thêm Ứng Dụng Mới';
     if (DOM.appIdInput) DOM.appIdInput.value = '';
     if (DOM.appNameInput) DOM.appNameInput.value = '';
-    if (DOM.appIconInput) DOM.appIconInput.value = '';
+    if (DOM.appIconInput) DOM.appIconInput.value = '🚀';
     if (DOM.appUrlInput) DOM.appUrlInput.value = '';
     if (DOM.appAdminOnlySelect) DOM.appAdminOnlySelect.value = 'false';
     if (DOM.btnSaveApp) DOM.btnSaveApp.innerText = 'Thêm Ứng Dụng';
+    updateAppIconPreview('🚀', 'desktop');
+    switchIconTab('work', 'desktop');
     DOM.appModal.classList.add('active');
     setTimeout(() => DOM.appNameInput && DOM.appNameInput.focus(), 100);
   }
@@ -2489,10 +2651,13 @@
     if (DOM.modalAddTitle) DOM.modalAddTitle.innerText = '✏️ Sửa Ứng Dụng & Phân Quyền';
     if (DOM.appIdInput) DOM.appIdInput.value = app.id;
     if (DOM.appNameInput) DOM.appNameInput.value = app.title || '';
-    if (DOM.appIconInput) DOM.appIconInput.value = app.icon || '';
+    const currentIcon = app.icon || '🚀';
+    if (DOM.appIconInput) DOM.appIconInput.value = currentIcon;
     if (DOM.appUrlInput) DOM.appUrlInput.value = app.url || '';
     if (DOM.appAdminOnlySelect) DOM.appAdminOnlySelect.value = app.adminOnly ? 'true' : 'false';
     if (DOM.btnSaveApp) DOM.btnSaveApp.innerText = 'Lưu Thay Đổi';
+    updateAppIconPreview(currentIcon, 'desktop');
+    switchIconTab('work', 'desktop');
     DOM.appModal.classList.add('active');
     setTimeout(() => DOM.appNameInput && DOM.appNameInput.focus(), 100);
   }
@@ -2717,7 +2882,7 @@
       const newStatus = !!e.data.isAdmin;
       if (newStatus !== isAdmin) {
         isAdmin = newStatus;
-        updateAdminUI();
+        window.location.reload();
       }
     }
   });
@@ -2728,12 +2893,49 @@
         const newStatus = !!e.data.isAdmin;
         if (newStatus !== isAdmin) {
           isAdmin = newStatus;
-          updateAdminUI();
+          window.location.reload();
         }
       } else if (e.data && e.data.type === 'APPS_CONFIG_CHANGED') {
         loadApps();
       }
     };
+  }
+
+  // Browser Tab Title & Favicon Configuration
+  function applyBrowserTabConfig() {
+    try {
+      const raw = localStorage.getItem('sys_browser_tab_config');
+      if (!raw) return;
+      const config = JSON.parse(raw);
+      if (config.title) {
+        document.title = config.title;
+      }
+      if (config.favicon) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        if (config.faviconType === 'emoji' || (!config.favicon.startsWith('data:') && !config.favicon.startsWith('http') && config.favicon.length <= 4)) {
+          link.href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${config.favicon}</text></svg>`;
+        } else {
+          link.href = config.favicon;
+        }
+      }
+    } catch (e) {}
+  }
+  applyBrowserTabConfig();
+
+  if ('BroadcastChannel' in window) {
+    try {
+      const tabChannel = new BroadcastChannel('system_tab_config');
+      tabChannel.onmessage = function (e) {
+        if (e.data && e.data.type === 'TAB_CONFIG_CHANGED') {
+          applyBrowserTabConfig();
+        }
+      };
+    } catch (e) {}
   }
 
   // PWA Service Worker Registration
@@ -2813,20 +3015,19 @@
     if (isInitialized) return;
     isInitialized = true;
 
-    // Tự động xóa sạch mật khẩu và master key mặc định cũ về null để người dùng tự đặt lại
+    // Dọn dẹp mật khẩu hoặc master key mặc định cũ nếu còn sót lại từ phiên bản cũ
     const currentPassHash = localStorage.getItem(SYS_ADMIN_HASH_KEY);
     const currentMasterHash = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
     const OLD_DEFAULT_HASH = '771f25381395342eb412f8a8461ee6b69389f4f4699f116a445d414fe047e704';
     const OLD_MASTER_HASH = 'bca8b789a74423b0f5be5722cfa563607062bf6a69dfdc3e99dcf5ed16c4c51e';
 
-    if ((currentPassHash && currentPassHash === OLD_DEFAULT_HASH) || (currentMasterHash && currentMasterHash === OLD_MASTER_HASH)) {
+    if (currentPassHash && currentPassHash === OLD_DEFAULT_HASH) {
       localStorage.removeItem(SYS_ADMIN_HASH_KEY);
-      localStorage.removeItem(SYS_MASTER_KEY_HASH_KEY);
+      localStorage.removeItem('sys_admin_password_hash');
       localStorage.removeItem('p2p_admin_pass_hash');
-      localStorage.removeItem('p2p_admin_pass');
-      localStorage.removeItem(SYS_IS_ADMIN_KEY);
-      localStorage.removeItem(SYS_FAILED_KEY);
-      isAdmin = false;
+    }
+    if (currentMasterHash && currentMasterHash === OLD_MASTER_HASH) {
+      localStorage.removeItem(SYS_MASTER_KEY_HASH_KEY);
     }
 
     updateAdminUI();

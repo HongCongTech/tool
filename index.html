@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Hệ thống macOS Web Dashboard - Trung tâm điều hành các tiện ích văn phòng">
   <title>macOS Dashboard Web</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('sys_browser_tab_config');
+        if (raw) {
+          var cfg = JSON.parse(raw);
+          if (cfg.title) document.title = cfg.title;
+          if (cfg.favicon) {
+            var l = document.querySelector("link[rel~='icon']");
+            if (!l) { l = document.createElement('link'); l.rel = 'icon'; document.head.appendChild(l); }
+            if (cfg.faviconType === 'emoji' || (!cfg.favicon.startsWith('data:') && !cfg.favicon.startsWith('http') && cfg.favicon.length <= 4)) {
+              l.href = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>' + cfg.favicon + '</text></svg>';
+            } else {
+              l.href = cfg.favicon;
+            }
+          }
+        }
+      } catch(e) {}
+    })();
+  </script>
   
   <!-- PWA Web App Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -201,8 +222,38 @@
       </div>
       
       <div class="input-group">
-        <label for="app-icon-input">Biểu tượng (Emoji):</label>
-        <input type="text" id="app-icon-input" placeholder="VD: 🌐 hoặc 📊" maxlength="4">
+        <label>Biểu tượng ứng dụng (Chọn icon hoặc Tải ảnh lên):</label>
+        <div class="icon-picker-box">
+          <div class="icon-picker-header">
+            <div class="icon-preview-display" id="app-icon-preview">🚀</div>
+            <div style="flex:1;">
+              <input type="text" id="app-icon-input" placeholder="Nhập emoji hoặc chọn bên dưới..." style="margin-bottom:6px;" oninput="updateAppIconPreview(this.value, 'desktop')">
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <input type="file" id="app-icon-file-input" accept="image/*" style="display:none;" onchange="handleAppIconFileUpload(event, 'desktop')">
+                <button type="button" class="btn-action" style="padding:4px 10px; font-size:11.5px; background:rgba(2,132,199,0.3); border:1px solid #0284c7; color:#38bdf8;" onclick="document.getElementById('app-icon-file-input').click()">
+                  📁 Tải ảnh icon lên
+                </button>
+                <button type="button" id="btn-remove-icon-img" class="btn-action" style="padding:4px 8px; font-size:11.5px; background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#f87171; display:none;" onclick="removeAppIconImage('desktop')">
+                  ✕ Bỏ ảnh
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category filter buttons -->
+          <div class="icon-preset-tabs" id="desktop-icon-tabs">
+            <button type="button" class="icon-tab-btn active" onclick="switchIconTab('work', 'desktop')">💼 Văn phòng</button>
+            <button type="button" class="icon-tab-btn" onclick="switchIconTab('finance', 'desktop')">💰 Tài chính</button>
+            <button type="button" class="icon-tab-btn" onclick="switchIconTab('tools', 'desktop')">🛠️ Tiện ích</button>
+            <button type="button" class="icon-tab-btn" onclick="switchIconTab('media', 'desktop')">🎨 Đa phương tiện</button>
+            <button type="button" class="icon-tab-btn" onclick="switchIconTab('life', 'desktop')">🍱 Đời sống</button>
+          </div>
+
+          <!-- Preset Icon Grid -->
+          <div class="icon-preset-grid" id="desktop-icon-grid">
+            <!-- Populated via Javascript -->
+          </div>
+        </div>
       </div>
       
       <div class="input-group">

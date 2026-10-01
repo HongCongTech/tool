@@ -582,30 +582,117 @@
             margin-left: 4px;
         }
 
+        /* CP ICON PICKER WIDGET */
+        .icon-picker-box {
+            background: var(--slate-50);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-top: 4px;
+        }
+        .icon-picker-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .icon-preview-display {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: white;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .icon-preview-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .icon-preset-tabs {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+        .icon-preset-tabs::-webkit-scrollbar { height: 4px; }
+        .icon-preset-tabs::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 3px; }
+        .icon-tab-btn {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--slate-600);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+        .icon-tab-btn:hover, .icon-tab-btn.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-border);
+        }
+        .icon-preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+            gap: 6px;
+            max-height: 125px;
+            overflow-y: auto;
+            padding: 6px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .icon-preset-grid::-webkit-scrollbar { width: 4px; }
+        .icon-preset-grid::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 3px; }
+        .icon-preset-item {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--slate-50);
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .icon-preset-item:hover {
+            background: var(--primary-light);
+            transform: scale(1.15);
+            border-color: var(--primary-border);
+        }
+        .icon-preset-item.selected {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
         /* ========================================================================= */
-        /* PROFESSIONAL SECURITY & PASSWORD MANAGER STYLES                          */
+        /* PROFESSIONAL SECURITY & PASSWORD MANAGER STYLES (CLEAN WHITE THEME)       */
         /* ========================================================================= */
         .sec-banner {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: #ffffff;
             border-radius: var(--radius-md);
             padding: 22px;
-            color: white;
+            color: var(--slate-800);
             margin-bottom: 20px;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+            box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
         .sec-banner::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(2, 132, 199, 0.25) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
+            display: none;
         }
         .sec-stat-grid {
             display: grid;
@@ -614,27 +701,78 @@
             margin-top: 18px;
         }
         .sec-stat-box {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--slate-50);
+            border: 1px solid var(--slate-200);
             border-radius: 10px;
             padding: 12px 14px;
-            backdrop-filter: blur(8px);
         }
         .sec-stat-label {
             font-size: 11px;
-            color: #94a3b8;
+            color: var(--slate-500);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 600;
         }
         .sec-stat-value {
-            font-size: 15px;
-            font-weight: 800;
+            font-size: 14.5px;
+            font-weight: 700;
             margin-top: 4px;
-            color: #f8fafc;
+            color: var(--slate-800);
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        /* Action Option Cards (Compact) */
+        .sec-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .sec-action-card {
+            margin-bottom: 0 !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+            padding: 20px;
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            position: relative;
+        }
+        .sec-action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.08);
+            border-color: #cbd5e1;
+        }
+        .sec-action-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        .sec-action-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--slate-900);
+            margin-bottom: 4px;
+        }
+        .sec-action-desc {
+            font-size: 12.5px;
+            color: var(--slate-500);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .sec-action-btn {
+            align-self: flex-start;
+            pointer-events: none;
         }
 
         /* Password input with toggle */
@@ -1043,6 +1181,79 @@
                         <button class="btn btn-primary" onclick="saveCustomWallpaper()"><i class="fa-solid fa-check"></i> Áp Dụng</button>
                     </div>
                 </div>
+
+                <!-- TÙY BIẾN TÊN & LOGO TAB TRÌNH DUYỆT -->
+                <div class="card" style="margin-top:20px;">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-window-maximize" style="color:var(--primary);"></i>
+                            <span>Tùy Biến Tên & Logo Tab Trình Duyệt</span>
+                        </div>
+                        <span class="badge" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;">Tự Động Đồng Bộ</span>
+                    </div>
+                    <p style="font-size:12.5px; color:var(--slate-500); margin-top:-6px; margin-bottom:16px;">
+                        Thay đổi tiêu đề hiển thị và biểu tượng logo (Favicon) trên thanh tab của trình duyệt web Chrome, Safari, Edge hoặc khi lưu Bookmark.
+                    </p>
+
+                    <!-- LIVE BROWSER TAB PREVIEW -->
+                    <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:12px 12px 6px 6px; padding:8px 12px 0 12px; margin-bottom:16px;">
+                        <div style="font-size:11px; font-weight:700; color:var(--slate-500); text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px;">
+                            Mô phỏng thanh Tab trình duyệt thực tế
+                        </div>
+                        <div style="display:flex; align-items:flex-end;">
+                            <div id="browserTabPreview" style="background:#ffffff; border:1px solid #cbd5e1; border-bottom:none; border-radius:10px 10px 0 0; padding:8px 14px; display:inline-flex; align-items:center; gap:9px; max-width:320px; box-shadow:0 -2px 6px rgba(0,0,0,0.03);">
+                                <div id="tabPreviewFavicon" style="width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">
+                                    💻
+                                </div>
+                                <div id="tabPreviewTitle" style="font-size:12px; font-weight:600; color:var(--slate-800); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    Cài Đặt Hệ Thống & Control Panel
+                                </div>
+                                <span style="font-size:12px; color:var(--slate-400); margin-left:auto; cursor:pointer;">&times;</span>
+                            </div>
+                            <div style="flex:1; border-bottom:1px solid #cbd5e1; margin-bottom:0px; height:1px;"></div>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
+                        <!-- Field 1: Tab Title -->
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label" style="font-weight:700; color:var(--slate-700);">Tên hiển thị trên Tab (Document Title):</label>
+                            <input type="text" id="browserTabTitleInput" class="form-control" placeholder="Ví dụ: macOS Dashboard Web, Trung Tâm Tiện Ích..." oninput="updateBrowserTabLivePreview()">
+                            <div style="font-size:11.5px; color:var(--slate-400); margin-top:4px;">Tiêu đề hiển thị trên thanh tab và tên khi ghim bookmark.</div>
+                        </div>
+
+                        <!-- Field 2: Tab Favicon Choice -->
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label" style="font-weight:700; color:var(--slate-700);">Biểu tượng Tab (Favicon):</label>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <input type="text" id="browserTabFaviconInput" class="form-control" placeholder="Emoji hoặc URL ảnh..." style="flex:1;" oninput="updateBrowserTabLivePreview()">
+                                <input type="file" id="browserTabFaviconFileInput" accept="image/*" style="display:none;" onchange="handleBrowserTabFaviconUpload(event)">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('browserTabFaviconFileInput').click()" style="white-space:nowrap;">
+                                    <i class="fa-solid fa-upload"></i> Tải ảnh lên
+                                </button>
+                            </div>
+                            <div style="font-size:11.5px; color:var(--slate-400); margin-top:4px;">Chọn 1 emoji bên dưới, nhập URL ảnh hoặc tải ảnh logo từ máy tính.</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Emoji Presets -->
+                    <div style="margin-top:14px;">
+                        <label class="form-label" style="font-size:12px; font-weight:600; color:var(--slate-600); margin-bottom:6px;">Chọn nhanh biểu tượng Tab:</label>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;" id="browserTabEmojiPresets">
+                            <!-- Populated with clickable emoji buttons -->
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="resetBrowserTabToDefault()">
+                            <i class="fa-solid fa-rotate-left"></i> Đặt Lại Mặc Định
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveBrowserTabConfig()">
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu & Áp Dụng Ngay
+                        </button>
+                    </div>
+                </div>
             </section>
 
             <!-- ========================================================================= -->
@@ -1090,174 +1301,104 @@
                     <div class="section-desc">Giao diện quản lý an ninh, mã hóa mật khẩu Quản trị viên, tạo mật khẩu ngẫu nhiên và khóa cứu hộ khẩn cấp Master Key chuẩn Enterprise.</div>
                 </div>
 
-                <!-- 1. OVERVIEW & HEALTH SCORE BANNER -->
-                <div class="sec-banner">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; position:relative; z-index:2;">
+                <!-- 1. OVERVIEW & SYSTEM STATUS (WHITE THEME) -->
+                <div class="card sec-banner">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
                         <div style="display:flex; align-items:center; gap:14px;">
-                            <div style="width:48px; height:48px; border-radius:12px; background:rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.4); display:flex; align-items:center; justify-content:center; font-size:22px; color:#f87171;">
-                                <i class="fa-solid fa-lock"></i>
+                            <div style="width:48px; height:48px; border-radius:12px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--primary);">
+                                <i class="fa-solid fa-shield-halved"></i>
                             </div>
                             <div>
-                                <div style="font-size:18px; font-weight:800; letter-spacing:-0.3px; color:#f8fafc;">
-                                    Tình Trạng An Ninh Hệ Thống
+                                <div style="font-size:18px; font-weight:800; letter-spacing:-0.3px; color:var(--slate-900);">
+                                    Tình Trạng An Ninh & Quyền Quản Trị
                                 </div>
-                                <div id="secHealthSubtext" style="font-size:12.5px; color:#94a3b8; margin-top:3px;">
-                                    Đang phân tích mức độ bảo mật thông tin đăng nhập và cơ chế cứu hộ...
+                                <div id="secHealthSubtext" style="font-size:12.5px; color:var(--slate-500); margin-top:3px;">
+                                    Bảo vệ hệ thống với chuẩn mã hóa đa tầng Salted SHA-256 Cloud & kiểm soát quyền Admin chặt chẽ.
                                 </div>
                             </div>
                         </div>
 
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <span id="secAdminStatusBadge" class="badge" style="padding:6px 12px; font-size:12px; font-weight:700; border-radius:20px; background:rgba(255,255,255,0.12); color:#f8fafc; border:1px solid rgba(255,255,255,0.2);">
+                            <span id="secAdminStatusBadge" class="badge" style="padding:6px 14px; font-size:12px; font-weight:700; border-radius:20px; background:#f1f5f9; color:var(--slate-700); border:1px solid #cbd5e1;">
                                 <i class="fa-solid fa-circle" style="font-size:8px; margin-right:4px;"></i> Đang kiểm tra...
                             </span>
-                            <button class="btn btn-sm" id="secBtnQuickAction" style="background:#0284c7; color:white; border:none; font-weight:600; padding:6px 14px; border-radius:8px;" onclick="handleAdminLoginLogout()">
+                            <button class="btn btn-sm" id="secBtnQuickAction" style="background:#0284c7; color:white; border:none; font-weight:600; padding:6px 16px; border-radius:8px;" onclick="handleAdminLoginLogout()">
                                 <i class="fa-solid fa-key"></i> Đăng Nhập
                             </button>
                         </div>
                     </div>
 
-                    <!-- SECURITY STATS GRID -->
+                    <!-- SECURITY STATS GRID (WHITE THEMED) -->
                     <div class="sec-stat-grid">
                         <div class="sec-stat-box">
                             <div class="sec-stat-label">Trạng Thái An Ninh</div>
-                            <div class="sec-stat-value" style="color:#4ade80;">
-                                <i class="fa-solid fa-shield-halved"></i> <span>Đang bảo vệ</span>
+                            <div class="sec-stat-value" style="color:#10b981;">
+                                <i class="fa-solid fa-shield-check"></i> <span>Đang bảo vệ</span>
                             </div>
                         </div>
                         <div class="sec-stat-box">
-                            <div class="sec-stat-label">Mã Hóa Mật Khẩu</div>
-                            <div class="sec-stat-value" style="color:#38bdf8;">
-                                <i class="fa-solid fa-lock"></i> <span>SHA-256 Cloud</span>
+                            <div class="sec-stat-label">Chuẩn Mã Hóa</div>
+                            <div class="sec-stat-value" style="color:var(--primary);">
+                                <i class="fa-solid fa-lock"></i> <span>Salted SHA-256</span>
                             </div>
                         </div>
                         <div class="sec-stat-box">
-                            <div class="sec-stat-label">Mật Khẩu Mặc Định</div>
-                            <div class="sec-stat-value" style="color:#fbbf24;">
-                                <i class="fa-solid fa-key"></i> <span>admin</span>
+                            <div class="sec-stat-label">Chế Độ Phiên</div>
+                            <div class="sec-stat-value" id="secSessionModeText" style="color:#6366f1;">
+                                <i class="fa-solid fa-user-shield"></i> <span>Đang tải...</span>
                             </div>
                         </div>
                         <div class="sec-stat-box">
-                            <div class="sec-stat-label">Khôi Phục Khẩn Cấp</div>
-                            <div class="sec-stat-value" style="color:#38bdf8; justify-content:space-between;">
-                                <span>1-Click Reset</span>
-                                <button type="button" class="btn btn-outline btn-sm" style="padding:2px 8px; font-size:10.5px; border-color:rgba(56, 189, 248, 0.4); color:#38bdf8;" onclick="resetAdminPasswordFromCp()" title="Đặt lại về mặc định (admin)">Reset</button>
+                            <div class="sec-stat-label">Cơ Chế Cứu Hộ</div>
+                            <div class="sec-stat-value" style="color:#059669;">
+                                <i class="fa-solid fa-key"></i> <span>Master Key & OTP</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap:20px; margin-bottom:20px;">
-                    <!-- 2. CARD: THAY ĐỔI MẬT KHẨU QUẢN TRỊ VIÊN -->
-                    <div class="card" style="margin-bottom:0;">
-                        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <i class="fa-solid fa-key" style="color:var(--primary);"></i>
-                                <span>Đổi Mật Khẩu Admin</span>
+                <!-- 2. COMPACT SECURITY ACTION OPTIONS (POPUP MODALS TRIGGER) -->
+                <div class="sec-actions-grid">
+                    <!-- Action 1: Đổi Mật Khẩu Admin -->
+                    <div class="card sec-action-card" onclick="openCpChangePassModal()">
+                        <div>
+                            <div class="sec-action-icon-wrap" style="background:#eff6ff; color:#0284c7;">
+                                <i class="fa-solid fa-key"></i>
                             </div>
-                            <button type="button" class="btn btn-outline btn-sm" onclick="togglePassGenWidget()" style="font-size:11.5px; padding:4px 10px;">
-                                <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--primary);"></i> Tạo ngẫu nhiên
-                            </button>
+                            <div class="sec-action-title">Đổi Mật Khẩu Admin</div>
+                            <div class="sec-action-desc">Cập nhật mật khẩu bảo vệ quyền quản trị với thuật toán Salted SHA-256 chống dò quét.</div>
                         </div>
-                        <p style="font-size:12px; color:var(--slate-500); margin-top:-6px; margin-bottom:14px;">
-                            Thiết lập mật khẩu Admin mới để bảo vệ toàn bộ dữ liệu, bảng chi tiêu và danh bạ hệ thống.
-                        </p>
-
-                        <form id="formChangeAdminPass" onsubmit="event.preventDefault(); submitChangeAdminPassword();">
-                            <!-- New Password -->
-                            <div class="form-group" style="margin-bottom:6px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <label class="form-label">Mật khẩu mới:</label>
-                                    <span id="strengthTextLabel" style="font-size:11px; font-weight:700; color:var(--slate-500);">Chưa nhập</span>
-                                </div>
-                                <div class="password-input-wrap">
-                                    <input type="password" id="newAdminPassInput" class="form-control" placeholder="Nhập mật khẩu mới..." oninput="onNewPasswordInput(this.value)" autocomplete="new-password">
-                                    <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('newAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Real-time Strength Meter -->
-                            <div class="strength-meter-wrap">
-                                <div class="strength-bar-bg">
-                                    <div class="strength-bar-seg" id="strSeg1"></div>
-                                    <div class="strength-bar-seg" id="strSeg2"></div>
-                                    <div class="strength-bar-seg" id="strSeg3"></div>
-                                    <div class="strength-bar-seg" id="strSeg4"></div>
-                                </div>
-                            </div>
-
-                            <!-- Confirm New Password -->
-                            <div class="form-group" style="margin-bottom:16px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <label class="form-label">Xác nhận mật khẩu mới:</label>
-                                    <span id="matchStatusLabel" style="font-size:11px; font-weight:700;"></span>
-                                </div>
-                                <div class="password-input-wrap">
-                                    <input type="password" id="confirmAdminPassInput" class="form-control" placeholder="Nhập lại mật khẩu mới..." oninput="checkPasswordMatch()" autocomplete="new-password">
-                                    <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('confirmAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div style="display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap;">
-                                <button type="button" class="btn btn-outline btn-sm" style="color:#f59e0b; border-color:rgba(245, 158, 11, 0.4);" onclick="resetAdminPasswordFromCp()">
-                                    <i class="fa-solid fa-rotate-left"></i> Đặt Lại Về "admin"
-                                </button>
-                                <div style="display:flex; gap:8px;">
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="resetPasswordForm()">Xóa form</button>
-                                    <button type="submit" class="btn btn-primary" id="btnSubmitChangePass">
-                                        <i class="fa-solid fa-floppy-disk"></i> Lưu Mật Khẩu
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                        <button type="button" class="btn btn-primary btn-sm sec-action-btn">
+                            <i class="fa-solid fa-pen-to-square"></i> Đổi Mật Khẩu
+                        </button>
                     </div>
 
-                    <!-- 3. CARD: TRÌNH TẠO MẬT KHẨU CHUYÊN NGHIỆP (GENERATOR WIDGET) -->
-                    <div class="card" id="cardPassGenerator" style="margin-bottom:0;">
-                        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <i class="fa-solid fa-wand-magic-sparkles" style="color:#8b5cf6;"></i>
-                                <span>Trình Tạo Mật Khẩu Nhanh</span>
+                    <!-- Action 2: Trình Tạo Mật Khẩu -->
+                    <div class="card sec-action-card" onclick="openCpPassGenModal()">
+                        <div>
+                            <div class="sec-action-icon-wrap" style="background:#f5f3ff; color:#8b5cf6;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
                             </div>
-                            <span class="badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; font-size:11px;">Mạnh & Tiện Dụng</span>
+                            <div class="sec-action-title">Trình Tạo Mật Khẩu</div>
+                            <div class="sec-action-desc">Tự động sinh chuỗi ký tự mật khẩu ngẫu nhiên độ an toàn cao, chống bẻ khóa và từ điển.</div>
                         </div>
-                        <p style="font-size:12px; color:var(--slate-500); margin-top:-6px; margin-bottom:12px;">
-                            Sinh ngẫu nhiên chuỗi bảo mật cao, hỗ trợ điền trực tiếp vào form hoặc sao chép.
-                        </p>
+                        <button type="button" class="btn btn-outline btn-sm sec-action-btn" style="color:#7c3aed; border-color:#ddd6fe;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Mở Bộ Sinh Khóa
+                        </button>
+                    </div>
 
-                        <!-- Generator Display Output -->
-                        <div class="generator-display" style="justify-content:space-between; align-items:center;">
-                            <span id="genPasswordDisplay" style="color:var(--primary); font-size:16px; letter-spacing:1px; user-select:all;">••••••••••••••••</span>
-                            <div style="display:flex; gap:6px;">
-                                <button type="button" class="btn btn-outline btn-sm" onclick="generateRandomPassword()" title="Sinh mật khẩu mới" style="padding:4px 8px;">
-                                    <i class="fa-solid fa-rotate-right"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline btn-sm" onclick="copyGenPassword()" title="Sao chép vào Clipboard" style="padding:4px 8px;">
-                                    <i class="fa-solid fa-copy"></i>
-                                </button>
+                    <!-- Action 3: Lấy Lại & Khôi Phục MK -->
+                    <div class="card sec-action-card" onclick="openCpRecoveryModal()">
+                        <div>
+                            <div class="sec-action-icon-wrap" style="background:#fffbeb; color:#d97706;">
+                                <i class="fa-solid fa-life-ring"></i>
                             </div>
+                            <div class="sec-action-title">Lấy Lại Mật Khẩu</div>
+                            <div class="sec-action-desc">Khôi phục quyền truy cập khẩn cấp qua Master Key cứu hộ độc lập hoặc mã OTP qua Email.</div>
                         </div>
-
-                        <!-- Generator Length Slider -->
-                        <div class="gen-control-row">
-                            <label style="font-size:12.5px; font-weight:700; color:var(--slate-700);">
-                                Độ dài: <span id="genLengthDisplay" style="color:var(--primary); font-weight:800; font-size:14px;">12</span> ký tự
-                            </label>
-                            <input type="range" id="genLengthSlider" min="6" max="24" value="12" style="width:60%; cursor:pointer;" oninput="onGenLengthChange(this.value)">
-                        </div>
-
-                        <div style="display:flex; gap:8px; margin-top:14px;">
-                            <button type="button" class="btn btn-primary btn-sm" style="flex:1;" onclick="applyGenPasswordToForm()">
-                                <i class="fa-solid fa-arrow-left"></i> Điền Vào Ô Mật Khẩu Mới
-                            </button>
-                            <button type="button" class="btn btn-outline btn-sm" onclick="copyGenPassword()">
-                                <i class="fa-solid fa-copy"></i> Sao Chép
-                            </button>
-                        </div>
+                        <button type="button" class="btn btn-outline btn-sm sec-action-btn" style="color:#b45309; border-color:#fde68a;">
+                            <i class="fa-solid fa-shield-halved"></i> Khôi Phục & Cứu Hộ
+                        </button>
                     </div>
                 </div>
 
@@ -1568,8 +1709,38 @@
                 <input type="text" id="cpAppNameInput" class="form-control" placeholder="VD: Chia Bill">
             </div>
             <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label">Biểu tượng (Emoji):</label>
-                <input type="text" id="cpAppIconInput" class="form-control" placeholder="VD: 🍻 hoặc 📊" maxlength="4">
+                <label class="form-label">Biểu tượng (Chọn icon hoặc tải ảnh lên):</label>
+                <div class="icon-picker-box">
+                    <div class="icon-picker-header">
+                        <div class="icon-preview-display" id="cp-app-icon-preview">🚀</div>
+                        <div style="flex:1;">
+                            <input type="text" id="cpAppIconInput" class="form-control" placeholder="Nhập emoji hoặc chọn bên dưới..." style="margin-bottom:6px;" oninput="updateCpAppIconPreview(this.value)">
+                            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                <input type="file" id="cp-app-icon-file" accept="image/*" style="display:none;" onchange="handleCpAppIconFileUpload(event)">
+                                <button type="button" class="btn btn-outline btn-sm" style="padding:4px 10px; font-size:11.5px; color:var(--primary); border-color:var(--primary-border);" onclick="document.getElementById('cp-app-icon-file').click()">
+                                    <i class="fa-solid fa-upload"></i> Tải ảnh icon lên
+                                </button>
+                                <button type="button" id="cp-btn-remove-icon-img" class="btn btn-outline btn-sm" style="padding:4px 8px; font-size:11.5px; color:var(--danger); border-color:var(--danger); display:none;" onclick="removeCpAppIconImage()">
+                                    ✕ Bỏ ảnh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category tabs -->
+                    <div class="icon-preset-tabs" id="cp-icon-tabs">
+                        <button type="button" class="icon-tab-btn active" onclick="switchCpIconTab('work')">💼 Văn phòng</button>
+                        <button type="button" class="icon-tab-btn" onclick="switchCpIconTab('finance')">💰 Tài chính</button>
+                        <button type="button" class="icon-tab-btn" onclick="switchCpIconTab('tools')">🛠️ Tiện ích</button>
+                        <button type="button" class="icon-tab-btn" onclick="switchCpIconTab('media')">🎨 Đa phương tiện</button>
+                        <button type="button" class="icon-tab-btn" onclick="switchCpIconTab('life')">🍱 Đời sống</button>
+                    </div>
+
+                    <!-- Grid of preset icons -->
+                    <div class="icon-preset-grid" id="cp-icon-grid">
+                        <!-- Populated via Javascript -->
+                    </div>
+                </div>
             </div>
             <div class="form-group" style="margin-bottom:12px;">
                 <label class="form-label">Đường dẫn File / URL Web:</label>
@@ -1590,36 +1761,176 @@
     </div>
 
     
-    <!-- MODAL: KHOI PHUC MAT KHAU ADMIN TRONG CONTROL PANEL -->
-    <div class="modal-overlay" id="cpForgotModal" onclick="if(event.target===this) closeCpForgotModal()">
-        <div class="modal-card" style="max-width:420px; text-align:center;">
+    <!-- MODAL: ĐỔI MẬT KHẨU ADMIN (POPUP) -->
+    <div class="modal-overlay" id="cpChangePassModal" onclick="if(event.target===this) closeCpChangePassModal()">
+        <div class="modal-card" style="max-width:440px;">
             <div class="modal-header">
-                <h3 class="modal-title"><i class="fa-solid fa-key" style="color:var(--primary);"></i> Khôi Phục Mật Khẩu Admin</h3>
-                <button class="modal-close" onclick="closeCpForgotModal()">&times;</button>
+                <h3 class="modal-title"><i class="fa-solid fa-key" style="color:var(--primary);"></i> Đổi Mật Khẩu Quản Trị Viên</h3>
+                <button class="modal-close" onclick="closeCpChangePassModal()">&times;</button>
             </div>
             
-            <div style="background:rgba(2, 132, 199, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:10px; padding:14px; margin-bottom:14px; text-align:center;">
-                <div style="font-size:12px; color:var(--slate-500); margin-bottom:6px;">Cách nhanh nhất:</div>
-                <button type="button" class="btn btn-primary" style="width:100%; font-weight:700; padding:9px 14px;" onclick="resetAdminPasswordFromCp()">
-                    <i class="fa-solid fa-rotate-left"></i> Đặt Lại Về "admin" & Đăng Nhập Ngay
-                </button>
+            <p style="font-size:12.5px; color:var(--slate-500); margin-bottom:14px;">
+                Thiết lập mật khẩu Admin mới để bảo vệ toàn bộ dữ liệu, bảng chi tiêu và danh bạ hệ thống.
+            </p>
+
+            <form id="formChangeAdminPass" onsubmit="event.preventDefault(); submitChangeAdminPassword();">
+                <!-- New Password -->
+                <div class="form-group" style="margin-bottom:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label class="form-label" style="font-weight:700;">Mật khẩu mới:</label>
+                        <span id="strengthTextLabel" style="font-size:11px; font-weight:700; color:var(--slate-500);">Chưa nhập</span>
+                    </div>
+                    <div class="password-input-wrap">
+                        <input type="password" id="newAdminPassInput" class="form-control" placeholder="Nhập mật khẩu mới..." oninput="onNewPasswordInput(this.value)" autocomplete="new-password">
+                        <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('newAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Real-time Strength Meter -->
+                <div class="strength-meter-wrap">
+                    <div class="strength-bar-bg">
+                        <div class="strength-bar-seg" id="strSeg1"></div>
+                        <div class="strength-bar-seg" id="strSeg2"></div>
+                        <div class="strength-bar-seg" id="strSeg3"></div>
+                        <div class="strength-bar-seg" id="strSeg4"></div>
+                    </div>
+                </div>
+
+                <!-- Confirm New Password -->
+                <div class="form-group" style="margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label class="form-label" style="font-weight:700;">Xác nhận mật khẩu mới:</label>
+                        <span id="matchStatusLabel" style="font-size:11px; font-weight:700;"></span>
+                    </div>
+                    <div class="password-input-wrap">
+                        <input type="password" id="confirmAdminPassInput" class="form-control" placeholder="Nhập lại mật khẩu mới..." oninput="checkPasswordMatch()" autocomplete="new-password">
+                        <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('confirmAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeCpChangePassModal(); openCpPassGenModal();" style="color:#7c3aed; border-color:#ddd6fe;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo ngẫu nhiên
+                    </button>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="closeCpChangePassModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitChangePass">
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu Mật Khẩu
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: TRÌNH TẠO MẬT KHẨU (POPUP) -->
+    <div class="modal-overlay" id="cpPassGenModal" onclick="if(event.target===this) closeCpPassGenModal()">
+        <div class="modal-card" style="max-width:440px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-wand-magic-sparkles" style="color:#8b5cf6;"></i> Trình Tạo Mật Khẩu An Toàn</h3>
+                <button class="modal-close" onclick="closeCpPassGenModal()">&times;</button>
+            </div>
+            
+            <p style="font-size:12.5px; color:var(--slate-500); margin-bottom:14px;">
+                Tạo chuỗi ký tự mật khẩu ngẫu nhiên độ an toàn cao, chống tấn công từ điển và dò quét.
+            </p>
+
+            <!-- Generator Display Output -->
+            <div class="generator-display" style="justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:14px; display:flex;">
+                <span id="genPasswordDisplay" style="color:var(--primary); font-size:17px; font-weight:700; letter-spacing:1.5px; user-select:all; word-break:break-all;">••••••••••••••••</span>
+                <div style="display:flex; gap:6px; flex-shrink:0;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="generateRandomPassword()" title="Sinh mật khẩu mới" style="padding:6px 10px;">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="copyGenPassword()" title="Sao chép vào Clipboard" style="padding:6px 10px;">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
             </div>
 
-            <div style="text-align:left; border-top:1px solid var(--border); padding-top:12px;">
-                <div style="font-size:12px; font-weight:700; color:var(--slate-700); margin-bottom:8px;">Hoặc đặt mật khẩu mới trực tiếp:</div>
-                <div class="form-group" style="margin-bottom:8px;">
-                    <input type="password" id="cpForgotNewPassInput" class="form-control" placeholder="Nhập mật khẩu mới...">
-                </div>
-                <div class="form-group" style="margin-bottom:12px;">
-                    <input type="password" id="cpForgotConfirmPassInput" class="form-control" placeholder="Nhập lại mật khẩu mới...">
-                </div>
-                <button type="button" class="btn btn-success" style="width:100%; font-weight:700; background:#10b981; color:white; border:none;" onclick="submitCpPasswordRecovery()">
-                    <i class="fa-solid fa-check"></i> Lưu Mật Khẩu Mới & Đăng Nhập
-                </button>
+            <!-- Generator Length Slider -->
+            <div class="gen-control-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; background:#f1f5f9; padding:10px 14px; border-radius:8px;">
+                <label style="font-size:13px; font-weight:700; color:var(--slate-700);">
+                    Độ dài: <span id="genLengthDisplay" style="color:var(--primary); font-weight:800; font-size:15px;">14</span> ký tự
+                </label>
+                <input type="range" id="genLengthSlider" min="8" max="32" value="14" style="width:55%; cursor:pointer;" oninput="onGenLengthChange(this.value)">
             </div>
 
-            <div style="margin-top:12px; display:flex; justify-content:center;">
-                <button type="button" class="btn btn-outline btn-sm" onclick="closeCpForgotModal()">Đóng</button>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn btn-primary" style="flex:1;" onclick="applyGenPasswordToForm()">
+                    <i class="fa-solid fa-check"></i> Điền Vào Đổi Mật Khẩu
+                </button>
+                <button type="button" class="btn btn-outline" onclick="copyGenPassword()">
+                    <i class="fa-solid fa-copy"></i> Sao Chép
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: KHÔI PHỤC & LẤY LẠI MẬT KHẨU (POPUP) -->
+    <div class="modal-overlay" id="cpRecoveryModal" onclick="if(event.target===this) closeCpRecoveryModal()">
+        <div class="modal-card" style="max-width:460px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-life-ring" style="color:#d97706;"></i> Khôi Phục & Cứu Hộ Mật Khẩu</h3>
+                <button class="modal-close" onclick="closeCpRecoveryModal()">&times;</button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:14px;">
+                <!-- Method 1: Master Key Emergency Reset -->
+                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:14px;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#b45309; font-size:13.5px; margin-bottom:6px;">
+                        <i class="fa-solid fa-key"></i> Cách 1: Sử dụng Master Recovery Key
+                    </div>
+                    <p style="font-size:12px; color:#78350f; margin-bottom:10px; line-height:1.4;">
+                        Khóa cứu hộ Master Key hoạt động cục bộ không phụ thuộc mạng. Nhập mã Master Key và mật khẩu mới bạn muốn đặt:
+                    </p>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <input type="text" id="cpRecoveryMasterKeyInput" class="form-control" placeholder="Nhập Master Key (VD: MSTR-XXXX-XXXX...)">
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <input type="password" id="cpRecoveryNewPassInput" class="form-control" placeholder="Nhập mật khẩu Admin mới...">
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <input type="password" id="cpRecoveryConfirmPassInput" class="form-control" placeholder="Xác nhận mật khẩu Admin mới...">
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" style="width:100%; font-weight:700;" onclick="submitCpMasterKeyRecovery()">
+                        <i class="fa-solid fa-rotate"></i> Xác Nhận Đặt Lại Mật Khẩu
+                    </button>
+                </div>
+
+                <!-- Method 2: OTP Email Recovery -->
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#0369a1; font-size:13.5px; margin-bottom:6px;">
+                        <i class="fa-solid fa-envelope"></i> Cách 2: Gửi Mã OTP Qua Email Cứu Hộ
+                    </div>
+                    <p style="font-size:12px; color:#1e40af; margin-bottom:10px; line-height:1.4;">
+                        Nhận mã xác thực OTP gửi về hòm thư đã cấu hình để khôi phục mật khẩu an toàn.
+                    </p>
+                    <button type="button" class="btn btn-outline btn-sm" style="width:100%; background:white; color:#0284c7; border-color:#93c5fd; font-weight:600;" onclick="openMainDashboardOtpModal()">
+                        <i class="fa-solid fa-paper-plane"></i> Mở Hộp Thoại Gửi OTP Email
+                    </button>
+                </div>
+
+                <!-- Method 3: Download Kit (chỉ hiện khi đã đăng nhập Admin) -->
+                <div id="cpAdminRecoveryKitBox" class="admin-only" style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:13px; font-weight:700; color:var(--slate-800);">Emergency Recovery Kit (.txt)</div>
+                            <div style="font-size:11.5px; color:var(--slate-500);">Tải bản sao lưu khóa Master Key để cất giữ an toàn.</div>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="downloadMasterKeyKit()">
+                            <i class="fa-solid fa-download"></i> Tải Kit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeCpRecoveryModal()">Đóng</button>
             </div>
         </div>
     </div>
@@ -1649,6 +1960,7 @@
             loadGlobalMembers();
             loadWallpapers();
             renderCpAppsTable();
+            if (typeof initBrowserTabCustomizer === 'function') initBrowserTabCustomizer();
             if (typeof initSecurityCenter === 'function') initSecurityCenter();
         }
 
@@ -2344,12 +2656,11 @@
                     localStorage.setItem('sys_is_admin', 'false');
                     isAdmin = false;
                     addSecurityAuditLog('Đăng xuất Quản trị viên', 'Thành công', 'Chuyển về chế độ xem chỉ đọc');
-                    updateAdminBadge();
                     try {
                         const bc = new BroadcastChannel('system_admin_auth');
                         bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: false });
                     } catch(e) {}
-                    alert('Đã chuyển về Chế độ xem (Chỉ đọc).');
+                    window.location.reload();
                 }
             } else {
                 openCpAdminAuthModal();
@@ -2366,12 +2677,41 @@
             document.getElementById('cpAdminAuthModal').classList.remove('show');
         }
 
+        const CRYPTO_SALT_PEPPER = 'ANTIGRAVITY_SECURE_SALT_VAULT_v3_99482';
+
         async function hashPassword(text) {
+            if (!text) return '';
             const encoder = new TextEncoder();
-            const data = encoder.encode(text);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            const data1 = encoder.encode(text + ':' + CRYPTO_SALT_PEPPER);
+            const buf1 = await crypto.subtle.digest('SHA-256', data1);
+
+            const combined = new Uint8Array(CRYPTO_SALT_PEPPER.length + buf1.byteLength);
+            combined.set(encoder.encode(CRYPTO_SALT_PEPPER), 0);
+            combined.set(new Uint8Array(buf1), CRYPTO_SALT_PEPPER.length);
+            const buf2 = await crypto.subtle.digest('SHA-256', combined);
+
+            return Array.from(new Uint8Array(buf2)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function verifyPassword(inputPass, storedHash) {
+            if (!inputPass || !storedHash) return false;
+            const saltedHash = await hashPassword(inputPass);
+            if (saltedHash === storedHash) return true;
+
+            try {
+                const encoder = new TextEncoder();
+                const legacyBuf = await crypto.subtle.digest('SHA-256', encoder.encode(inputPass));
+                const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                if (legacyHash === storedHash) {
+                    try {
+                        localStorage.setItem('sys_admin_pass_hash', saltedHash);
+                        localStorage.setItem('sys_admin_password_hash', saltedHash);
+                        localStorage.setItem('p2p_admin_pass_hash', saltedHash);
+                    } catch (e) {}
+                    return true;
+                }
+            } catch (e) {}
+            return false;
         }
 
         async function submitCpAdminLogin() {
@@ -2385,27 +2725,18 @@
                 return;
             }
 
-            const hashed = await hashPassword(pass);
-            if (hashed === storedHash) {
+            const isMatched = await verifyPassword(pass, storedHash);
+            if (isMatched) {
                 localStorage.setItem('sys_is_admin', 'true');
                 isAdmin = true;
-                addSecurityAuditLog('Đăng nhập Quản trị viên', 'Thành công', 'Xác thực mật khẩu mã hóa SHA-256');
+                addSecurityAuditLog('Đăng nhập Quản trị viên', 'Thành công', 'Xác thực mật khẩu mã hóa Salted SHA-256');
                 localStorage.setItem('sys_failed_attempts', '0');
-                updateAdminBadge();
-                closeCpAdminAuthModal();
                 try {
                     const bc = new BroadcastChannel('system_admin_auth');
                     bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
                 } catch(e) {}
-                alert('Đăng nhập Quản trị viên thành công!');
-                if (pendingEditMemberId) {
-                    const memId = pendingEditMemberId;
-                    pendingEditMemberId = null;
-                    openEditMemberModal(memId);
-                } else if (pendingAddMember) {
-                    pendingAddMember = false;
-                    openAddMemberModal();
-                }
+                closeCpAdminAuthModal();
+                window.location.reload();
             } else {
                 recordFailedAttempt();
                 alert('Mật khẩu Admin không chính xác!');
@@ -2647,6 +2978,40 @@
             copyText(currentGeneratedPass, 'Đã sao chép mật khẩu ngẫu nhiên');
         }
 
+        function openCpChangePassModal() {
+            if (!checkAdminPermission()) return;
+            resetPasswordForm();
+            document.getElementById('cpChangePassModal').classList.add('show');
+            setTimeout(() => document.getElementById('newAdminPassInput')?.focus(), 150);
+        }
+
+        function closeCpChangePassModal() {
+            document.getElementById('cpChangePassModal').classList.remove('show');
+        }
+
+        function openCpPassGenModal() {
+            if (!currentGeneratedPass) generateRandomPassword();
+            document.getElementById('cpPassGenModal').classList.add('show');
+        }
+
+        function closeCpPassGenModal() {
+            document.getElementById('cpPassGenModal').classList.remove('show');
+        }
+
+        function openCpRecoveryModal() {
+            const masterKeyInp = document.getElementById('cpRecoveryMasterKeyInput');
+            const newPassInp = document.getElementById('cpRecoveryNewPassInput');
+            const confPassInp = document.getElementById('cpRecoveryConfirmPassInput');
+            if (masterKeyInp) masterKeyInp.value = '';
+            if (newPassInp) newPassInp.value = '';
+            if (confPassInp) confPassInp.value = '';
+            document.getElementById('cpRecoveryModal').classList.add('show');
+        }
+
+        function closeCpRecoveryModal() {
+            document.getElementById('cpRecoveryModal').classList.remove('show');
+        }
+
         function applyGenPasswordToForm() {
             if (!currentGeneratedPass) generateRandomPassword();
             const newPassInput = document.getElementById('newAdminPassInput');
@@ -2655,17 +3020,13 @@
             if (confirmPassInput) confirmPassInput.value = currentGeneratedPass;
             onNewPasswordInput(currentGeneratedPass);
             checkPasswordMatch();
-            alert('✨ Đã điền mật khẩu mạnh vừa tạo vào ô Mật Khẩu Mới & Xác Nhận!');
+            closeCpPassGenModal();
+            openCpChangePassModal();
+            copyText(currentGeneratedPass, 'Đã điền mật khẩu vào form đổi mật khẩu');
         }
 
         function togglePassGenWidget() {
-            const card = document.getElementById('cardPassGenerator');
-            if (card) {
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                card.style.transition = 'box-shadow 0.3s';
-                card.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.4)';
-                setTimeout(() => card.style.boxShadow = '', 1200);
-            }
+            openCpPassGenModal();
         }
 
         // Change Admin Password Submission
@@ -2688,6 +3049,7 @@
             updateAdminBadge();
             if (typeof initSecurityCenter === 'function') initSecurityCenter();
             resetPasswordForm();
+            closeCpChangePassModal();
 
             try {
                 const bc = new BroadcastChannel('system_admin_auth');
@@ -2720,20 +3082,64 @@
             }
         }
 
-        async function resetAdminPasswordFromCp() {
-            closeCpForgotModal();
+        async function submitCpMasterKeyRecovery() {
+            const keyInput = (document.getElementById('cpRecoveryMasterKeyInput')?.value || '').trim();
+            const newPass = (document.getElementById('cpRecoveryNewPassInput')?.value || '').trim();
+            const confirmPass = (document.getElementById('cpRecoveryConfirmPassInput')?.value || '').trim();
+
+            if (!keyInput) return alert('Vui lòng nhập Master Key cứu hộ!');
+            if (!newPass || newPass.length < 4) return alert('Mật khẩu mới phải có tối thiểu 4 ký tự!');
+            if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không trùng khớp!');
+
+            const realKey = getRawMasterKey();
+            if (keyInput.toUpperCase() !== realKey.toUpperCase()) {
+                recordFailedAttempt();
+                return alert('Master Key không chính xác!');
+            }
+
+            const newHashed = await hashPassword(newPass);
+            localStorage.setItem('sys_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_admin_password_hash', newHashed);
+            localStorage.setItem('p2p_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_is_admin', 'true');
+            isAdmin = true;
+            localStorage.setItem('sys_failed_attempts', '0');
+
+            try {
+                const bc = new BroadcastChannel('system_admin_auth');
+                bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+                bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
+            } catch(e) {}
+
+            closeCpRecoveryModal();
+            alert('🎉 Đặt lại mật khẩu Quản trị viên thành công! Bạn đã đăng nhập quyền Quản trị viên.');
+            window.location.reload();
+        }
+
+        function openMainDashboardOtpModal() {
+            closeCpRecoveryModal();
             if (window.parent?.dashboard?.openForgotPasswordModal) {
                 window.parent.dashboard.openForgotPasswordModal();
             } else {
-                alert('Hãy mở Dashboard chính và chọn khôi phục mật khẩu bằng OTP.');
+                alert('Tính năng gửi OTP qua Email được tích hợp trên Dashboard chính. Hãy mở màn hình Finder/Desktop để sử dụng.');
             }
         }
 
-        // Master Recovery Key Vault Functions
+        async function resetAdminPasswordFromCp() {
+            openCpRecoveryModal();
+        }
+
+        // Master Recovery Key Vault Functions (Dynamic Cryptographic Generation)
         function getRawMasterKey() {
             let raw = localStorage.getItem('sys_raw_master_key');
             if (!raw) {
-                raw = 'MSTR-9821-4820-K7X2';
+                const arr = new Uint8Array(8);
+                crypto.getRandomValues(arr);
+                const p1 = Array.from(arr.slice(0, 2)).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join('');
+                const p2 = Array.from(arr.slice(2, 4)).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join('');
+                const p3 = Array.from(arr.slice(4, 6)).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join('');
+                const p4 = Array.from(arr.slice(6, 8)).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join('');
+                raw = `MSTR-${p1}-${p2}-${p3}-${p4}`;
                 localStorage.setItem('sys_raw_master_key', raw);
             }
             return raw;
@@ -2969,8 +3375,19 @@ HƯỚNG DẪN SỬ DỤNG:
             { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'apps/tien-com/index.html', adminOnly: false },
             { id: '3', title: 'Lãi Suất', icon: '💵', url: 'apps/lai-suat/index.html', adminOnly: false },
             { id: '4', title: 'Ghi Chú', icon: '📝', url: 'apps/ghi-chu/index.html', adminOnly: false },
+            { id: '5', title: 'Danh Bạ', icon: '👥', url: 'apps/danh-ba/index.html', adminOnly: false },
             { id: 'control-panel', title: 'Cài Đặt', icon: '⚙️', url: 'apps/control-panel/index.html', adminOnly: true }
         ];
+
+        function formatCpAppIcon(icon) {
+            if (!icon) return '📦';
+            const s = String(icon).trim();
+            if (s.startsWith('data:image') || s.startsWith('http') || s.startsWith('assets/') || s.startsWith('./') || s.startsWith('/') || /\.(png|jpg|jpeg|svg|webp|gif)/i.test(s) || s.includes('<img')) {
+                if (s.includes('<img')) return s;
+                return `<img src="${s}" alt="Icon" style="width:24px;height:24px;object-fit:cover;border-radius:6px;display:inline-block;vertical-align:middle;" />`;
+            }
+            return s;
+        }
 
         function getCpApps() {
             try {
@@ -2978,10 +3395,16 @@ HƯỚNG DẪN SỬ DỤNG:
                 if (raw) {
                     const parsed = JSON.parse(raw);
                     if (Array.isArray(parsed) && parsed.length > 0) {
-                        return parsed.map(app => ({
+                        let apps = parsed.map(app => ({
                             ...app,
                             adminOnly: (app.id === 'control-panel' || (app.url && app.url.includes('control-panel'))) ? true : (app.adminOnly === true)
                         }));
+                        // Tự động bổ sung Danh Bạ nếu chưa có
+                        if (!apps.some(a => a.id === 'danh-ba' || (a.url && a.url.includes('danh-ba')))) {
+                            apps.push({ id: 'danh-ba', title: 'Danh Bạ', icon: '👥', url: 'apps/danh-ba/index.html', adminOnly: false });
+                            saveCpApps(apps);
+                        }
+                        return apps;
                     }
                 }
             } catch(e) {}
@@ -3010,7 +3433,7 @@ HƯỚNG DẪN SỬ DỤNG:
 
                 tr.innerHTML = `
                     <td style="font-weight:600; color:var(--slate-800);">
-                        <span style="font-size:18px; margin-right:8px; vertical-align:middle;">${app.icon || '📦'}</span>
+                        <span style="display:inline-flex; width:26px; height:26px; align-items:center; justify-content:center; margin-right:8px; vertical-align:middle; font-size:18px;">${formatCpAppIcon(app.icon || '📦')}</span>
                         <span>${app.title}</span>
                     </td>
                     <td>
@@ -3054,14 +3477,124 @@ HƯỚNG DẪN SỬ DỤNG:
             }
         }
 
+        const CP_PRESET_ICONS = {
+            work: ['👥', '📋', '📊', '📈', '📅', '📝', '📂', '🗄️', '✉️', '📞', '🖨️', '📎', '📌', '💻', '📱', '🏢', '🏷️', '📑'],
+            finance: ['💵', '💳', '🏦', '🪙', '🧾', '🛍️', '🛒', '💰', '💎', '🏷️', '💲', '🏧', '💸', '🧧'],
+            tools: ['⚙️', '🔧', '🔨', '🔒', '🔑', '🛡️', '🌐', '🔍', '⚡', '🔋', '📡', '⏰', '🧭', '🧮', '🕹️', '🔌', '💡'],
+            media: ['🎨', '📷', '🖼️', '🎵', '🎬', '🎧', '🎮', '🚀', '⭐', '🔔', '🎯', '💬', '📣', '✨', '🔥', '🏆', '🎉'],
+            life: ['🍱', '🍚', '☕', '🍻', '🍕', '🍔', '🍜', '🧋', '🍎', '⚽', '🚗', '✈️', '🏠', '🎁', '🩺', '💊']
+        };
+
+        function switchCpIconTab(tabName) {
+            const tabsContainer = document.getElementById('cp-icon-tabs');
+            const gridContainer = document.getElementById('cp-icon-grid');
+            if (!tabsContainer || !gridContainer) return;
+
+            tabsContainer.querySelectorAll('.icon-tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = Array.from(tabsContainer.querySelectorAll('.icon-tab-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(tabName));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const icons = CP_PRESET_ICONS[tabName] || CP_PRESET_ICONS.work;
+            const inputEl = document.getElementById('cpAppIconInput');
+            const currentVal = inputEl ? inputEl.value.trim() : '';
+
+            gridContainer.innerHTML = icons.map(ic => `
+                <div class="icon-preset-item ${currentVal === ic ? 'selected' : ''}" onclick="selectCpPresetIcon('${ic}')" title="${ic}">
+                    ${ic}
+                </div>
+            `).join('');
+        }
+
+        function selectCpPresetIcon(iconChar) {
+            const input = document.getElementById('cpAppIconInput');
+            if (!input) return;
+            input.value = iconChar;
+            updateCpAppIconPreview(iconChar);
+
+            const gridContainer = document.getElementById('cp-icon-grid');
+            if (gridContainer) {
+                gridContainer.querySelectorAll('.icon-preset-item').forEach(el => {
+                    el.classList.toggle('selected', el.innerText.trim() === iconChar);
+                });
+            }
+        }
+
+        function updateCpAppIconPreview(val) {
+            const preview = document.getElementById('cp-app-icon-preview');
+            const removeBtn = document.getElementById('cp-btn-remove-icon-img');
+            if (!preview) return;
+
+            const trimmed = (val || '').trim();
+            const isImg = trimmed.startsWith('data:image') || trimmed.startsWith('http') || trimmed.startsWith('assets/');
+            if (removeBtn) removeBtn.style.display = isImg ? 'inline-block' : 'none';
+
+            if (isImg) {
+                preview.innerHTML = `<img src="${trimmed}" alt="Icon Preview" style="width:100%;height:100%;object-fit:cover;" />`;
+            } else {
+                preview.innerHTML = trimmed || '🚀';
+            }
+        }
+
+        function removeCpAppIconImage() {
+            const input = document.getElementById('cpAppIconInput');
+            if (input) input.value = '🚀';
+            updateCpAppIconPreview('🚀');
+        }
+
+        function handleCpAppIconFileUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Vui lòng chọn tệp hình ảnh hợp lệ (PNG, JPG, SVG, WebP)!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxDim = 128;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    const dataUrl = canvas.toDataURL('image/png', 0.9);
+                    const input = document.getElementById('cpAppIconInput');
+                    if (input) {
+                        input.value = dataUrl;
+                        updateCpAppIconPreview(dataUrl);
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
         function openCpAddAppModal() {
             if (!checkAdminPermission()) return;
             document.getElementById('cpAppEditModalTitle').innerHTML = '<i class="fa-solid fa-plus" style="color:var(--primary);"></i> Thêm Ứng Dụng Mới';
             document.getElementById('cpAppEditId').value = '';
             document.getElementById('cpAppNameInput').value = '';
-            document.getElementById('cpAppIconInput').value = '';
+            document.getElementById('cpAppIconInput').value = '🚀';
             document.getElementById('cpAppUrlInput').value = '';
             document.getElementById('cpAppAdminOnlySelect').value = 'false';
+            updateCpAppIconPreview('🚀');
+            switchCpIconTab('work');
             document.getElementById('cpAppEditModal').classList.add('show');
             setTimeout(() => document.getElementById('cpAppNameInput').focus(), 150);
         }
@@ -3075,9 +3608,12 @@ HƯỚNG DẪN SỬ DỤNG:
             document.getElementById('cpAppEditModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:var(--primary);"></i> Sửa Ứng Dụng & Phân Quyền';
             document.getElementById('cpAppEditId').value = app.id;
             document.getElementById('cpAppNameInput').value = app.title || '';
-            document.getElementById('cpAppIconInput').value = app.icon || '';
+            const currentIcon = app.icon || '🚀';
+            document.getElementById('cpAppIconInput').value = currentIcon;
             document.getElementById('cpAppUrlInput').value = app.url || '';
             document.getElementById('cpAppAdminOnlySelect').value = app.adminOnly ? 'true' : 'false';
+            updateCpAppIconPreview(currentIcon);
+            switchCpIconTab('work');
             document.getElementById('cpAppEditModal').classList.add('show');
             setTimeout(() => document.getElementById('cpAppNameInput').focus(), 150);
         }
@@ -3149,8 +3685,11 @@ HƯỚNG DẪN SỬ DỤNG:
             const bc = new BroadcastChannel('system_admin_auth');
             bc.onmessage = (e) => {
                 if (e.data && e.data.type === 'ADMIN_STATUS_CHANGED') {
-                    isAdmin = !!e.data.isAdmin;
-                    updateAdminBadge();
+                    const newAdmin = !!e.data.isAdmin;
+                    if (newAdmin !== isAdmin) {
+                        isAdmin = newAdmin;
+                        window.location.reload();
+                    }
                 } else if (e.data && e.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
                     document.body.classList.toggle('admin-edit-mode', !!e.data.adminEditMode);
                 } else if (e.data && e.data.type === 'APPS_CONFIG_CHANGED') {
@@ -3161,8 +3700,11 @@ HƯỚNG DẪN SỬ DỤNG:
 
         window.addEventListener('message', (e) => {
             if (e.data && e.data.type === 'ADMIN_STATUS_CHANGED') {
-                isAdmin = !!e.data.isAdmin;
-                updateAdminBadge();
+                const newAdmin = !!e.data.isAdmin;
+                if (newAdmin !== isAdmin) {
+                    isAdmin = newAdmin;
+                    window.location.reload();
+                }
             } else if (e.data && e.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
                 document.body.classList.toggle('admin-edit-mode', !!e.data.adminEditMode);
             } else if (e.data && e.data.type === 'APPS_CONFIG_CHANGED') {
@@ -3170,29 +3712,194 @@ HƯỚNG DẪN SỬ DỤNG:
             }
         });
 
-        // Run
-        initUI();
-    
-        let cpLocalOtp = null;
+        // =========================================================================
+        // BROWSER TAB TITLE & LOGO CUSTOMIZER
+        // =========================================================================
+        const TAB_CONFIG_KEY = 'sys_browser_tab_config';
+        const TAB_EMOJI_PRESETS = ['💻', '', '🏢', '💼', '⚡', '🛡️', '🚀', '📊', '🎯', '🌟', '📁', '📑', '🛒', '🛠️', '🌐', '📱', '🖥️', '🔐'];
 
-        function openCpForgotPasswordModal() {
-            if (window.parent && window.parent.dashboard && typeof window.parent.dashboard.openForgotPasswordModal === 'function') {
-                window.parent.dashboard.openForgotPasswordModal();
-            } else {
-                openCpLocalForgotModal();
+        function initBrowserTabCustomizer() {
+            const container = document.getElementById('browserTabEmojiPresets');
+            if (container) {
+                container.innerHTML = TAB_EMOJI_PRESETS.map(emoji => `
+                    <button type="button" class="btn btn-outline btn-sm" style="font-size:16px; padding:6px 12px; border-radius:8px;" onclick="selectBrowserTabEmoji('${emoji}')">
+                        ${emoji}
+                    </button>
+                `).join('');
+            }
+
+            let config = { title: 'macOS Dashboard & Multi-Apps', favicon: '💻', faviconType: 'emoji' };
+            try {
+                const stored = localStorage.getItem(TAB_CONFIG_KEY);
+                if (stored) {
+                    config = Object.assign(config, JSON.parse(stored));
+                }
+            } catch(e) {}
+
+            const titleInp = document.getElementById('browserTabTitleInput');
+            const favInp = document.getElementById('browserTabFaviconInput');
+            if (titleInp && !titleInp.value) titleInp.value = config.title;
+            if (favInp && !favInp.value) favInp.value = config.favicon;
+
+            updateBrowserTabLivePreview();
+        }
+
+        function updateBrowserTabLivePreview() {
+            const titleInp = document.getElementById('browserTabTitleInput');
+            const favInp = document.getElementById('browserTabFaviconInput');
+            const prevTitle = document.getElementById('tabPreviewTitle');
+            const prevFav = document.getElementById('tabPreviewFavicon');
+
+            const title = (titleInp?.value || '').trim() || 'macOS Dashboard Web';
+            const favicon = (favInp?.value || '').trim() || '💻';
+
+            if (prevTitle) prevTitle.innerText = title;
+            if (prevFav) {
+                if (favicon.startsWith('data:') || favicon.startsWith('http://') || favicon.startsWith('https://')) {
+                    prevFav.innerHTML = `<img src="${favicon}" style="width:100%; height:100%; object-fit:contain; border-radius:2px;" alt="favicon">`;
+                } else {
+                    prevFav.innerText = favicon;
+                }
             }
         }
 
+        function selectBrowserTabEmoji(emoji) {
+            const favInp = document.getElementById('browserTabFaviconInput');
+            if (favInp) {
+                favInp.value = emoji;
+                updateBrowserTabLivePreview();
+            }
+        }
+
+        function handleBrowserTabFaviconUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 64;
+                    canvas.height = 64;
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, 64, 64);
+                    ctx.drawImage(img, 0, 0, 64, 64);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const favInp = document.getElementById('browserTabFaviconInput');
+                    if (favInp) {
+                        favInp.value = dataUrl;
+                        updateBrowserTabLivePreview();
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveBrowserTabConfig() {
+            if (!checkAdminPermission()) return;
+            const title = (document.getElementById('browserTabTitleInput')?.value || '').trim() || 'macOS Dashboard Web';
+            const favicon = (document.getElementById('browserTabFaviconInput')?.value || '').trim() || '💻';
+
+            const isEmoji = !favicon.startsWith('data:') && !favicon.startsWith('http') && favicon.length <= 4;
+            const config = {
+                title: title,
+                favicon: favicon,
+                faviconType: isEmoji ? 'emoji' : 'image',
+                updatedAt: new Date().toISOString()
+            };
+
+            localStorage.setItem(TAB_CONFIG_KEY, JSON.stringify(config));
+            applyTabConfigDirectly(config);
+
+            try {
+                const bc = new BroadcastChannel('system_tab_config');
+                bc.postMessage({ type: 'TAB_CONFIG_CHANGED', config: config });
+            } catch(e) {}
+
+            alert('✅ Đã lưu cấu hình Tên & Logo Tab trình duyệt!\nCác tab và trang chính đã được cập nhật ngay lập tức.');
+        }
+
+        function resetBrowserTabToDefault() {
+            if (!checkAdminPermission()) return;
+            if (!confirm('Đặt lại tên và logo tab về mặc định hệ thống?')) return;
+            const defaultConfig = {
+                title: 'macOS Dashboard Web',
+                favicon: '💻',
+                faviconType: 'emoji'
+            };
+            localStorage.setItem(TAB_CONFIG_KEY, JSON.stringify(defaultConfig));
+            const titleInp = document.getElementById('browserTabTitleInput');
+            const favInp = document.getElementById('browserTabFaviconInput');
+            if (titleInp) titleInp.value = defaultConfig.title;
+            if (favInp) favInp.value = defaultConfig.favicon;
+            updateBrowserTabLivePreview();
+            applyTabConfigDirectly(defaultConfig);
+
+            try {
+                const bc = new BroadcastChannel('system_tab_config');
+                bc.postMessage({ type: 'TAB_CONFIG_CHANGED', config: defaultConfig });
+            } catch(e) {}
+        }
+
+        function applyTabConfigDirectly(config) {
+            if (!config) return;
+            if (config.title) document.title = config.title;
+            
+            let faviconHref = config.favicon;
+            if (config.faviconType === 'emoji' || (!config.favicon.startsWith('data:') && !config.favicon.startsWith('http') && config.favicon.length <= 4)) {
+                faviconHref = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${config.favicon}</text></svg>`;
+            }
+
+            let link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = faviconHref;
+
+            // Also update parent window if inside iframe
+            try {
+                if (window.parent && window.parent !== window) {
+                    if (config.title) window.parent.document.title = config.title;
+                    let pLink = window.parent.document.querySelector("link[rel~='icon']");
+                    if (!pLink) {
+                        pLink = window.parent.document.createElement('link');
+                        pLink.rel = 'icon';
+                        window.parent.document.head.appendChild(pLink);
+                    }
+                    pLink.href = faviconHref;
+                }
+            } catch(e) {}
+        }
+
+        if ('BroadcastChannel' in window) {
+            try {
+                const tabChannel = new BroadcastChannel('system_tab_config');
+                tabChannel.onmessage = function (e) {
+                    if (e.data && e.data.type === 'TAB_CONFIG_CHANGED') {
+                        applyTabConfigDirectly(e.data.config);
+                    }
+                };
+            } catch(e) {}
+        }
+
+        function openCpForgotPasswordModal() {
+            openCpRecoveryModal();
+        }
+
         function openCpLocalForgotModal() {
-            document.getElementById('cpForgotSecretInput').value = '';
-            document.getElementById('cpForgotNewPassInput').value = '';
-            document.getElementById('cpForgotConfirmPassInput').value = '';
-            document.getElementById('cpForgotModal').classList.add('show');
+            openCpRecoveryModal();
         }
 
         function closeCpForgotModal() {
-            document.getElementById('cpForgotModal').classList.remove('show');
+            closeCpRecoveryModal();
         }
+
+        // Run
+        initUI();
 
         async function sendCpOtp() {
             let email = localStorage.getItem('sys_recovery_email') || 'admin@hethong.com';
@@ -3291,11 +3998,8 @@ HƯỚNG DẪN SỬ DỤNG:
             } catch(e) {}
 
             closeCpForgotModal();
-            if (window.parent && typeof window.parent.showMacAlert === 'function') {
-                window.parent.showMacAlert('🎉 Đổi Mật Khẩu Thành Công', 'Mật khẩu Admin mới đã được cập nhật thành công! Bạn đã đăng nhập quyền Quản trị viên.', 'success');
-            } else {
-                alert('🎉 Đổi mật khẩu Admin thành công! Bạn đã đăng nhập quyền Quản trị viên.');
-            }
+            alert('🎉 Đổi mật khẩu Admin thành công! Bạn đã đăng nhập quyền Quản trị viên.');
+            window.location.reload();
         }
 
     </script>

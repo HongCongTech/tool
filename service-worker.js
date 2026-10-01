@@ -3,7 +3,7 @@
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v6-static-auth';
+const CACHE_NAME = 'macos-dashboard-v8-authfix';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,8 @@ const STATIC_ASSETS = [
   './apps/tien-com/index.html',
   './apps/lai-suat/index.html',
   './apps/ghi-chu/index.html',
-  './apps/control-panel/index.html'
+  './apps/control-panel/index.html',
+  './apps/danh-ba/index.html'
 ];
 
 self.addEventListener('install', (event) => {

@@ -1209,10 +1209,41 @@
         let fullLogCurrentPage = 1;
         const FULL_LOG_PAGE_SIZE = 50;
 
+        const CRYPTO_SALT_PEPPER = 'ANTIGRAVITY_SECURE_SALT_VAULT_v3_99482';
+
         async function hashPassword(text) {
-            const msgBuffer = new TextEncoder().encode(text);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            if (!text) return '';
+            const encoder = new TextEncoder();
+            const data1 = encoder.encode(text + ':' + CRYPTO_SALT_PEPPER);
+            const buf1 = await crypto.subtle.digest('SHA-256', data1);
+
+            const combined = new Uint8Array(CRYPTO_SALT_PEPPER.length + buf1.byteLength);
+            combined.set(encoder.encode(CRYPTO_SALT_PEPPER), 0);
+            combined.set(new Uint8Array(buf1), CRYPTO_SALT_PEPPER.length);
+            const buf2 = await crypto.subtle.digest('SHA-256', combined);
+
+            return Array.from(new Uint8Array(buf2)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function verifyPassword(inputPass, storedHash) {
+            if (!inputPass || !storedHash) return false;
+            const saltedHash = await hashPassword(inputPass);
+            if (saltedHash === storedHash) return true;
+
+            try {
+                const encoder = new TextEncoder();
+                const legacyBuf = await crypto.subtle.digest('SHA-256', encoder.encode(inputPass));
+                const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                if (legacyHash === storedHash) {
+                    try {
+                        localStorage.setItem(SYS_ADMIN_HASH_KEY, saltedHash);
+                        localStorage.setItem('sys_admin_password_hash', saltedHash);
+                        localStorage.setItem('p2p_admin_pass_hash', saltedHash);
+                    } catch (e) {}
+                    return true;
+                }
+            } catch (e) {}
+            return false;
         }
 
         // Unified System Admin Synchronization
@@ -1254,7 +1285,7 @@
             if (isAdmin) {
                 if (confirm('Bạn có muốn đăng xuất khỏi Chế độ Quản trị viên (Admin Mode) về chế độ xem không?')) {
                     setAdminMode(false);
-                    alert('Đã chuyển về Chế độ xem (Chỉ đọc).');
+                    window.location.reload();
                 }
             } else {
                 openAdminAuthModal();
@@ -1276,22 +1307,12 @@
             if (!pass) return alert('Vui lòng nhập mật khẩu Admin!');
 
             const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
-            const hashed = await hashPassword(pass);
-
-            const isMatched = Boolean(storedHash && hashed === storedHash);
+            const isMatched = await verifyPassword(pass, storedHash);
 
             if (isMatched) {
                 setAdminMode(true);
                 closeModal('adminAuthModal');
-                alert('Đăng nhập Quản trị viên thành công!');
-                if (pendingEditMemberId) {
-                    const memId = pendingEditMemberId;
-                    pendingEditMemberId = null;
-                    openEditMemberModal(memId);
-                } else if (pendingAddMember) {
-                    pendingAddMember = false;
-                    openAddMemberModal();
-                }
+                window.location.reload();
             } else {
                 alert('Mật khẩu Admin không chính xác. Hãy dùng OTP nếu bạn quên mật khẩu.');
             }
