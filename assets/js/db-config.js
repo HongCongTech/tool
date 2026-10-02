@@ -16,5 +16,5 @@ window.__SUPABASE_CONFIG__ = {
 window.__AI_CONFIG__ = {
   // Bạn có thể dán trực tiếp Google Gemini API Key vào đây hoặc nhập qua giao diện Cài đặt AI
   geminiApiKey: '',
-  model: 'gemini-1.5-flash'
+  model: 'gemini-2.0-flash'
 };

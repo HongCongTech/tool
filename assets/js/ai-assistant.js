@@ -14,7 +14,7 @@
 
   const AI_CONFIG_KEY = 'sys_ai_config';
   const CHAT_HISTORY_KEY = 'sys_ai_chat_history_v3';
-  const DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash';
+  const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
 
   // State
   let isListening = false;
@@ -950,6 +950,24 @@
   // --------------------------------------------------------------------------
   // 6. TÍCH HỢP GOOGLE GEMINI 1.5 FLASH TRỰC TUYẾN (MULTI-TURN CHAT)
   // --------------------------------------------------------------------------
+  async function fetchAvailableGeminiModels(apiKey) {
+    if (!apiKey) return [];
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        const models = (data.models || [])
+          .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+          .map(m => m.name.replace(/^models\//, ''));
+        return models;
+      }
+    } catch (e) {
+      console.warn('Lỗi khi lấy danh sách models từ Google:', e);
+    }
+    return [];
+  }
+
   async function callGeminiApi(userPrompt, apiKey, model) {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
@@ -998,9 +1016,10 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
       parts: [{ text: userPrompt }]
     });
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model || DEFAULT_GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    let activeModel = model || DEFAULT_GEMINI_MODEL;
+    let url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
-    const res = await fetch(url, {
+    let res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1011,6 +1030,38 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
         }
       })
     });
+
+    // Tự động phục hồi khi gặp lỗi 404 (model cũ bị deprecated trên tài khoản này)
+    if (!res.ok && res.status === 404) {
+      console.warn(`Mô hình ${activeModel} trả về 404, đang tự động chuyển sang mô hình thế hệ mới khả dụng...`);
+      const fallbacks = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest', 'gemini-pro'];
+      for (const fbModel of fallbacks) {
+        if (fbModel === activeModel) continue;
+        const fbUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fbModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const fbRes = await fetch(fbUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: contents,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1000
+            }
+          })
+        });
+        if (fbRes.ok) {
+          res = fbRes;
+          activeModel = fbModel;
+          try {
+            const rawCfg = localStorage.getItem(AI_CONFIG_KEY);
+            const savedCfg = rawCfg ? JSON.parse(rawCfg) : {};
+            savedCfg.model = activeModel;
+            localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(savedCfg));
+          } catch (e) {}
+          break;
+        }
+      }
+    }
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
@@ -1216,6 +1267,67 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
         if (statusEl) {
           statusEl.style.color = '#34d399';
           statusEl.innerHTML = `✅ <b>Kết nối Google Gemini thành công!</b> (Độ trễ: ${latency}ms)<br>Phản hồi từ AI: <i>${reply.trim()}</i>`;
+        }
+      } else if (res.status === 404) {
+        if (statusEl) {
+          statusEl.style.color = '#fbbf24';
+          statusEl.innerHTML = `🔄 Mô hình <b>${model}</b> không hỗ trợ trong dự án này. Đang tự động quét mô hình khả dụng...`;
+        }
+
+        let chosenModel = null;
+        try {
+          const availableModels = await fetchAvailableGeminiModels(apiKey);
+          if (availableModels.length > 0) {
+            if (modelSelect) {
+              modelSelect.innerHTML = '';
+              availableModels.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m + (m.includes('flash') ? ' (Khuyên dùng)' : '');
+                modelSelect.appendChild(opt);
+              });
+            }
+            chosenModel = availableModels.find(m => m.includes('2.0-flash')) ||
+                          availableModels.find(m => m.includes('2.5-flash')) ||
+                          availableModels.find(m => m.includes('flash')) ||
+                          availableModels[0];
+          }
+        } catch(e) {}
+
+        if (!chosenModel) {
+          const fallbackList = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
+          chosenModel = fallbackList.find(c => c !== model) || 'gemini-2.0-flash';
+        }
+
+        if (chosenModel && chosenModel !== model) {
+          const retryUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(chosenModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+          const retryRes = await fetch(retryUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: "Hãy trả lời đúng từ 'OK' nếu bạn đã nhận được tin này." }] }]
+            })
+          });
+
+          const retryT1 = performance.now();
+          const retryLatency = Math.round(retryT1 - t0);
+
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            const reply = retryData?.candidates?.[0]?.content?.parts?.[0]?.text || 'OK';
+            if (modelSelect) modelSelect.value = chosenModel;
+            if (statusEl) {
+              statusEl.style.color = '#34d399';
+              statusEl.innerHTML = `✅ <b>Kết nối Google Gemini thành công!</b> (Độ trễ: ${retryLatency}ms)<br>🎯 Google đã tự động chuyển sang mô hình thế hệ mới: <b>${chosenModel}</b><br>Phản hồi từ AI: <i>${reply.trim()}</i>`;
+            }
+            return;
+          }
+        }
+
+        const err = await res.json().catch(() => ({}));
+        if (statusEl) {
+          statusEl.style.color = '#f87171';
+          statusEl.innerHTML = `❌ Lỗi 404: Mô hình ${model} không còn khả dụng trong dự án này. Vui lòng chọn <b>Gemini 2.0 Flash</b> trong danh sách trên rồi bấm lại!`;
         }
       } else {
         const err = await res.json().catch(() => ({}));
