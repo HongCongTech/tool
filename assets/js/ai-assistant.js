@@ -14,7 +14,7 @@
 
   const AI_CONFIG_KEY = 'sys_ai_config';
   const CHAT_HISTORY_KEY = 'sys_ai_chat_history_v3';
-  const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
+  const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
   // State
   let isListening = false;
@@ -36,7 +36,6 @@
     // Kiểm tra cấu hình tĩnh trong window.__AI_CONFIG__ (từ db-config.js)
     if (window.__AI_CONFIG__ && window.__AI_CONFIG__.geminiApiKey) {
       cfg.apiKey = window.__AI_CONFIG__.geminiApiKey.trim();
-      if (window.__AI_CONFIG__.model) cfg.model = window.__AI_CONFIG__.model;
     }
 
     // Kiểm tra cấu hình đã lưu trong localStorage
@@ -45,10 +44,10 @@
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed.apiKey) cfg.apiKey = parsed.apiKey.trim();
-        if (parsed.model) cfg.model = parsed.model;
       }
     } catch (e) {}
 
+    cfg.model = DEFAULT_GEMINI_MODEL; // Luôn cố định mô hình gemini-3.5-flash-lite
     return cfg;
   }
 
@@ -948,27 +947,9 @@
   }
 
   // --------------------------------------------------------------------------
-  // 6. TÍCH HỢP GOOGLE GEMINI 1.5 FLASH TRỰC TUYẾN (MULTI-TURN CHAT)
+  // 6. TÍCH HỢP GOOGLE GEMINI TRỰC TUYẾN (MULTI-TURN CHAT - MODEL CỐ ĐỊNH)
   // --------------------------------------------------------------------------
-  async function fetchAvailableGeminiModels(apiKey) {
-    if (!apiKey) return [];
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        const models = (data.models || [])
-          .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
-          .map(m => m.name.replace(/^models\//, ''));
-        return models;
-      }
-    } catch (e) {
-      console.warn('Lỗi khi lấy danh sách models từ Google:', e);
-    }
-    return [];
-  }
-
-  async function callGeminiApi(userPrompt, apiKey, model) {
+  async function callGeminiApi(userPrompt, apiKey) {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
     const timeNow = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
@@ -1016,10 +997,10 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
       parts: [{ text: userPrompt }]
     });
 
-    let activeModel = model || DEFAULT_GEMINI_MODEL;
-    let url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const fixedModel = DEFAULT_GEMINI_MODEL; // Luôn cố định gemini-3.5-flash-lite
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fixedModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
-    let res = await fetch(url, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1031,46 +1012,15 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
       })
     });
 
-    // Tự động phục hồi khi gặp lỗi 404 (model cũ bị deprecated trên tài khoản này)
-    if (!res.ok && res.status === 404) {
-      console.warn(`Mô hình ${activeModel} trả về 404, đang tự động chuyển sang mô hình thế hệ mới khả dụng...`);
-      const fallbacks = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest', 'gemini-pro'];
-      for (const fbModel of fallbacks) {
-        if (fbModel === activeModel) continue;
-        const fbUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fbModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const fbRes = await fetch(fbUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: contents,
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 1000
-            }
-          })
-        });
-        if (fbRes.ok) {
-          res = fbRes;
-          activeModel = fbModel;
-          try {
-            const rawCfg = localStorage.getItem(AI_CONFIG_KEY);
-            const savedCfg = rawCfg ? JSON.parse(rawCfg) : {};
-            savedCfg.model = activeModel;
-            localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(savedCfg));
-          } catch (e) {}
-          break;
-        }
-      }
-    }
-
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData?.error?.message || `Lỗi Gemini API HTTP ${res.status}`);
+      const errMsg = errData?.error?.message || `HTTP ${res.status}`;
+      throw new Error(`Không gọi được API Google Gemini (${fixedModel}): ${errMsg}`);
     }
 
     const data = await res.json();
     const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) throw new Error('Gemini không trả về nội dung');
+    if (!candidateText) throw new Error(`Không gọi được API (${fixedModel}): Google không trả về nội dung`);
 
     return candidateText;
   }
@@ -1099,14 +1049,13 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
     const cfg = getAiConfig();
     let replyText = '';
     let card = null;
-    let modelUsed = 'Offline Fallback';
+    let modelUsed = `Google ${DEFAULT_GEMINI_MODEL}`;
 
     const hasKey = Boolean(cfg.apiKey && cfg.apiKey.trim().length > 10);
 
     if (hasKey) {
       try {
-        modelUsed = `Google ${cfg.model || DEFAULT_GEMINI_MODEL}`;
-        const geminiRaw = await callGeminiApi(query, cfg.apiKey.trim(), cfg.model);
+        const geminiRaw = await callGeminiApi(query, cfg.apiKey.trim(), DEFAULT_GEMINI_MODEL);
 
         let cleanedText = geminiRaw;
 
@@ -1143,18 +1092,15 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
 
         replyText = cleanedText || 'Tôi đã xử lý yêu cầu của bạn!';
       } catch (err) {
-        console.warn('[AI Assistant] Lỗi Gemini API, chuyển sang bộ xử lý cục bộ:', err);
-        modelUsed = 'Offline (Lỗi kết nối Gemini API)';
-        const offRes = processOfflineConversation(query);
-        replyText = offRes.replyText;
-        card = offRes.card || null;
+        console.warn('[AI Assistant] Lỗi gọi Gemini API:', err);
+        modelUsed = `Google ${DEFAULT_GEMINI_MODEL} (Lỗi API)`;
+        replyText = `❌ **Không gọi được API Google Gemini (${DEFAULT_GEMINI_MODEL})**\n\n**Chi tiết lỗi:** ${err.message || 'Lỗi không xác định khi kết nối tới máy chủ Google.'}\n\n*Vui lòng kiểm tra lại Google Gemini API Key trong mục **⚙️ Cài đặt AI** hoặc xem tài khoản Google của bạn có quyền truy cập mô hình này hay không.*`;
+        card = null;
       }
     } else {
-      // Chưa cấu hình API Key -> Chạy bộ phân tích cục bộ và nhắc nhở
-      const offRes = processOfflineConversation(query);
-      replyText = offRes.replyText;
-      card = offRes.card || null;
-      modelUsed = 'Offline (Chưa nhập API Key)';
+      // Chưa cấu hình API Key -> Thông báo cần nhập key để gọi mô hình cố định
+      replyText = `⚠️ **Chưa cấu hình Google Gemini API Key**\n\nHệ thống đã được thiết lập gọi cố định mô hình **${DEFAULT_GEMINI_MODEL}**. Vui lòng bấm vào **⚙️ Cài đặt AI** ở thanh tiêu đề để nhập API Key của bạn.`;
+      modelUsed = `Chưa có API Key (${DEFAULT_GEMINI_MODEL})`;
     }
 
     // 2. Thêm phản hồi của Assistant vào luồng hội thoại
@@ -1227,12 +1173,11 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
 
   async function testDrawerGeminiConnection() {
     const keyInput = document.getElementById('drawerGeminiKeyInput');
-    const modelSelect = document.getElementById('drawerGeminiModelSelect');
     const statusEl = document.getElementById('drawerAiTestStatus');
     const btn = document.getElementById('btnDrawerTestAi');
 
     const apiKey = keyInput ? keyInput.value.trim() : '';
-    const model = modelSelect ? modelSelect.value : DEFAULT_GEMINI_MODEL;
+    const fixedModel = DEFAULT_GEMINI_MODEL; // gemini-3.5-flash-lite
 
     if (!apiKey) {
       alert('Vui lòng dán Google Gemini API Key trước khi kiểm tra!');
@@ -1243,13 +1188,13 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
     if (statusEl) {
       statusEl.style.display = 'block';
       statusEl.style.color = '#38bdf8';
-      statusEl.innerHTML = '⏳ Đang gửi yêu cầu kiểm tra tới Google Gemini API...';
+      statusEl.innerHTML = `⏳ Đang gửi yêu cầu kiểm tra tới mô hình cố định <b>${fixedModel}</b>...`;
     }
     if (btn) btn.disabled = true;
 
     const t0 = performance.now();
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fixedModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1266,80 +1211,20 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
         const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'OK';
         if (statusEl) {
           statusEl.style.color = '#34d399';
-          statusEl.innerHTML = `✅ <b>Kết nối Google Gemini thành công!</b> (Độ trễ: ${latency}ms)<br>Phản hồi từ AI: <i>${reply.trim()}</i>`;
-        }
-      } else if (res.status === 404) {
-        if (statusEl) {
-          statusEl.style.color = '#fbbf24';
-          statusEl.innerHTML = `🔄 Mô hình <b>${model}</b> không hỗ trợ trong dự án này. Đang tự động quét mô hình khả dụng...`;
-        }
-
-        let chosenModel = null;
-        try {
-          const availableModels = await fetchAvailableGeminiModels(apiKey);
-          if (availableModels.length > 0) {
-            if (modelSelect) {
-              modelSelect.innerHTML = '';
-              availableModels.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m;
-                opt.textContent = m + (m.includes('flash') ? ' (Khuyên dùng)' : '');
-                modelSelect.appendChild(opt);
-              });
-            }
-            chosenModel = availableModels.find(m => m.includes('2.0-flash')) ||
-                          availableModels.find(m => m.includes('2.5-flash')) ||
-                          availableModels.find(m => m.includes('flash')) ||
-                          availableModels[0];
-          }
-        } catch(e) {}
-
-        if (!chosenModel) {
-          const fallbackList = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
-          chosenModel = fallbackList.find(c => c !== model) || 'gemini-2.0-flash';
-        }
-
-        if (chosenModel && chosenModel !== model) {
-          const retryUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(chosenModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-          const retryRes = await fetch(retryUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: "Hãy trả lời đúng từ 'OK' nếu bạn đã nhận được tin này." }] }]
-            })
-          });
-
-          const retryT1 = performance.now();
-          const retryLatency = Math.round(retryT1 - t0);
-
-          if (retryRes.ok) {
-            const retryData = await retryRes.json();
-            const reply = retryData?.candidates?.[0]?.content?.parts?.[0]?.text || 'OK';
-            if (modelSelect) modelSelect.value = chosenModel;
-            if (statusEl) {
-              statusEl.style.color = '#34d399';
-              statusEl.innerHTML = `✅ <b>Kết nối Google Gemini thành công!</b> (Độ trễ: ${retryLatency}ms)<br>🎯 Google đã tự động chuyển sang mô hình thế hệ mới: <b>${chosenModel}</b><br>Phản hồi từ AI: <i>${reply.trim()}</i>`;
-            }
-            return;
-          }
-        }
-
-        const err = await res.json().catch(() => ({}));
-        if (statusEl) {
-          statusEl.style.color = '#f87171';
-          statusEl.innerHTML = `❌ Lỗi 404: Mô hình ${model} không còn khả dụng trong dự án này. Vui lòng chọn <b>Gemini 2.0 Flash</b> trong danh sách trên rồi bấm lại!`;
+          statusEl.innerHTML = `✅ <b>Kết nối Google Gemini thành công!</b> (Mô hình: <b>${fixedModel}</b>, Độ trễ: ${latency}ms)<br>Phản hồi từ AI: <i>${reply.trim()}</i>`;
         }
       } else {
         const err = await res.json().catch(() => ({}));
+        const errMsg = err?.error?.message || `HTTP ${res.status}`;
         if (statusEl) {
           statusEl.style.color = '#f87171';
-          statusEl.textContent = `❌ Lỗi kết nối (HTTP ${res.status}): ${err?.error?.message || 'API Key không hợp lệ hoặc đã hết hạn ngạch!'}`;
+          statusEl.innerHTML = `❌ <b>Không gọi được API (${fixedModel}):</b> ${errMsg}`;
         }
       }
     } catch (e) {
       if (statusEl) {
         statusEl.style.color = '#f87171';
-        statusEl.textContent = '❌ Lỗi mạng: ' + e.message;
+        statusEl.innerHTML = `❌ <b>Không gọi được API (${fixedModel}):</b> Lỗi mạng (${e.message})`;
       }
     } finally {
       if (btn) btn.disabled = false;
@@ -1348,9 +1233,8 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
 
   function saveDrawerGeminiSettings() {
     const keyInput = document.getElementById('drawerGeminiKeyInput');
-    const modelSelect = document.getElementById('drawerGeminiModelSelect');
     const apiKey = keyInput ? keyInput.value.trim() : '';
-    const model = modelSelect ? modelSelect.value : DEFAULT_GEMINI_MODEL;
+    const model = DEFAULT_GEMINI_MODEL;
 
     const cfg = { apiKey, model, enabled: true };
     saveAiConfig(cfg);

@@ -815,14 +815,12 @@
           </div>
 
           <div class="ai-form-group" style="margin-bottom:12px;">
-            <label class="ai-form-label">Mô hình AI:</label>
-            <select class="ai-form-select" id="drawerGeminiModelSelect">
-              <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash (Khuyên dùng - Chuẩn Google AI Studio mới)</option>
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash (Thế hệ mới nhất từ Google)</option>
-              <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (Phản hồi tức thì & nhẹ)</option>
-              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Bản truyền thống)</option>
-              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Xử lý ngữ cảnh sâu & phức tạp)</option>
-            </select>
+            <label class="ai-form-label">Mô hình AI (Cố định):</label>
+            <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 12px; color: #38bdf8; font-family: monospace; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">
+              <span>🤖 <b>gemini-3.5-flash-lite</b></span>
+              <span style="font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3);">Cố định</span>
+            </div>
+            <input type="hidden" id="drawerGeminiModelSelect" value="gemini-3.5-flash-lite" />
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -872,9 +870,9 @@
   </div>
 
   <!-- AI Assistant Script -->
-  <script src="assets/js/ai-assistant.js?v=v26"></script>
+  <script src="assets/js/ai-assistant.js?v=v27"></script>
 
   <!-- Controller Logic -->
-  <script src="assets/js/dashboard.js?v=v26"></script>
+  <script src="assets/js/dashboard.js?v=v27"></script>
 </body>
 </html>

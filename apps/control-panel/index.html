@@ -1558,14 +1558,12 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom:18px;">
-                        <label class="form-label" style="font-weight:700;">Mô hình AI (Gemini Model):</label>
-                        <select id="geminiModelSelect" class="form-control">
-                            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash (Khuyên dùng - Chuẩn Google AI Studio mới)</option>
-                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Thế hệ mới nhất của Google)</option>
-                            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (Phản hồi tức thì & nhẹ)</option>
-                            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Bản truyền thống)</option>
-                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Xử lý ngữ cảnh sâu và phức tạp)</option>
-                        </select>
+                        <label class="form-label" style="font-weight:700;">Mô hình AI (Cố định):</label>
+                        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-family: monospace; font-size: 14px; color: #0284c7; display: flex; justify-content: space-between; align-items: center;">
+                            <span>🤖 <b>gemini-3.5-flash-lite</b></span>
+                            <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Cố định</span>
+                        </div>
+                        <input type="hidden" id="geminiModelSelect" value="gemini-3.5-flash-lite" />
                     </div>
 
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -4268,7 +4266,7 @@ HƯỚNG DẪN SỬ DỤNG:
         // =========================================================================
         function initAiSettings() {
             const raw = localStorage.getItem('sys_ai_config');
-            let cfg = { apiKey: '', model: 'gemini-2.0-flash', enabled: true };
+            let cfg = { apiKey: '', model: 'gemini-3.5-flash-lite', enabled: true };
             if (raw) {
                 try { cfg = JSON.parse(raw); } catch(e) {}
             }
@@ -4277,7 +4275,7 @@ HƯỚNG DẪN SỬ DỤNG:
             const statusBadge = document.getElementById('aiApiStatusBadge');
 
             if (keyInput) keyInput.value = cfg.apiKey || '';
-            if (modelSelect) modelSelect.value = cfg.model || 'gemini-2.0-flash';
+            if (modelSelect) modelSelect.value = 'gemini-3.5-flash-lite';
 
             if (statusBadge) {
                 if (cfg.apiKey && cfg.apiKey.trim().length > 10) {
@@ -4301,9 +4299,8 @@ HƯỚNG DẪN SỬ DỤNG:
 
         function saveGeminiSettings() {
             const keyInput = document.getElementById('geminiApiKeyInput');
-            const modelSelect = document.getElementById('geminiModelSelect');
             const apiKey = keyInput ? keyInput.value.trim() : '';
-            const model = modelSelect ? modelSelect.value : 'gemini-2.0-flash';
+            const model = 'gemini-3.5-flash-lite';
 
             const cfg = { apiKey, model, enabled: true };
             localStorage.setItem('sys_ai_config', JSON.stringify(cfg));
@@ -4317,9 +4314,8 @@ HƯỚNG DẪN SỬ DỤNG:
 
         async function testGeminiConnection() {
             const keyInput = document.getElementById('geminiApiKeyInput');
-            const modelSelect = document.getElementById('geminiModelSelect');
             const apiKey = keyInput ? keyInput.value.trim() : '';
-            let model = modelSelect ? modelSelect.value : 'gemini-2.0-flash';
+            const model = 'gemini-3.5-flash-lite';
             const resultEl = document.getElementById('geminiTestResult');
             const btn = document.getElementById('btnTestGemini');
 
@@ -4332,44 +4328,20 @@ HƯỚNG DẪN SỬ DỤNG:
             if (resultEl) {
                 resultEl.style.display = 'block';
                 resultEl.style.color = '#0284c7';
-                resultEl.textContent = '⏳ Đang gửi yêu cầu kiểm tra đến Google Gemini API...';
+                resultEl.innerHTML = `⏳ Đang gửi yêu cầu kiểm tra tới mô hình cố định <b>${model}</b>...`;
             }
             if (btn) btn.disabled = true;
 
             const t0 = performance.now();
             try {
-                let url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-                let res = await fetch(url, {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: "Hãy trả lời đúng từ 'OK' nếu bạn đã nhận được tin này." }] }]
                     })
                 });
-
-                if (!res.ok && res.status === 404) {
-                    if (resultEl) {
-                        resultEl.style.color = '#d97706';
-                        resultEl.innerHTML = `🔄 Mô hình <b>${model}</b> không hỗ trợ trong dự án này. Đang tự động kết nối mô hình thay thế khả dụng...`;
-                    }
-                    const candidates = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest'];
-                    for (const cand of candidates) {
-                        if (cand === model) continue;
-                        const retryRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cand)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: "Hãy trả lời đúng từ 'OK' nếu bạn đã nhận được tin này." }] }]
-                            })
-                        });
-                        if (retryRes.ok) {
-                            res = retryRes;
-                            model = cand;
-                            if (modelSelect) modelSelect.value = cand;
-                            break;
-                        }
-                    }
-                }
 
                 const t1 = performance.now();
                 const latency = Math.round(t1 - t0);
@@ -4384,15 +4356,16 @@ HƯỚNG DẪN SỬ DỤNG:
                     saveGeminiSettings();
                 } else {
                     const err = await res.json().catch(() => ({}));
+                    const errMsg = err?.error?.message || `Lỗi HTTP ${res.status}`;
                     if (resultEl) {
                         resultEl.style.color = '#dc2626';
-                        resultEl.textContent = `❌ Lỗi kết nối (HTTP ${res.status}): ${err?.error?.message || 'API Key không hợp lệ hoặc đã hết hạn ngạch!'}`;
+                        resultEl.innerHTML = `❌ <b>Không gọi được API (${model}):</b> ${errMsg}`;
                     }
                 }
             } catch (e) {
                 if (resultEl) {
                     resultEl.style.color = '#dc2626';
-                    resultEl.textContent = '❌ Lỗi mạng: ' + e.message;
+                    resultEl.innerHTML = `❌ <b>Không gọi được API (${model}):</b> Lỗi mạng (${e.message})`;
                 }
             } finally {
                 if (btn) btn.disabled = false;
