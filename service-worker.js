@@ -3,7 +3,7 @@
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v19';
+const CACHE_NAME = 'macos-dashboard-v20';
 const STATIC_ASSETS = [
   './',
   './index.html',

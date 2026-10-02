@@ -1368,7 +1368,7 @@
                             <div class="sec-action-title">Đổi Mật Khẩu Admin</div>
                             <div class="sec-action-desc">Cập nhật mật khẩu bảo vệ quyền quản trị với thuật toán Salted SHA-256 chống dò quét.</div>
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm sec-action-btn">
+                        <button type="button" class="btn btn-primary btn-sm sec-action-btn" onclick="openCpChangePassModal()">
                             <i class="fa-solid fa-pen-to-square"></i> Đổi Mật Khẩu
                         </button>
                     </div>
@@ -1382,7 +1382,7 @@
                             <div class="sec-action-title">Trình Tạo Mật Khẩu</div>
                             <div class="sec-action-desc">Tự động sinh chuỗi ký tự mật khẩu ngẫu nhiên độ an toàn cao, chống bẻ khóa và từ điển.</div>
                         </div>
-                        <button type="button" class="btn btn-outline btn-sm sec-action-btn" style="color:#7c3aed; border-color:#ddd6fe;">
+                        <button type="button" class="btn btn-outline btn-sm sec-action-btn" style="color:#7c3aed; border-color:#ddd6fe;" onclick="openCpPassGenModal()">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Mở Bộ Sinh Khóa
                         </button>
                     </div>
@@ -1396,7 +1396,7 @@
                             <div class="sec-action-title">Lấy Lại Mật Khẩu</div>
                             <div class="sec-action-desc">Khôi phục quyền truy cập khẩn cấp qua Master Key cứu hộ độc lập hoặc File Key (.json).</div>
                         </div>
-                        <button type="button" class="btn btn-outline btn-sm sec-action-btn" style="color:#b45309; border-color:#fde68a;">
+                        <button type="button" class="btn btn-outline btn-sm sec-action-btn" style="color:#b45309; border-color:#fde68a;" onclick="openCpRecoveryModal()">
                             <i class="fa-solid fa-shield-halved"></i> Khôi Phục & Cứu Hộ
                         </button>
                     </div>
@@ -1774,6 +1774,17 @@
             </p>
 
             <form id="formChangeAdminPass" onsubmit="event.preventDefault(); submitChangeAdminPassword();">
+                <!-- Current Password or Master Key -->
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-weight:700;">Mật khẩu hiện tại (hoặc Master Key):</label>
+                    <div class="password-input-wrap">
+                        <input type="password" id="curAdminPassInput" class="form-control" placeholder="Nhập mật khẩu hiện tại hoặc Master Key...">
+                        <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility('curAdminPassInput', this)" title="Ẩn/Hiện mật khẩu">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- New Password -->
                 <div class="form-group" style="margin-bottom:6px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1799,7 +1810,7 @@
                 </div>
 
                 <!-- Confirm New Password -->
-                <div class="form-group" style="margin-bottom:16px;">
+                <div class="form-group" style="margin-bottom:12px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label class="form-label" style="font-weight:700;">Xác nhận mật khẩu mới:</label>
                         <span id="matchStatusLabel" style="font-size:11px; font-weight:700;"></span>
@@ -1810,6 +1821,15 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; font-size:12px;">
+                    <button type="button" onclick="downloadCpRescueFileKey()" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline; padding:0;">
+                        📥 Tải File Key (.json)
+                    </button>
+                    <button type="button" onclick="closeCpChangePassModal(); openCpRecoveryModal();" style="background:none; border:none; color:#d97706; cursor:pointer; text-decoration:underline; padding:0;">
+                        Quên mật khẩu cũ?
+                    </button>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -2920,9 +2940,12 @@
         }
 
         function resetPasswordForm() {
-            document.getElementById('curAdminPassInput').value = '';
-            document.getElementById('newAdminPassInput').value = '';
-            document.getElementById('confirmAdminPassInput').value = '';
+            const curInp = document.getElementById('curAdminPassInput');
+            const newInp = document.getElementById('newAdminPassInput');
+            const confInp = document.getElementById('confirmAdminPassInput');
+            if (curInp) curInp.value = '';
+            if (newInp) newInp.value = '';
+            if (confInp) confInp.value = '';
             onNewPasswordInput('');
             checkPasswordMatch();
         }
@@ -2989,10 +3012,16 @@
         }
 
         function openCpChangePassModal() {
-            if (!checkAdminPermission()) return;
             resetPasswordForm();
-            document.getElementById('cpChangePassModal').classList.add('show');
-            setTimeout(() => document.getElementById('newAdminPassInput')?.focus(), 150);
+            const modal = document.getElementById('cpChangePassModal');
+            if (modal) {
+                modal.classList.add('show');
+                setTimeout(() => {
+                    const curInp = document.getElementById('curAdminPassInput');
+                    const newInp = document.getElementById('newAdminPassInput');
+                    (curInp || newInp)?.focus();
+                }, 150);
+            }
         }
 
         function closeCpChangePassModal() {
@@ -3041,11 +3070,22 @@
 
         // Change Admin Password Submission
         async function submitChangeAdminPassword() {
+            const curPass = (document.getElementById('curAdminPassInput')?.value || '').trim();
             const newPass = (document.getElementById('newAdminPassInput')?.value || '').trim();
             const confirmPass = (document.getElementById('confirmAdminPassInput')?.value || '').trim();
 
             if (!newPass) return alert('Vui lòng nhập mật khẩu mới!');
             if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không trùng khớp!');
+
+            const storedHash = localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('sys_admin_pass_hash') || localStorage.getItem('p2p_admin_pass_hash');
+            if (storedHash) {
+                const isPassCorrect = await verifyPassword(curPass, storedHash);
+                const isMasterCorrect = typeof verifyMasterKeyInCp === 'function' ? await verifyMasterKeyInCp(curPass) : false;
+                if (!isPassCorrect && !isMasterCorrect) {
+                    alert('Xác thực thất bại: Mật khẩu hiện tại hoặc Master Key không đúng!\n\nNếu quên mật khẩu cũ, hãy bấm "Quên mật khẩu cũ?" để dùng Master Key hoặc File Key đặt lại.');
+                    return;
+                }
+            }
 
             const newHashed = await hashPassword(newPass);
             localStorage.setItem('sys_admin_password_hash', newHashed);
