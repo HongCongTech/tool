@@ -2434,6 +2434,384 @@
     }
   }
 
+  // --------------------------------------------------------------------------
+  // 7. LUNAR CALENDAR ENGINE & WALL CALENDAR BLOC (LỊCH VẠN NIÊN & LỊCH BLOC)
+  // --------------------------------------------------------------------------
+  const PI = Math.PI;
+
+  function jdFromDate(dd, mm, yy) {
+    let a = Math.floor((14 - mm) / 12);
+    let y = yy + 4800 - a;
+    let m = mm + 12 * a - 3;
+    let jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+    if (jd < 2299161) {
+      jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
+    }
+    return jd;
+  }
+
+  function getNewMoonDay(k, timeZone = 7) {
+    let T = k / 1236.85;
+    let T2 = T * T;
+    let T3 = T2 * T;
+    let dr = PI / 180;
+    let Jd1 = 2415020.75933 + 29.53058868 * k + 0.0001178 * T2 - 0.000000155 * T3;
+    Jd1 = Jd1 + 0.00033 * Math.sin((166.56 + 132.87 * T - 0.009173 * T2) * dr);
+    let M = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
+    let Mpr = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 0.00001236 * T3;
+    let F = 21.2964 + 390.67050646 * k - 0.0016528 * T2 - 0.00000239 * T3;
+    let C1 = (0.1734 - 0.000393 * T) * Math.sin(M * dr) + 0.0021 * Math.sin(2 * dr * M);
+    C1 = C1 - 0.4068 * Math.sin(Mpr * dr) + 0.0161 * Math.sin(2 * dr * Mpr);
+    C1 = C1 - 0.0004 * Math.sin(3 * dr * Mpr);
+    C1 = C1 + 0.0104 * Math.sin(2 * dr * F) - 0.0051 * Math.sin((M + Mpr) * dr);
+    C1 = C1 - 0.0074 * Math.sin((M - Mpr) * dr) + 0.0004 * Math.sin((2 * F + M) * dr);
+    C1 = C1 - 0.0004 * Math.sin((2 * F - M) * dr) - 0.0006 * Math.sin((2 * F + Mpr) * dr);
+    C1 = C1 + 0.0010 * Math.sin((2 * F - Mpr) * dr) + 0.0005 * Math.sin((2 * Mpr + M) * dr);
+    let deltat;
+    if (T < -11) {
+      deltat = 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3;
+    } else {
+      deltat = -0.000278 + 0.000265 * T + 0.000262 * T2;
+    }
+    let JdNew = Jd1 + C1 - deltat;
+    return Math.floor(JdNew + 0.5 + timeZone / 24);
+  }
+
+  function getSunLongitude(dayNumber, timeZone = 7) {
+    let T = (dayNumber - 2451545.5 - timeZone / 24) / 36525;
+    let T2 = T * T;
+    let dr = PI / 180;
+    let M = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+    let L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+    let DL = (1.914600 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+    DL = DL + (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.000290 * Math.sin(dr * 3 * M);
+    let L = L0 + DL;
+    L = L * dr;
+    L = L - PI * 2 * Math.floor(L / (PI * 2));
+    return Math.floor(L / PI * 6);
+  }
+
+  function getLunarMonth11(yy, timeZone = 7) {
+    let off = jdFromDate(31, 12, yy) - 2415021;
+    let k = Math.floor(off / 29.530588853);
+    let nm = getNewMoonDay(k, timeZone);
+    let sunLong = getSunLongitude(nm, timeZone);
+    if (sunLong >= 9) {
+      nm = getNewMoonDay(k - 1, timeZone);
+    }
+    return nm;
+  }
+
+  function getLeapMonthOffset(a11, timeZone = 7) {
+    let k = Math.floor((a11 - 2415021.0769986) / 29.530588853);
+    let last = 0;
+    let i = 1;
+    let arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+    do {
+      last = arc;
+      i++;
+      arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
+    } while (arc !== last && i < 14);
+    return i - 1;
+  }
+
+  function getLunarDate(dd, mm, yy, timeZone = 7) {
+    let dayNumber = jdFromDate(dd, mm, yy);
+    let k = Math.floor((dayNumber - 2415021.0769986) / 29.530588853);
+    let monthStart = getNewMoonDay(k + 1, timeZone);
+    if (monthStart > dayNumber) {
+      monthStart = getNewMoonDay(k, timeZone);
+    }
+    let a11 = getLunarMonth11(yy, timeZone);
+    let b11 = a11;
+    let lunarYear;
+    if (a11 >= monthStart) {
+      lunarYear = yy;
+      a11 = getLunarMonth11(yy - 1, timeZone);
+    } else {
+      lunarYear = yy + 1;
+      b11 = getLunarMonth11(yy + 1, timeZone);
+    }
+    let lunarDay = dayNumber - monthStart + 1;
+    let diff = Math.floor((monthStart - a11) / 29);
+    let lunarLeap = 0;
+    let lunarMonth = diff + 11;
+    if (b11 - a11 > 365) {
+      let leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+      if (diff >= leapMonthDiff) {
+        lunarMonth = diff + 10;
+        if (diff === leapMonthDiff) {
+          lunarLeap = 1;
+        }
+      }
+    }
+    if (lunarMonth > 12) {
+      lunarMonth = lunarMonth - 12;
+    }
+    if (lunarMonth >= 11 && diff < 4) {
+      lunarYear -= 1;
+    }
+    return { day: lunarDay, month: lunarMonth, year: lunarYear, leap: lunarLeap, jd: dayNumber };
+  }
+
+  // Tiết khí, Can Chi & Chiêm tinh Lịch Vạn Niên
+  const TIET_KHI = [
+    "Xuân Phân", "Thanh Minh", "Cốc Vũ", "Lập Hạ", "Tiểu Mãn", "Mang Chủng",
+    "Hạ Chí", "Tiểu Thử", "Đại Thử", "Lập Thu", "Xử Thử", "Bạch Lộ",
+    "Thu Phân", "Hàn Lộ", "Sương Giáng", "Lập Đông", "Tiểu Tuyết", "Đại Tuyết",
+    "Đông Chí", "Tiểu Hàn", "Đại Hàn", "Lập Xuân", "Vũ Thủy", "Kinh Trập"
+  ];
+  function getSolarTerm(jd) {
+    const idx = getSunLongitude(jd);
+    return TIET_KHI[idx] || "Tiết Khí Thuận Hòa";
+  }
+
+  const CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
+  const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+  const ANIMAL_EMOJI = ['🐭 Chuột', '🐂 Trâu', '🐯 Hổ', '🐱 Mèo', '🐲 Rồng', '🐍 Rắn', '🐴 Ngựa', '🐐 Dê', '🐵 Khỉ', '🐔 Gà', '🐶 Chó', '🐷 Lợn'];
+  const WEEKDAY_NAMES = ['CHỦ NHẬT', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'];
+  const MONTH_NAMES = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+
+  const AUSPICIOUS_HOURS = {
+    0: "Tý (23-1), Sửu (1-3), Mão (5-7), Ngọ (11-13), Thân (15-17), Dậu (17-19)",
+    1: "Dần (3-5), Mão (5-7), Tỵ (9-11), Thân (15-17), Tuất (19-21), Hợi (21-23)",
+    2: "Tý (23-1), Sửu (1-3), Thìn (7-9), Tỵ (9-11), Mùi (13-15), Tuất (19-21)",
+    3: "Tý (23-1), Dần (3-5), Mão (5-7), Ngọ (11-13), Mùi (13-15), Dậu (17-19)",
+    4: "Dần (3-5), Thìn (7-9), Tỵ (9-11), Thân (15-17), Dậu (17-19), Hợi (21-23)",
+    5: "Sửu (1-3), Thìn (7-9), Ngọ (11-13), Mùi (13-15), Tuất (19-21), Hợi (21-23)",
+    6: "Tý (23-1), Sửu (1-3), Mão (5-7), Ngọ (11-13), Thân (15-17), Dậu (17-19)",
+    7: "Dần (3-5), Mão (5-7), Tỵ (9-11), Thân (15-17), Tuất (19-21), Hợi (21-23)",
+    8: "Tý (23-1), Sửu (1-3), Thìn (7-9), Tỵ (9-11), Mùi (13-15), Tuất (19-21)",
+    9: "Tý (23-1), Dần (3-5), Mão (5-7), Ngọ (11-13), Mùi (13-15), Dậu (17-19)",
+    10: "Dần (3-5), Thìn (7-9), Tỵ (9-11), Thân (15-17), Dậu (17-19), Hợi (21-23)",
+    11: "Sửu (1-3), Thìn (7-9), Ngọ (11-13), Mùi (13-15), Tuất (19-21), Hợi (21-23)"
+  };
+
+  const TRUC_NAMES = ["Kiến", "Trừ", "Mãn", "Bình", "Định", "Chấp", "Phá", "Nguy", "Thành", "Thâu", "Khai", "Bế"];
+  const TRUC_ADVICE = {
+    "Kiến": "Tốt cho xuất hành, khởi công, khai trương. Kỵ đào đất, an táng.",
+    "Trừ": "Tốt cho việc giải trừ điều xấu, dọn dẹp, chữa bệnh. Kỵ cưới hỏi.",
+    "Mãn": "Tốt cho cầu tài, hội họp, yến tiệc, nhập học. Kỵ kiện tụng.",
+    "Bình": "Tốt cho việc tu sửa, giao dịch bình ổn. Kỵ mạo hiểm.",
+    "Định": "Tốt cho ký kết hợp đồng, bàn giao công việc lâu dài, hôn nhân.",
+    "Chấp": "Tốt cho xây dựng, canh tác, giữ gìn tài sản. Kỵ dời chỗ ở.",
+    "Phá": "Tốt cho việc phá dỡ công trình cũ, cải tạo. Kỵ việc đại sự.",
+    "Nguy": "Nên cẩn trọng trong mọi việc, tu tâm dưỡng tính. Kỵ đi xa.",
+    "Thành": "Đại Cát: Khai trương, xuất hành, thăng tiến, ký hợp đồng lớn.",
+    "Thâu": "Tốt cho thu hồi công nợ, gặt hái, tích trữ tài chính.",
+    "Khai": "Đại Cát: Mở rộng kinh doanh, khởi nghiệp, đón vận khí mới.",
+    "Bế": "Tốt cho việc an nghỉ, đắp đập, bảo mật. Kỵ xuất hành xa."
+  };
+  function getTrucInfo(lunarMonth, chiDayIndex) {
+    const chiThang = (lunarMonth + 1) % 12;
+    const trucIndex = (chiDayIndex - chiThang + 12) % 12;
+    const name = TRUC_NAMES[trucIndex];
+    return { name, advice: TRUC_ADVICE[name] || "Mọi sự tiến triển thuận tự nhiên." };
+  }
+
+  const HOANG_DAO_DEITIES = [
+    { name: "Thanh Long", isGood: true, label: "🌟 Hoàng Đạo (Đại Cát)" },
+    { name: "Minh Đường", isGood: true, label: "🌟 Hoàng Đạo (Cát Khánh)" },
+    { name: "Thiên Hình", isGood: false, label: "⚠️ Hắc Đạo (Cẩn Trọng)" },
+    { name: "Chu Tước", isGood: false, label: "⚠️ Hắc Đạo (Tránh Tranh Chấp)" },
+    { name: "Kim Quỹ", isGood: true, label: "🌟 Hoàng Đạo (Phúc Lộc)" },
+    { name: "Bảo Quang", isGood: true, label: "🌟 Hoàng Đạo (Quang Minh)" },
+    { name: "Bạch Hổ", isGood: false, label: "⚠️ Hắc Đạo (Kỵ Đi Xa)" },
+    { name: "Ngọc Đường", isGood: true, label: "🌟 Hoàng Đạo (Công Danh)" },
+    { name: "Thiên Lao", isGood: false, label: "⚠️ Hắc Đạo (Bất Lợi)" },
+    { name: "Huyền Vũ", isGood: false, label: "⚠️ Hắc Đạo (Tiểu Nhân)" },
+    { name: "Tư Mệnh", isGood: true, label: "🌟 Hoàng Đạo (Bình An)" },
+    { name: "Câu Trận", isGood: false, label: "⚠️ Hắc Đạo (Chậm Trễ)" }
+  ];
+  function getDayDeity(lunarMonth, chiDayIndex) {
+    const startChi = [0, 0, 2, 4, 6, 8, 10, 0, 2, 4, 6, 8, 10][lunarMonth] || 0;
+    const deityIndex = (chiDayIndex - startChi + 12) % 12;
+    return HOANG_DAO_DEITIES[deityIndex];
+  }
+
+  function getDirections(canDayIndex) {
+    switch (canDayIndex) {
+      case 0: case 5: return { hyThan: "Đông Bắc", taiThan: "Chính Nam" };
+      case 1: case 6: return { hyThan: "Tây Bắc", taiThan: "Tây Nam" };
+      case 2: case 7: return { hyThan: "Tây Nam", taiThan: "Chính Đông" };
+      case 3: case 8: return { hyThan: "Chính Nam", taiThan: "Chính Đông" };
+      case 4: case 9: return { hyThan: "Đông Nam", taiThan: "Chính Bắc" };
+      default: return { hyThan: "Đông Bắc", taiThan: "Chính Nam" };
+    }
+  }
+
+  const SOLAR_HOLIDAYS = {
+    '1-1': { title: 'Tết Dương Lịch (New Year)', desc: 'Ngày đầu tiên của năm mới theo lịch Dương, ngày nghỉ lễ toàn quốc.' },
+    '1-9': { title: 'Ngày Học Sinh - Sinh Viên VN', desc: 'Kỷ niệm ngày truyền thống học sinh, sinh viên và Hội Sinh viên Việt Nam (1950).' },
+    '2-3': { title: 'Thành Lập Đảng Cộng Sản VN', desc: 'Kỷ niệm ngày thành lập Đảng Cộng sản Việt Nam quang vinh (03/02/1930).' },
+    '2-14': { title: 'Lễ Tình Nhân (Valentine)', desc: 'Ngày tôn vinh tình yêu đôi lứa và gắn kết yêu thương trên toàn thế giới.' },
+    '2-27': { title: 'Ngày Thầy Thuốc Việt Nam', desc: 'Tôn vinh và tri ân các y bác sĩ, cán bộ nhân viên ngành y tế.' },
+    '3-8': { title: 'Quốc Tế Phụ Nữ (8/3)', desc: 'Tôn vinh vẻ đẹp, sự cống hiến và quyền bình đẳng của phụ nữ toàn cầu.' },
+    '3-20': { title: 'Ngày Quốc Tế Hạnh Phúc', desc: 'Biểu trưng cho sự hài hòa, yêu thương và cân bằng cuộc sống.' },
+    '3-26': { title: 'Thành Lập Đoàn TNCS Hồ Chí Minh', desc: 'Kỷ niệm ngày thành lập Đoàn TNCS Hồ Chí Minh (26/03/1931).' },
+    '4-21': { title: 'Ngày Sách & Văn Hóa Đọc VN', desc: 'Tôn vinh giá trị tri thức của sách và văn hóa đọc trong cộng đồng.' },
+    '4-30': { title: 'Giải Phóng Miền Nam - Thống Nhất Đất Nước', desc: 'Chiến thắng lịch sử 30/04/1975 giải phóng hoàn toàn miền Nam, non sông liền một dải.' },
+    '5-1': { title: 'Quốc Tế Lao Động (1/5)', desc: 'Ngày hội biểu dương lực lượng và tinh thần đoàn kết của nhân dân lao động.' },
+    '5-7': { title: 'Chiến Thắng Điện Biên Phủ', desc: 'Kỷ niệm chiến thắng lịch sử Điện Biên Phủ “lừng lẫy năm châu” (07/05/1954).' },
+    '5-15': { title: 'Thành Lập Đội TNTP Hồ Chí Minh', desc: 'Kỷ niệm ngày thành lập Đội TNTP Hồ Chí Minh (15/05/1941).' },
+    '5-19': { title: 'Sinh Nhật Chủ Tịch Hồ Chí Minh', desc: 'Kỷ niệm ngày sinh vị Cha già kính yêu của dân tộc Việt Nam (19/05/1890).' },
+    '6-1': { title: 'Quốc Tế Thiếu Nhi (1/6)', desc: 'Ngày hội yêu thương, chăm sóc và bảo vệ trẻ em trên toàn thế giới.' },
+    '6-5': { title: 'Bác Hồ Ra Đi Tìm Đường Cứu Nước', desc: 'Kỷ niệm ngày người thanh niên Nguyễn Tất Thành rời bến Nhà Rồng (05/06/1911).' },
+    '6-21': { title: 'Ngày Báo Chí Cách Mạng VN', desc: 'Kỷ niệm ngày Bác Hồ xuất bản số đầu tiên của báo Thanh Niên (21/06/1925).' },
+    '6-28': { title: 'Ngày Gia Đình Việt Nam', desc: 'Tôn vinh mái ấm gia đình và các giá trị văn hóa truyền thống tốt đẹp.' },
+    '7-27': { title: 'Ngày Thương Binh - Liệt Sĩ', desc: 'Toàn dân tưởng nhớ và đời đời ghi ơn các anh hùng liệt sĩ đã hy sinh vì Tổ quốc.' },
+    '7-28': { title: 'Thành Lập Công Đoàn Việt Nam', desc: 'Kỷ niệm ngày thành lập Tổng Liên đoàn Lao động Việt Nam (28/07/1929).' },
+    '8-19': { title: 'Cách Mạng Tháng Tám & CAND', desc: 'Kỷ niệm thắng lợi Cách mạng Tháng Tám (1945) và Ngày truyền thống CAND.' },
+    '9-2': { title: 'Quốc Khánh Nước CHXHCN Việt Nam', desc: 'Kỷ niệm Bác Hồ đọc Tuyên ngôn Độc lập tại Quảng trường Ba Đình (02/09/1945).' },
+    '10-10': { title: 'Giải Phóng Thủ Đô Hà Nội', desc: 'Kỷ niệm ngày đoàn quân chiến thắng tiến về tiếp quản Thủ đô (10/10/1954).' },
+    '10-13': { title: 'Ngày Doanh Nhân Việt Nam', desc: 'Tôn vinh đóng góp to lớn của cộng đồng doanh nhân trong xây dựng đất nước.' },
+    '10-20': { title: 'Ngày Phụ Nữ Việt Nam', desc: 'Kỷ niệm ngày thành lập Hội Liên hiệp Phụ nữ Việt Nam (20/10/1930).' },
+    '11-20': { title: 'Ngày Nhà Giáo Việt Nam', desc: 'Ngày hội tôn sư trọng đạo, tri ân công ơn dạy dỗ của quý thầy cô giáo.' },
+    '12-6': { title: 'Ngày Cựu Chiến Binh Việt Nam', desc: 'Kỷ niệm ngày thành lập Hội Cựu chiến binh Việt Nam (06/12/1989).' },
+    '12-22': { title: 'Thành Lập Quân Đội Nhân Dân VN', desc: 'Kỷ niệm ngày thành lập QĐND Việt Nam (22/12/1944) & Ngày hội Quốc phòng toàn dân.' },
+    '12-24': { title: 'Đêm Lễ Giáng Sinh (Christmas Eve)', desc: 'Đêm an lành trước ngày lễ Giáng sinh, sum vầy và cầu chúc bình an.' },
+    '12-25': { title: 'Lễ Giáng Sinh (Christmas Day)', desc: 'Ngày lễ kỷ niệm Chúa Giáng sinh trên toàn cầu.' }
+  };
+
+  const LUNAR_HOLIDAYS = {
+    '1-1': { title: 'Mùng 1 Tết Nguyên Đán', desc: 'Thời khắc đầu năm mới Âm lịch, khởi đầu trăm sự cát tường như ý.' },
+    '1-2': { title: 'Mùng 2 Tết Nguyên Đán', desc: 'Mùng hai Tết mẹ, sum vầy chúc thọ người thân.' },
+    '1-3': { title: 'Mùng 3 Tết Nguyên Đán', desc: 'Mùng ba Tết thầy, tri ân ân sư khai tâm mở trí.' },
+    '1-15': { title: 'Tết Nguyên Tiêu (Rằm Tháng Giêng)', desc: 'Đêm trăng tròn đầu năm: “Lễ Phật quanh năm không bằng ngày Rằm tháng Giêng”.' },
+    '3-3': { title: 'Tết Hàn Thực (3/3 ÂL)', desc: 'Phong tục cúng bánh trôi, bánh chay tưởng nhớ tổ tiên nguồn cội.' },
+    '3-10': { title: 'Giỗ Tổ Hùng Vương (10/3 ÂL)', desc: '“Dù ai đi ngược về xuôi / Nhớ ngày Giỗ Tổ mùng mười tháng ba”.' },
+    '4-15': { title: 'Đại Lễ Phật Đản (15/4 ÂL)', desc: 'Kỷ niệm ngày Đức Phật Thích Ca Mâu Ni đản sinh cứu độ chúng sinh.' },
+    '5-5': { title: 'Tết Đoan Ngọ (5/5 ÂL)', desc: 'Tết Đoan Dương, ngày diệt sâu bọ và thưởng thức hoa quả đầu mùa.' },
+    '7-15': { title: 'Lễ Vu Lan Báo Hiếu (Rằm Tháng 7)', desc: 'Mùa báo hiếu tứ trọng ân công dưỡng dục của cha mẹ và xá tội vong nhân.' },
+    '8-15': { title: 'Tết Trung Thu (Rằm Tháng 8)', desc: 'Tết đoàn viên, đêm hội trăng rằm phá cỗ rước đèn của thiếu nhi.' },
+    '9-9': { title: 'Tết Trùng Cửu (9/9 ÂL)', desc: 'Tết thưởng ngoạn hoa cúc, cầu chúc trường thọ cho bậc cao niên.' },
+    '10-15': { title: 'Tết Hạ Nguyên (Rằm Tháng 10)', desc: 'Lễ mừng cơm mới, tạ ơn trời đất một mùa màng tốt tươi ấm no.' },
+    '12-23': { title: 'Tết Ông Công Ông Táo (23 Chạp)', desc: 'Tiễn Táo Quân cưỡi cá chép bay về trời tâu bày việc trần thế.' },
+    '12-29': { title: 'Tất Niên Cuối Năm (Tháng thiếu)', desc: 'Mâm cơm tất niên tiễn năm cũ, nghênh đón giao thừa bình an.' },
+    '12-30': { title: 'Đêm Giao Thừa (Lễ Trừ Tịch)', desc: 'Khoảnh khắc thiêng liêng chuyển giao đất trời giữa năm cũ và năm mới.' }
+  };
+
+  const CALENDAR_QUOTES = [
+    "Hành trình vạn dặm luôn bắt đầu bằng một bước chân vững chãi.",
+    "Mỗi buổi sáng mang đến cơ hội để bạn viết nên một trang đời rực rỡ hơn.",
+    "Hạnh phúc không phải đích đến, mà là hành trình chúng ta đang đi mỗi ngày.",
+    "Nụ cười là chiếc chìa khóa vạn năng mở ra những cánh cửa yêu thương.",
+    "Kiên trì là bí quyết biến điều bình thường thành phi thường.",
+    "Hãy sống như một bông hoa, luôn hướng về phía ánh sáng mặt trời.",
+    "Mỗi người bạn gặp đều có điều đáng để bạn học hỏi và trân trọng.",
+    "Thái độ tích cực sẽ biến thách thức thành những bậc thang thăng tiến.",
+    "Lòng tốt là ngôn ngữ mà người điếc có thể nghe và người mù có thể thấy.",
+    "Hãy đầu tư vào chính mình, đó là khoản sinh lời lớn nhất của đời người.",
+    "Thành công đến từ những nỗ lực nhỏ bé được lặp đi lặp lại mỗi ngày.",
+    "Bình tĩnh trước mọi biến động là cảnh giới cao nhất của trí tuệ.",
+    "Hãy làm việc bằng sự tận tụy và đón nhận kết quả bằng sự khiêm nhường.",
+    "Cuộc sống giống như tấm gương, bạn mỉm cười thì nó cũng sẽ mỉm cười với bạn.",
+    "Đừng đếm những ngày trôi qua, hãy làm cho mỗi ngày trôi qua đều có giá trị.",
+    "Sự chân thành là cầu nối bền chặt nhất giữa những trái tim.",
+    "Gieo suy nghĩ gặt hành động, gieo hành động gặt thói quen, gieo thói quen gặt số phận.",
+    "Hãy mở rộng lòng mình để đón nhận những điều kỳ diệu quanh bạn.",
+    "Biết ơn những gì đang có là cội nguồn của sự bình an và thịnh vượng.",
+    "Tương lai thuộc về những người tin vào vẻ đẹp của ước mơ.",
+    "Không có áp lực thì không có kim cương, hãy kiên cường vững bước.",
+    "Mỗi ngày mới là một món quà vô giá, hãy đón nhận bằng niềm hân hoan.",
+    "Sự sẻ chia nhân đôi niềm vui và làm vơi đi một nửa nỗi buồn.",
+    "Đích đến của sự trưởng thành là tâm an giữa dòng đời vội vã.",
+    "Hãy tự hào về hành trình bạn đã đi qua và tự tin vào con đường phía trước.",
+    "Một lời nói ấm áp có thể sưởi ấm cả mùa đông giá rét.",
+    "Sáng tạo là cách thức bạn nhìn nhận thế giới bằng đôi mắt của sự tò mò.",
+    "Đoàn kết và yêu thương là sức mạnh to lớn nhất đưa tập thể vươn xa.",
+    "Hãy can đảm bước ra khỏi vùng an toàn để khám phá tiềm năng vô hạn của bạn.",
+    "Giữ cho tâm hồn luôn tươi trẻ và trái tim luôn rực lửa đam mê.",
+    "Chào đón ngày mới tràn đầy năng lượng, may mắn và vạn sự hanh thông!"
+  ];
+
+  function getZodiacSign(day, month) {
+    const signs = [
+      { name: "Ma Kết ♑", start: [12, 22], end: [1, 19] },
+      { name: "Bảo Bình ♒", start: [1, 20], end: [2, 18] },
+      { name: "Song Ngư ♓", start: [2, 19], end: [3, 20] },
+      { name: "Bạch Dương ♈", start: [3, 21], end: [4, 19] },
+      { name: "Kim Ngưu ♉", start: [4, 20], end: [5, 20] },
+      { name: "Song Tử ♊", start: [5, 21], end: [6, 21] },
+      { name: "Cự Giải ♋", start: [6, 22], end: [7, 22] },
+      { name: "Sư Tử ♌", start: [7, 23], end: [8, 22] },
+      { name: "Xử Nữ ♍", start: [8, 23], end: [9, 22] },
+      { name: "Thiên Bình ♎", start: [9, 23], end: [10, 23] },
+      { name: "Bọ Cạp ♏", start: [10, 24], end: [11, 21] },
+      { name: "Nhân Mã ♐", start: [11, 22], end: [12, 21] }
+    ];
+    for (let s of signs) {
+      if ((month === s.start[0] && day >= s.start[1]) || (month === s.end[0] && day <= s.end[1])) {
+        return s.name;
+      }
+    }
+    return "Ma Kết ♑";
+  }
+
+  const BDAY_AVATAR_GRADIENTS = [
+    'linear-gradient(135deg, #0284c7, #0369a1)',
+    'linear-gradient(135deg, #10b981, #047857)',
+    'linear-gradient(135deg, #f59e0b, #b45309)',
+    'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+    'linear-gradient(135deg, #ec4899, #be185d)',
+    'linear-gradient(135deg, #06b6d4, #0e7490)',
+    'linear-gradient(135deg, #f97316, #c2410c)'
+  ];
+  function getAvatarGradient(name) {
+    let hash = 0;
+    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return BDAY_AVATAR_GRADIENTS[Math.abs(hash) % BDAY_AVATAR_GRADIENTS.length];
+  }
+
+  function parseDob(dobStr) {
+    if (!dobStr || typeof dobStr !== 'string') return null;
+    const s = dobStr.trim();
+    let match = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (match) {
+      return {
+        year: parseInt(match[1], 10),
+        month: parseInt(match[2], 10),
+        day: parseInt(match[3], 10)
+      };
+    }
+    match = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (match) {
+      return {
+        year: parseInt(match[3], 10),
+        month: parseInt(match[2], 10),
+        day: parseInt(match[1], 10)
+      };
+    }
+    return null;
+  }
+
+  function getGlobalMembersForCalendar() {
+    let members = [];
+    const raw = localStorage.getItem('sys_global_members');
+    if (raw) {
+      try { members = JSON.parse(raw); } catch (e) {}
+    }
+    if (!Array.isArray(members) || !members.length) {
+      members = [
+        { id: 1, name: "Đô", fullName: "Nguyễn Văn Đô", nickname: "Đô", dob: "1994-10-02", phone: "0981234561", note: "Trưởng nhóm" },
+        { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt Còi", dob: "1996-10-15", phone: "0972345672", note: "Kỹ thuật" },
+        { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", dob: "1995-10-26", phone: "0963456783", note: "Kế toán" },
+        { id: 4, name: "Hạnh", fullName: "Phạm Mỹ Hạnh", nickname: "Hạnh", dob: "1998-03-28", phone: "0914567894", note: "Thiết kế" },
+        { id: 5, name: "Quyền", fullName: "Vũ Đình Quyền", nickname: "Quyền", dob: "1997-07-09", phone: "0935678905", note: "Marketing" },
+        { id: 6, name: "Duy", fullName: "Hoàng Đức Duy", nickname: "Duy", dob: "1999-12-05", phone: "0906789016", note: "Phát triển" }
+      ];
+    }
+    return members;
+  }
+
+  // Calendar State
+  let calState = {
+    selectedDate: new Date(),
+    viewYear: new Date().getFullYear(),
+    viewMonth: new Date().getMonth(),
+    mobileTab: 'bloc'
+  };
+
   function toggleCalendar(event) {
     if (event) event.stopPropagation();
     closeAllMenus();
@@ -2446,41 +2824,432 @@
 
   function renderCalendar() {
     if (!DOM.calendarPopover) return;
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const today = now.getDate();
 
-    const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-    const daysHeader = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const selDate = calState.selectedDate || new Date();
+    const selYear = selDate.getFullYear();
+    const selMonth = selDate.getMonth();
+    const selDay = selDate.getDate();
+    const selWeekday = selDate.getDay();
 
-    const firstDayIndex = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    const viewYear = calState.viewYear;
+    const viewMonth = calState.viewMonth;
 
-    let html = `
-      <div class="cal-header">
-        <span>${monthNames[month]}, ${year}</span>
-        <span style="font-size:12px; color:#94a3b8;">Hôm nay: ${today}/${month + 1}</span>
-      </div>
-      <div class="cal-grid">
-    `;
+    // 1. Lunar information for Selected Date
+    const lunar = getLunarDate(selDay, selMonth + 1, selYear);
+    const canNam = (lunar.year + 6) % 10;
+    const chiNam = (lunar.year + 8) % 12;
+    const canChiNam = CAN[canNam] + ' ' + CHI[chiNam] + ' ' + ANIMAL_EMOJI[chiNam];
 
-    daysHeader.forEach(d => {
-      html += `<div class="cal-day-header">${d}</div>`;
+    const canThang = (canNam * 2 + lunar.month + 1) % 10;
+    const chiThang = (lunar.month + 1) % 12;
+    const canChiThang = CAN[canThang] + ' ' + CHI[chiThang];
+
+    const canNgay = (lunar.jd + 9) % 10;
+    const chiNgay = (lunar.jd + 1) % 12;
+    const canChiNgay = CAN[canNgay] + ' ' + CHI[chiNgay];
+
+    const solarTerm = getSolarTerm(lunar.jd);
+    const dayDeity = getDayDeity(lunar.month, chiNgay);
+    const hoursAuspicious = AUSPICIOUS_HOURS[chiNgay] || '';
+    const truc = getTrucInfo(lunar.month, chiNgay);
+    const directions = getDirections(canNgay);
+
+    // 2. Holidays for Selected Date
+    const solarHoliday = SOLAR_HOLIDAYS[`${selMonth + 1}-${selDay}`];
+    const lunarHoliday = LUNAR_HOLIDAYS[`${lunar.month}-${lunar.day}`];
+
+    // 3. Member birthdays sync from sys_global_members
+    const members = getGlobalMembersForCalendar();
+    const birthdaysMap = {};
+    const thisMonthBirthdays = [];
+    const realNow = new Date();
+    const realStartToday = new Date(realNow.getFullYear(), realNow.getMonth(), realNow.getDate()).getTime();
+
+    members.forEach(m => {
+      const dob = parseDob(m.dob);
+      if (!dob) return;
+      const key = `${dob.month}-${dob.day}`;
+      if (!birthdaysMap[key]) birthdaysMap[key] = [];
+      birthdaysMap[key].push({ ...m, parsedDob: dob });
+
+      if (dob.month === (viewMonth + 1)) {
+        let bDate = new Date(realNow.getFullYear(), dob.month - 1, dob.day);
+        let diff = Math.round((bDate.getTime() - realStartToday) / 86400000);
+        thisMonthBirthdays.push({
+          member: m,
+          dob,
+          diff,
+          day: dob.day
+        });
+      }
     });
 
+    thisMonthBirthdays.sort((a, b) => a.day - b.day);
+
+    const selectedKey = `${selMonth + 1}-${selDay}`;
+    const selectedBirthdays = birthdaysMap[selectedKey] || [];
+    const quote = CALENDAR_QUOTES[(selDay - 1) % CALENDAR_QUOTES.length];
+
+    // ==========================================
+    // BUILD LEFT PANEL: TỜ LỊCH BLOC TREO TƯỜNG
+    // ==========================================
+    let wallBlocHtml = `
+      <div class="cal-wall-panel ${calState.mobileTab === 'matrix' ? 'tab-hidden' : ''}">
+        <!-- Gáy lịch Bloc Đỏ Hoàng Kim -->
+        <div class="cal-bloc-head-tag">
+          <span>🇻🇳</span>
+          <span>LỊCH BLOC VẠN NIÊN</span>
+        </div>
+
+        <!-- Thứ & Ngày Dương Lịch Lớn -->
+        <div class="cal-bloc-weekday ${selWeekday === 0 ? 'sunday' : ''}">${WEEKDAY_NAMES[selWeekday]}</div>
+        <div class="cal-bloc-solar-day ${selWeekday === 0 ? 'sunday' : ''}">${String(selDay).padStart(2, '0')}</div>
+        <div class="cal-bloc-solar-month">Tháng ${selMonth + 1} Năm ${selYear}</div>
+
+        <!-- Khối Âm Lịch Sang Trọng -->
+        <div class="cal-bloc-lunar-box">
+          <div class="cal-lunar-title">🌙 Ngày ${lunar.day} Tháng ${lunar.month}${lunar.leap ? ' (Nhuận)' : ''} (ÂL)</div>
+          <div class="cal-lunar-canchi">Năm <b>${canChiNam}</b> • Tháng <b>${canChiThang}</b></div>
+          <div class="cal-lunar-canchi">Ngày <b>${canChiNgay}</b> • Trực <b>${truc.name}</b></div>
+          <div class="cal-day-status-badge ${dayDeity.isGood ? 'good' : 'bad'}">${dayDeity.label}</div>
+        </div>
+
+        <!-- Giờ Hoàng Đạo -->
+        <div class="cal-bloc-section">
+          <div class="cal-sec-title">⏰ Giờ Hoàng Đạo Cát Tường</div>
+          <div class="cal-hours-tags">
+            ${hoursAuspicious.split(', ').map(h => `<span class="cal-hour-pill">${h}</span>`).join('')}
+          </div>
+        </div>
+
+        <!-- Tiết Khí, Hướng & Phong Thủy -->
+        <div class="cal-bloc-section">
+          <div class="cal-sec-title">🌿 Tiết Khí & Hướng Xuất Hành</div>
+          <div style="color:#e2e8f0; font-size:11.5px;">Tiết: <b style="color:#38bdf8;">${solarTerm}</b></div>
+          <div style="color:#cbd5e1; font-size:11px; margin-top:2px;">
+            Hỷ Thần: <b style="color:#fbbf24;">${directions.hyThan}</b> • Tài Thần: <b style="color:#34d399;">${directions.taiThan}</b>
+          </div>
+          <div style="color:#94a3b8; font-size:10.5px; margin-top:4px;">💡 <i>${truc.advice}</i></div>
+        </div>
+
+        <!-- Sự Kiện Lịch Sử / Ngày Lễ (Nếu có) -->
+        ${(solarHoliday || lunarHoliday) ? `
+          <div class="cal-event-card">
+            <div class="cal-event-title">🚩 ${solarHoliday ? solarHoliday.title : lunarHoliday.title}</div>
+            <div class="cal-event-desc">${solarHoliday ? solarHoliday.desc : lunarHoliday.desc}</div>
+          </div>
+        ` : ''}
+
+        <!-- Sinh Nhật Thành Viên Highlight (Nếu ngày chọn có sinh nhật) -->
+        ${selectedBirthdays.length > 0 ? `
+          <div class="cal-birthday-card">
+            <div class="cal-bday-badge-title">🎂 CHÚC MỪNG SINH NHẬT!</div>
+            ${selectedBirthdays.map(m => {
+              const age = m.parsedDob.year ? (selYear - m.parsedDob.year) : '';
+              const zodiac = getZodiacSign(m.parsedDob.day, m.parsedDob.month);
+              const name = m.fullName || m.name;
+              const nick = m.nickname ? `(${m.nickname})` : '';
+              const encodedName = encodeURIComponent(m.nickname || m.name);
+              return `
+                <div class="cal-bday-person">
+                  <div class="cal-bday-avatar" style="background:${getAvatarGradient(m.name)};">${(m.name || 'U').charAt(0).toUpperCase()}</div>
+                  <div style="flex:1; min-width:0;">
+                    <div class="cal-bday-name">${escapeHtml(name)} <span style="font-weight:400; color:#fbbf24;">${escapeHtml(nick)}</span></div>
+                    <div class="cal-bday-sub">${age ? `Bước sang tuổi <b>${age}</b> • ` : ''}${zodiac}</div>
+                    ${m.note ? `<div style="font-size:10.5px; color:#cbd5e1;">${escapeHtml(m.note)}</div>` : ''}
+                  </div>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" class="cal-bday-btn" onclick="copyCalendarBirthdayWish('${encodedName}', '${age || ''}')">
+                    🎉 Sao chép lời chúc
+                  </button>
+                  <button type="button" class="cal-bday-btn" style="background:#0284c7;" onclick="openDanhBaFromCalendar()">
+                    👥 Mở Danh Bạ
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : `
+          <!-- Danh ngôn ngày mới -->
+          <div class="cal-quote-box">“${quote}”</div>
+        `}
+      </div>
+    `;
+
+    // ==========================================
+    // BUILD RIGHT PANEL: BẢNG LỊCH THÁNG TƯƠNG TÁC
+    // ==========================================
+    const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+    let gridCellsHtml = '';
+
+    // 1. Ngày tháng trước (Trailing days)
     for (let i = firstDayIndex - 1; i >= 0; i--) {
-      html += `<div class="cal-day other-month">${daysInPrevMonth - i}</div>`;
+      const d = daysInPrevMonth - i;
+      let prevM = viewMonth - 1;
+      let prevY = viewYear;
+      if (prevM < 0) { prevM = 11; prevY--; }
+      const l = getLunarDate(d, prevM + 1, prevY);
+      const bdayKey = `${prevM + 1}-${d}`;
+      const bdayMems = birthdaysMap[bdayKey] || [];
+      const hasBday = bdayMems.length > 0;
+      const bdayTitle = hasBday ? `Sinh nhật: ${bdayMems.map(x => x.nickname || x.name).join(', ')}` : '';
+      const isSun = (firstDayIndex - 1 - i) % 7 === 0;
+
+      gridCellsHtml += `
+        <div class="cal-cell other-month ${hasBday ? 'has-bday' : ''}" onclick="selectCalendarDate(${prevY}, ${prevM}, ${d})" title="${hasBday ? '🎂 ' + bdayTitle : ''}">
+          <span class="cell-solar ${isSun ? 'sunday' : ''}">${d}</span>
+          <span class="cell-lunar ${l.day === 1 ? 'lunar-first' : ''}">${l.day === 1 ? `1/${l.month}` : l.day}</span>
+          ${hasBday ? `<span class="cell-badge-bday">🎂</span>` : ''}
+        </div>
+      `;
     }
 
+    // 2. Ngày tháng hiện tại
     for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = d === today ? 'today' : '';
-      html += `<div class="cal-day ${isToday}">${d}</div>`;
+      const l = getLunarDate(d, viewMonth + 1, viewYear);
+      const bdayKey = `${viewMonth + 1}-${d}`;
+      const bdayMems = birthdaysMap[bdayKey] || [];
+      const hasBday = bdayMems.length > 0;
+      const bdayTitle = hasBday ? `Sinh nhật: ${bdayMems.map(x => x.nickname || x.name).join(', ')}` : '';
+
+      const hasSolHol = !!SOLAR_HOLIDAYS[`${viewMonth + 1}-${d}`];
+      const hasLunHol = !!LUNAR_HOLIDAYS[`${l.month}-${l.day}`];
+      const hasEvent = hasSolHol || hasLunHol;
+      const eventTitle = hasSolHol ? SOLAR_HOLIDAYS[`${viewMonth + 1}-${d}`].title : (hasLunHol ? LUNAR_HOLIDAYS[`${l.month}-${l.day}`].title : '');
+
+      const isToday = (realNow.getFullYear() === viewYear && realNow.getMonth() === viewMonth && realNow.getDate() === d);
+      const isSelected = (selYear === viewYear && selMonth === viewMonth && selDay === d);
+      const cellWeekday = (firstDayIndex + d - 1) % 7;
+      const isSun = cellWeekday === 0;
+
+      gridCellsHtml += `
+        <div class="cal-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${hasBday ? 'has-bday' : ''}" 
+             onclick="selectCalendarDate(${viewYear}, ${viewMonth}, ${d})" 
+             title="${hasBday ? '🎂 ' + bdayTitle : (hasEvent ? '🚩 ' + eventTitle : '')}">
+          <span class="cell-solar ${isSun ? 'sunday' : ''}">${d}</span>
+          <span class="cell-lunar ${l.day === 1 ? 'lunar-first' : ''}">${l.day === 1 ? `1/${l.month}` : l.day}</span>
+          ${hasBday ? `<span class="cell-badge-bday">🎂</span>` : ''}
+          ${hasEvent && !hasBday ? `<span class="cell-badge-event"></span>` : ''}
+        </div>
+      `;
     }
 
-    html += `</div>`;
-    DOM.calendarPopover.innerHTML = html;
+    // 3. Ngày tháng sau (Leading days)
+    const totalCells = firstDayIndex + daysInMonth;
+    const nextDaysNeeded = totalCells > 35 ? (42 - totalCells) : (35 - totalCells);
+    for (let d = 1; d <= nextDaysNeeded; d++) {
+      let nextM = viewMonth + 1;
+      let nextY = viewYear;
+      if (nextM > 11) { nextM = 0; nextY++; }
+      const l = getLunarDate(d, nextM + 1, nextY);
+      const bdayKey = `${nextM + 1}-${d}`;
+      const bdayMems = birthdaysMap[bdayKey] || [];
+      const hasBday = bdayMems.length > 0;
+      const bdayTitle = hasBday ? `Sinh nhật: ${bdayMems.map(x => x.nickname || x.name).join(', ')}` : '';
+      const cellWeekday = (totalCells + d - 1) % 7;
+      const isSun = cellWeekday === 0;
+
+      gridCellsHtml += `
+        <div class="cal-cell other-month ${hasBday ? 'has-bday' : ''}" onclick="selectCalendarDate(${nextY}, ${nextM}, ${d})" title="${hasBday ? '🎂 ' + bdayTitle : ''}">
+          <span class="cell-solar ${isSun ? 'sunday' : ''}">${d}</span>
+          <span class="cell-lunar ${l.day === 1 ? 'lunar-first' : ''}">${l.day === 1 ? `1/${l.month}` : l.day}</span>
+          ${hasBday ? `<span class="cell-badge-bday">🎂</span>` : ''}
+        </div>
+      `;
+    }
+
+    let matrixHtml = `
+      <div class="cal-matrix-panel ${calState.mobileTab === 'bloc' ? 'tab-hidden' : ''}">
+        <!-- Top Navigation Bar -->
+        <div class="cal-nav-bar">
+          <div class="cal-month-title">${MONTH_NAMES[viewMonth]}, ${viewYear}</div>
+          <div class="cal-nav-actions">
+            <button type="button" class="cal-nav-btn" onclick="navigateCalendarMonth(-1)" title="Tháng trước">◀</button>
+            <button type="button" class="cal-today-btn" onclick="resetCalendarToToday()" title="Trở về hôm nay">Hôm nay</button>
+            <button type="button" class="cal-nav-btn" onclick="navigateCalendarMonth(1)" title="Tháng sau">▶</button>
+            <button type="button" class="cal-nav-btn" onclick="toggleCalendar(event)" title="Đóng lịch" style="margin-left:4px;">✕</button>
+          </div>
+        </div>
+
+        <!-- 7 Cột Thứ trong tuần -->
+        <div class="cal-grid-header">
+          <span class="sunday">CN</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span>
+        </div>
+
+        <!-- Ma trận các ô ngày -->
+        <div class="cal-grid-body">
+          ${gridCellsHtml}
+        </div>
+
+        <!-- Danh sách Sinh Nhật trong tháng -->
+        <div class="cal-month-bdays-list">
+          <div class="cal-mbday-header">
+            <span>🎂 Sinh nhật trong tháng ${viewMonth + 1} (${thisMonthBirthdays.length} người)</span>
+            <span style="font-size:10px; color:#94a3b8; font-weight:400;">Bấm để xem lịch bloc</span>
+          </div>
+          ${thisMonthBirthdays.length > 0 ? `
+            <div class="cal-mbday-items">
+              ${thisMonthBirthdays.map(item => {
+                const isSelected = selYear === viewYear && selMonth === viewMonth && selDay === item.day;
+                const diffText = item.diff === 0 ? 'Hôm nay!' : (item.diff > 0 ? `Còn ${item.diff} ngày` : 'Đã qua');
+                const nickOrName = item.member.nickname || item.member.name;
+                return `
+                  <button type="button" class="cal-mbday-chip ${isSelected ? 'active-chip' : ''}" onclick="selectCalendarDate(${viewYear}, ${viewMonth}, ${item.day})">
+                    🎂 ${String(item.day).padStart(2, '0')}/${viewMonth + 1} ${escapeHtml(nickOrName)} <span style="opacity:0.8; font-size:10px;">(${diffText})</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          ` : `
+            <div style="font-size:11px; color:#94a3b8; text-align:center; padding:4px 0;">
+              Tháng ${viewMonth + 1} không có sinh nhật nào • <a href="javascript:void(0)" onclick="openDanhBaFromCalendar()" style="color:#38bdf8; text-decoration:none; font-weight:600;">Mở Danh Bạ</a>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+
+    // Mobile tabs switcher
+    const mobileTabsHtml = `
+      <div class="cal-mobile-tabs">
+        <button type="button" class="cal-mob-tab-btn ${calState.mobileTab === 'bloc' ? 'active' : ''}" onclick="switchCalendarMobileTab('bloc')">
+          📅 Tờ Lịch Bloc Chi Tiết
+        </button>
+        <button type="button" class="cal-mob-tab-btn ${calState.mobileTab === 'matrix' ? 'active' : ''}" onclick="switchCalendarMobileTab('matrix')">
+          🗓️ Lịch Tháng (${thisMonthBirthdays.length} 🎂)
+        </button>
+      </div>
+    `;
+
+    DOM.calendarPopover.innerHTML = mobileTabsHtml + wallBlocHtml + matrixHtml;
+  }
+
+  function selectCalendarDate(year, month, day) {
+    calState.selectedDate = new Date(year, month, day, 12, 0, 0);
+    calState.viewYear = year;
+    calState.viewMonth = month;
+    if (window.innerWidth <= 768) {
+      calState.mobileTab = 'bloc';
+    }
+    renderCalendar();
+  }
+
+  function navigateCalendarMonth(delta) {
+    calState.viewMonth += delta;
+    if (calState.viewMonth < 0) {
+      calState.viewMonth = 11;
+      calState.viewYear--;
+    } else if (calState.viewMonth > 11) {
+      calState.viewMonth = 0;
+      calState.viewYear++;
+    }
+    renderCalendar();
+  }
+
+  function resetCalendarToToday() {
+    const now = new Date();
+    calState.selectedDate = now;
+    calState.viewYear = now.getFullYear();
+    calState.viewMonth = now.getMonth();
+    renderCalendar();
+    showToast('📅 Đã trở về ngày hôm nay!');
+  }
+
+  function switchCalendarMobileTab(tab) {
+    calState.mobileTab = tab;
+    renderCalendar();
+  }
+
+  function copyCalendarBirthdayWish(encodedName, age) {
+    const name = decodeURIComponent(encodedName);
+    const ageText = age ? `tuổi ${age}` : 'tuổi mới';
+    const wish = `🎉 Happy Birthday ${name}! 🎂✨ Chúc bạn ${ageText} luôn tràn đầy năng lượng, sức khỏe dồi dào, ngập tràn niềm vui và gặt hái thật nhiều thành công rực rỡ nhé! 🥳🎁`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(wish).then(() => {
+        showToast(`🎉 Đã sao chép lời chúc cho ${name}!`);
+      }).catch(() => {
+        fallbackCopyText(wish);
+        showToast(`🎉 Đã sao chép lời chúc cho ${name}!`);
+      });
+    } else {
+      fallbackCopyText(wish);
+      showToast(`🎉 Đã sao chép lời chúc cho ${name}!`);
+    }
+  }
+
+  function fallbackCopyText(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  function openDanhBaFromCalendar() {
+    if (DOM.calendarPopover) DOM.calendarPopover.classList.remove('show');
+    const danhBaApp = appsList.find(a => (a.url && a.url.includes('danh-ba')) || a.id === '5') || {
+      id: '5',
+      title: 'Danh Bạ',
+      icon: '👥',
+      url: 'apps/danh-ba/index.html'
+    };
+    openApp(danhBaApp);
+  }
+
+  function showToast(message, duration = 2500) {
+    let toastEl = document.getElementById('sys-global-toast');
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.id = 'sys-global-toast';
+      toastEl.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        color: #ffffff;
+        padding: 10px 20px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        z-index: 999999;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      `;
+      document.body.appendChild(toastEl);
+    }
+    toastEl.innerHTML = message;
+    toastEl.style.opacity = '1';
+    toastEl.style.transform = 'translateX(-50%) translateY(0)';
+    
+    clearTimeout(toastEl._timer);
+    toastEl._timer = setTimeout(() => {
+      toastEl.style.opacity = '0';
+      toastEl.style.transform = 'translateX(-50%) translateY(20px)';
+    }, duration);
+  }
+
+  function hideToast() {
+    const toastEl = document.getElementById('sys-global-toast');
+    if (toastEl) {
+      toastEl.style.opacity = '0';
+      toastEl.style.transform = 'translateX(-50%) translateY(20px)';
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -3118,7 +3887,7 @@
     if (!e.target.closest('.top-bar-left') && !e.target.closest('.apple-menu-dropdown')) {
       if (DOM.appleMenu) DOM.appleMenu.classList.remove('show');
     }
-    if (!e.target.closest('#mac-clock') && !e.target.closest('.calendar-popover')) {
+    if (!e.target.closest('#mac-clock') && !e.target.closest('#iosStatusTime') && !e.target.closest('#iosCardDate') && !e.target.closest('.calendar-popover')) {
       if (DOM.calendarPopover) DOM.calendarPopover.classList.remove('show');
     }
   });
@@ -3773,6 +4542,13 @@
     toggleDockApp,
     toggleAppleMenu,
     toggleCalendar,
+    renderCalendar,
+    selectCalendarDate,
+    navigateCalendarMonth,
+    resetCalendarToToday,
+    switchCalendarMobileTab,
+    copyCalendarBirthdayWish,
+    openDanhBaFromCalendar,
     openSpotlight,
     closeSpotlight,
     openWallpapersModal,

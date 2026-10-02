@@ -43,7 +43,7 @@
   <script src="assets/js/db-storage.js"></script>
 
   <!-- Giao diện hệ thống Dashboard -->
-  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=v21">
 </head>
 <body>
 
@@ -122,7 +122,7 @@
 
       <span id="mac-battery" title="Tình trạng pin thiết bị" style="font-size:12px;">🔋 100%</span>
       <button class="top-bar-btn" onclick="openSpotlight()" title="Tìm kiếm Spotlight (Ctrl+K)">🔍</button>
-      <span id="mac-clock" class="top-bar-btn" onclick="toggleCalendar(event)" title="Bấm để xem lịch tháng">00:00</span>
+      <span id="mac-clock" class="top-bar-btn" onclick="toggleCalendar(event)" title="Bấm để xem Lịch Bloc Vạn Niên & Sinh Nhật">00:00</span>
     </div>
 
     <!-- Calendar & Control Center Popover -->
@@ -132,7 +132,7 @@
   <!-- 1.1 IPHONE STATUS BAR & DYNAMIC ISLAND (ACTIVE TRÊN ĐIỆN THOẠI / IOS MODE) -->
   <header class="ios-status-bar" id="iosStatusBar" aria-label="Thanh trạng thái iPhone">
     <div class="ios-status-left">
-      <span class="ios-status-time" id="iosStatusTime">09:41</span>
+      <span class="ios-status-time" id="iosStatusTime" onclick="toggleCalendar(event)" title="Bấm để xem Lịch Bloc Vạn Niên & Sinh Nhật" style="cursor:pointer;">09:41</span>
     </div>
 
     <!-- Dynamic Island with Interactive Pill & Expansion -->
@@ -220,7 +220,7 @@
       
       <!-- iOS SpringBoard Date & Search Widget Card (Hiển thị đẹp mắt trên iPhone) -->
       <div class="ios-summary-card" id="iosSummaryCard">
-        <div class="ios-card-date" id="iosCardDate">THỨ SÁU, 2 THÁNG 10</div>
+        <div class="ios-card-date" id="iosCardDate" onclick="toggleCalendar(event)" title="Bấm để xem Lịch Bloc Vạn Niên & Sinh Nhật" style="cursor:pointer;">THỨ SÁU, 2 THÁNG 10</div>
         <div class="ios-card-welcome">
           <span class="ios-card-greet">Chào bạn 👋</span>
           <span class="ios-card-subtitle">Trung tâm tiện ích văn phòng</span>
@@ -751,6 +751,6 @@
   </div>
 
   <!-- Controller Logic -->
-  <script src="assets/js/dashboard.js?v=v20"></script>
+  <script src="assets/js/dashboard.js?v=v21"></script>
 </body>
 </html>
