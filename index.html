@@ -264,6 +264,15 @@
 
         <!-- Các app ghim trên Dock -->
         <div id="dock-apps" style="display:flex; align-items:center; gap:8px;"></div>
+
+        <div class="dock-divider"></div>
+
+        <!-- Nút Trợ lý AI Apple Intelligence trên Dock -->
+        <button class="dock-btn dock-ai-btn" id="dockAiBtn" onclick="toggleAiAssistant(event)" title="Apple Intelligence • Trợ lý AI Siri (Ctrl+Space)">
+          <div class="dock-ai-orb">
+            <span class="dock-ai-sparkle">✨</span>
+          </div>
+        </button>
       </nav>
 
       <!-- iOS Home Indicator Line (Thanh vuốt về Trang chính trên iPhone) -->
@@ -763,7 +772,7 @@
     </div>
   </div>
 
-  <!-- 11. SIRI & APPLE INTELLIGENCE TRỢ LÝ AI MODAL -->
+  <!-- 11. SIRI & APPLE INTELLIGENCE TRỢ LÝ AI MODAL (BÁN TRONG SUỐT & HỘI THOẠI) -->
   <div class="ai-assistant-modal" id="aiAssistantModal" onclick="if(event.target===this) closeAiAssistant()" aria-label="Trợ lý AI Siri">
     <div class="ai-assistant-box" role="dialog" aria-modal="true">
       <!-- Header -->
@@ -772,47 +781,46 @@
           <div class="ai-siri-orb" id="aiSiriOrb"></div>
           <span>Apple Intelligence • Trợ Lý AI</span>
         </div>
-        <button type="button" class="ai-close-btn" onclick="closeAiAssistant()" title="Đóng trợ lý">✕</button>
-      </div>
-
-      <!-- Kết quả & Thẻ xác nhận tương tác -->
-      <div class="ai-results-body" id="aiAssistantResults">
-        <div class="ai-card-bubble" style="text-align:center; padding:18px 12px;">
-          <div style="font-size:28px; margin-bottom:8px;">✨</div>
-          <div style="font-weight:700; color:#f8fafc; font-size:15px; margin-bottom:4px;">Tôi có thể giúp gì cho bạn hôm nay?</div>
-          <div style="font-size:12.5px; color:#94a3b8; line-height:1.6; max-width:440px; margin:0 auto;">
-            Bạn có thể <b>nói</b> hoặc <b>gõ</b> bất kỳ yêu cầu nào. Tôi sẽ tự động phân tích và tạo <b>Thẻ xác nhận</b> để bạn duyệt trước khi ghi vào hệ thống!
-          </div>
+        <div class="ai-header-actions">
+          <button type="button" class="ai-clear-btn" onclick="clearAiChat()" title="Xóa lịch sử cuộc trò chuyện">
+            <span style="font-size:12px;">🧹</span> Xóa chat
+          </button>
+          <button type="button" class="ai-close-btn" onclick="closeAiAssistant()" title="Đóng trợ lý">✕</button>
         </div>
       </div>
 
+      <!-- Khung chat hội thoại dạng dòng thời gian (Chat Thread) -->
+      <div class="ai-chat-thread" id="aiChatThread" role="log" aria-live="polite">
+        <!-- Rendered by ai-assistant.js -->
+      </div>
+
       <!-- Gợi ý nhanh -->
-      <div class="ai-suggestions-row">
+      <div class="ai-suggestions-row" id="aiSuggestionsRow">
         <button type="button" class="ai-suggestion-chip" onclick="submitAiPrompt('Hôm nay Công trả tiền cơm mỗi người 40k')">🥘 Công trả cơm 40k</button>
+        <button type="button" class="ai-suggestion-chip" onclick="submitAiPrompt('Nhắc tôi mua cơm ngày mai 9h')">⏰ Nhắc mua cơm 9h</button>
         <button type="button" class="ai-suggestion-chip" onclick="submitAiPrompt('Ai đang nợ tiền cơm nhiều nhất?')">📊 Ai nợ tiền cơm nhất?</button>
         <button type="button" class="ai-suggestion-chip" onclick="submitAiPrompt('Tháng này sinh nhật những ai?')">🎂 Sinh nhật tháng này</button>
-        <button type="button" class="ai-suggestion-chip" onclick="submitAiPrompt('Mở danh bạ')">👥 Mở danh bạ</button>
       </div>
 
       <!-- Thanh nhập lệnh Text + Voice Micro -->
       <div class="ai-input-bar">
         <button type="button" class="ai-mic-btn" id="aiAssistantMicBtn" onclick="toggleVoiceListening()" title="Nói bằng giọng nói tiếng Việt">🎙️</button>
-        <input type="text" class="ai-text-input" id="aiAssistantInput" placeholder="Nói hoặc gõ... vd: Hôm nay Công trả tiền cơm mỗi người 40k" onkeydown="if(event.key==='Enter') submitAiPrompt()">
-        <button type="button" class="ai-send-btn" onclick="submitAiPrompt()" title="Gửi yêu cầu">➔</button>
+        <input type="text" class="ai-text-input" id="aiAssistantInput" placeholder="Trò chuyện hoặc ra lệnh... vd: Nhắc tôi mua cơm ngày mai 9h" autocomplete="off" onkeydown="if(event.key==='Enter') submitAiPrompt()">
+        <button type="button" class="ai-send-btn" id="aiSendBtn" onclick="submitAiPrompt()" title="Gửi tin nhắn">➔</button>
       </div>
 
       <!-- Trạng thái & Model info -->
       <div class="ai-status-bar">
-        <span id="aiStatusText">Sẵn sàng nhận lệnh (Phím tắt: Ctrl + Space)</span>
-        <span style="cursor:pointer; color:#38bdf8;" onclick="openControlPanelAi()">⚙️ Cài đặt Gemini API</span>
+        <span id="aiStatusText">Sẵn sàng trò chuyện • Trợ lý thông minh</span>
+        <span style="cursor:pointer; color:#38bdf8;" onclick="openControlPanelAi()">⚙️ Cấu hình Gemini AI</span>
       </div>
     </div>
   </div>
 
   <!-- AI Assistant Script -->
-  <script src="assets/js/ai-assistant.js?v=v23"></script>
+  <script src="assets/js/ai-assistant.js?v=v24"></script>
 
   <!-- Controller Logic -->
-  <script src="assets/js/dashboard.js?v=v23"></script>
+  <script src="assets/js/dashboard.js?v=v24"></script>
 </body>
 </html>

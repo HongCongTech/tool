@@ -5058,6 +5058,7 @@
   window.refreshDbStatus = refreshDbStatus;
   window.saveSupabaseCloudKey = saveSupabaseCloudKey;
   window.testSupabaseCloudConnection = testSupabaseCloudConnection;
+  window.pushSystemNotification = pushSystemNotification;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
