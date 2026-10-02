@@ -2,7 +2,11 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tool Hub">
+  <meta name="format-detection" content="telephone=no">
   <meta name="description" content="Hệ thống macOS Web Dashboard - Trung tâm điều hành các tiện ích văn phòng">
   <title>macOS Dashboard Web</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
@@ -43,7 +47,7 @@
 </head>
 <body>
 
-  <!-- 1. TOP MENU BAR (MACOS STYLE) -->
+  <!-- 1. TOP MENU BAR (MACOS STYLE - HIỂN THỊ TRÊN DESKTOP) -->
   <header class="top-bar">
     <div class="top-bar-left">
       <button class="top-bar-btn apple-logo-btn" onclick="toggleAppleMenu(event)" title="Menu hệ thống"></button>
@@ -63,6 +67,10 @@
       </div>
 
       <div class="menu-divider"></div>
+      <div class="menu-item" onclick="cycleDeviceMode()">
+        <span>Chế độ giao diện</span>
+        <span class="shortcut-hint" id="menuDeviceModeHint">Tự động 📱</span>
+      </div>
       <div class="menu-item" onclick="openWallpapersModal()">
         <span>Bộ sưu tập hình nền</span>
         <span class="shortcut-hint">Ctrl+W</span>
@@ -121,24 +129,120 @@
     <div class="calendar-popover" id="calendar-popover"></div>
   </header>
 
+  <!-- 1.1 IPHONE STATUS BAR & DYNAMIC ISLAND (ACTIVE TRÊN ĐIỆN THOẠI / IOS MODE) -->
+  <header class="ios-status-bar" id="iosStatusBar" aria-label="Thanh trạng thái iPhone">
+    <div class="ios-status-left">
+      <span class="ios-status-time" id="iosStatusTime">09:41</span>
+    </div>
+
+    <!-- Dynamic Island with Interactive Pill & Expansion -->
+    <div class="ios-dynamic-island" id="iosDynamicIsland" onclick="toggleDynamicIslandHub(event)">
+      <div class="di-pill-content">
+        <div class="di-camera-lens"></div>
+        <div class="di-sensor-dot"></div>
+        <div class="di-mini-status" id="diMiniStatus"></div>
+      </div>
+      
+      <!-- Dynamic Island Quick Hub (Control Center Card) -->
+      <div class="di-expanded-hub" id="diExpandedHub">
+        <div class="di-hub-header">
+          <div class="di-hub-title">
+            <span class="di-hub-logo"></span>
+            <span>Trung tâm điều khiển</span>
+          </div>
+          <button class="di-hub-close" onclick="closeDynamicIslandHub(event)">✕</button>
+        </div>
+        
+        <div class="di-hub-grid">
+          <div class="di-hub-card" id="diCardDb" onclick="openDbStatusModal()">
+            <div class="di-hub-icon">🗄️</div>
+            <div class="di-hub-label">Cơ sở dữ liệu</div>
+            <div class="di-hub-val" id="diDbVal">Postgres DB</div>
+          </div>
+          <div class="di-hub-card" id="diCardAdmin" onclick="handleAdminBadgeClick()">
+            <div class="di-hub-icon" id="diAdminIcon">👁️</div>
+            <div class="di-hub-label">Quyền Quản trị</div>
+            <div class="di-hub-val" id="diAdminVal">Chế độ xem</div>
+          </div>
+          <div class="di-hub-card" onclick="openSpotlight()">
+            <div class="di-hub-icon">🔍</div>
+            <div class="di-hub-label">Tìm kiếm</div>
+            <div class="di-hub-val">Spotlight</div>
+          </div>
+          <div class="di-hub-card" onclick="openWallpapersModal()">
+            <div class="di-hub-icon">🎨</div>
+            <div class="di-hub-label">Hình nền</div>
+            <div class="di-hub-val">Bộ sưu tập</div>
+          </div>
+        </div>
+
+        <div class="di-hub-footer">
+          <div class="di-device-switch">
+            <span class="di-switch-label">Giao diện:</span>
+            <div class="di-switch-btns">
+              <button class="di-switch-btn active" id="btnModeAuto" onclick="setDeviceMode('auto')">Tự động</button>
+              <button class="di-switch-btn" id="btnModeIos" onclick="setDeviceMode('ios')">📱 iPhone</button>
+              <button class="di-switch-btn" id="btnModeMac" onclick="setDeviceMode('macos')">💻 macOS</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ios-status-right">
+      <!-- Cellular Signal Bars -->
+      <div class="ios-signal-bars" title="Sóng di động">
+        <span class="bar bar-1"></span>
+        <span class="bar bar-2"></span>
+        <span class="bar bar-3"></span>
+        <span class="bar bar-4"></span>
+      </div>
+      <!-- Wi-Fi Icon -->
+      <svg class="ios-wifi-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        <path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4zm0 3.5c3.83 0 7.31 1.48 9.94 3.91L12 19.38 2.06 11.41C4.69 8.98 8.17 7.5 12 7.5z"/>
+      </svg>
+      <!-- iOS Battery Pill -->
+      <div class="ios-battery-pill" id="iosBatteryPill" title="Pin thiết bị">
+        <div class="ios-battery-shell">
+          <div class="ios-battery-fill" id="iosBatteryFill" style="width: 100%;"></div>
+          <span class="ios-battery-bolt" id="iosBatteryBolt">⚡</span>
+        </div>
+        <div class="ios-battery-cap"></div>
+      </div>
+    </div>
+  </header>
+
   <!-- 2. KHUNG CHÍNH (DESKTOP + CỬA SỔ IFRAME + DOCK ĐÁY) -->
   <main class="mac-body">
 
-    <!-- Desktop Workspace -->
+    <!-- Desktop / SpringBoard Workspace -->
     <section class="mac-desktop">
       
+      <!-- iOS SpringBoard Date & Search Widget Card (Hiển thị đẹp mắt trên iPhone) -->
+      <div class="ios-summary-card" id="iosSummaryCard">
+        <div class="ios-card-date" id="iosCardDate">THỨ SÁU, 2 THÁNG 10</div>
+        <div class="ios-card-welcome">
+          <span class="ios-card-greet">Chào bạn 👋</span>
+          <span class="ios-card-subtitle">Trung tâm tiện ích văn phòng</span>
+        </div>
+        <div class="ios-card-search" onclick="openSpotlight()">
+          <span class="ios-search-icon">🔍</span>
+          <span class="ios-search-placeholder">Tìm tiện ích hoặc tính toán...</span>
+          <span class="ios-search-mic">🎙️</span>
+        </div>
+      </div>
 
-      <!-- Lưới ứng dụng màn hình chính -->
+      <!-- Lưới ứng dụng màn hình chính (4 cột trên iPhone, đa cột trên Desktop) -->
       <div class="app-grid-container" id="app-grid" aria-label="Danh sách ứng dụng">
         <!-- Tự động nạp danh sách ứng dụng qua JavaScript -->
       </div>
 
-      <!-- Khung chứa đa cửa sổ ứng dụng (macOS Multi-Window Container) -->
+      <!-- Khung chứa đa cửa sổ ứng dụng (macOS Multi-Window Container / iOS Fullscreen Sheet) -->
       <div class="windows-container" id="windows-container"></div>
 
     </section>
 
-    <!-- Bottom Dock (macOS Style Magnification) -->
+    <!-- Bottom Dock (macOS Style Magnification / iOS Floating Glass Dock) -->
     <div class="dock-wrapper">
       <nav class="mac-dock" aria-label="Thanh Dock ứng dụng">
         <button class="dock-btn" onclick="goHome()" title="Màn hình chính (Desktop)">🖥️</button>
@@ -148,6 +252,11 @@
         <!-- Các app ghim trên Dock -->
         <div id="dock-apps" style="display:flex; align-items:center; gap:8px;"></div>
       </nav>
+
+      <!-- iOS Home Indicator Line (Thanh vuốt về Trang chính trên iPhone) -->
+      <div class="ios-home-indicator-wrap" onclick="goHome()" title="Chạm hoặc vuốt lên để về Màn hình chính">
+        <div class="ios-home-indicator"></div>
+      </div>
     </div>
   </main>
 
@@ -293,21 +402,16 @@
 
       <div class="input-group">
         <label for="setupMasterKey">Mã khôi phục Master Key (Cứu hộ khẩn cấp):</label>
-        <input type="password" id="setupMasterKey" placeholder="Nhập Master Key của bạn...">
+        <input type="password" id="setupMasterKey" placeholder="Nhập Master Key cứu hộ của bạn...">
       </div>
 
       <div class="input-group">
         <label for="setupConfirmMasterKey">Xác nhận Master Key:</label>
-        <input type="password" id="setupConfirmMasterKey" placeholder="Nhập lại Master Key...">
-      </div>
-
-      <div class="input-group">
-        <label for="setupRecoveryEmail">Email cứu hộ (Dùng để nhận OTP lấy lại mật khẩu khi quên):</label>
-        <input type="email" id="setupRecoveryEmail" placeholder="admin@example.com">
+        <input type="password" id="setupConfirmMasterKey" placeholder="Nhập lại Master Key cứu hộ...">
       </div>
 
       <div style="font-size:12px; color:#94a3b8; background:rgba(0,0,0,0.25); padding:10px; border-radius:8px; line-height:1.4; margin-bottom:14px;">
-        💡 <b>Lưu ý bảo mật:</b> Master Key và Email cứu hộ là 2 phương thức an toàn để lấy lại quyền Admin khi quên mật khẩu. Master Key không thể bị reset về null để tránh nguy cơ mất an toàn dữ liệu.
+        💡 <b>Lưu ý cứu hộ:</b> Master Key và File Key là 2 phương thức bảo mật duy nhất để lấy lại quyền Admin khi quên mật khẩu. Hệ thống sẽ tự động xuất một <b>File Key cứu hộ (.json)</b> để bạn cất giữ an toàn.
       </div>
 
       <div class="modal-actions">
@@ -329,7 +433,7 @@
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-4px; margin-bottom:14px;">
         <button type="button" onclick="openForgotPasswordModal()" style="background:none; border:none; color:#38bdf8; font-size:12px; cursor:pointer; text-decoration:underline;">
-          Quên mật khẩu? Gửi mã OTP
+          🛡️ Quên mật khẩu? Dùng Master Key hoặc File Key
         </button>
       </div>
 
@@ -342,70 +446,133 @@
 
   <!-- 9. MODAL: ĐỔI MẬT KHẨU ADMIN -->
   <div class="modal-overlay" id="adminChangePassModal" onclick="if(event.target===this) closeChangeAdminPassModal()">
-    <div class="modal-box" style="max-width: 380px;">
+    <div class="modal-box" style="max-width: 400px;">
       <h2 class="modal-title">🔑 Đổi Mật Khẩu Admin</h2>
       
       <div class="input-group">
+        <label for="currentAdminPass">Mật khẩu hiện tại (hoặc Master Key):</label>
+        <input type="password" id="currentAdminPass" placeholder="Nhập mật khẩu hiện tại hoặc Master Key...">
+      </div>
+
+      <div class="input-group">
         <label for="newAdminPass">Mật khẩu mới:</label>
-        <input type="password" id="newAdminPass" placeholder="Nhập mật khẩu mới">
+        <input type="password" id="newAdminPass" placeholder="Nhập mật khẩu mới...">
       </div>
 
       <div class="input-group">
         <label for="confirmAdminPass">Xác nhận mật khẩu mới:</label>
-        <input type="password" id="confirmAdminPass" placeholder="Nhập lại mật khẩu mới">
+        <input type="password" id="confirmAdminPass" placeholder="Nhập lại mật khẩu mới...">
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+        <button type="button" onclick="downloadRescueFileKey()" style="background:none; border:none; color:#38bdf8; font-size:12px; cursor:pointer; text-decoration:underline;">
+          📥 Tải File Key Cứu Hộ (.json)
+        </button>
+        <button type="button" onclick="closeChangeAdminPassModal(); openForgotPasswordModal();" style="background:none; border:none; color:#fbbf24; font-size:12px; cursor:pointer; text-decoration:underline;">
+          Quên mật khẩu cũ?
+        </button>
       </div>
 
       <div class="modal-actions" style="margin-top:16px;">
         <button type="button" class="btn-action btn-cancel" onclick="closeChangeAdminPassModal()">Hủy</button>
-        <button type="button" class="btn-action btn-save" onclick="submitChangeAdminPass()">Cập Nhật</button>
+        <button type="button" class="btn-action btn-save" onclick="submitChangeAdminPass()">Cập Nhật Mật Khẩu</button>
       </div>
     </div>
   </div>
 
-  <!-- 10. MODAL: KHÔI PHỤC MẬT KHẨU BẰNG OTP EMAIL -->
+  <!-- 9.1 MODAL: ĐỔI MASTER KEY CỨU HỘ -->
+  <div class="modal-overlay" id="adminChangeMasterKeyModal" onclick="if(event.target===this) closeChangeMasterKeyModal()">
+    <div class="modal-box" style="max-width: 400px;">
+      <h2 class="modal-title">🛡️ Đổi Master Key Cứu Hộ</h2>
+      <p style="font-size:12.5px; color:#cbd5e1; line-height:1.4;">Master Key dùng để cứu hộ đặt lại mật khẩu khi quên. Sau khi đổi, hệ thống sẽ tự động xuất một File Key mới cho bạn.</p>
+      
+      <div class="input-group">
+        <label for="currentAdminPassForMK">Mật khẩu Admin hiện tại:</label>
+        <input type="password" id="currentAdminPassForMK" placeholder="Nhập mật khẩu Admin hiện tại...">
+      </div>
+
+      <div class="input-group">
+        <label for="newMasterKey">Master Key mới:</label>
+        <input type="password" id="newMasterKey" placeholder="Nhập Master Key mới...">
+      </div>
+
+      <div class="input-group">
+        <label for="confirmNewMasterKey">Xác nhận Master Key mới:</label>
+        <input type="password" id="confirmNewMasterKey" placeholder="Nhập lại Master Key mới...">
+      </div>
+
+      <div class="modal-actions" style="margin-top:16px;">
+        <button type="button" class="btn-action btn-cancel" onclick="closeChangeMasterKeyModal()">Hủy</button>
+        <button type="button" class="btn-action btn-save" onclick="submitChangeMasterKey()">Cập Nhật & Tải File Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. MODAL: CỨU HỘ & ĐẶT LẠI MẬT KHẨU (MASTER KEY & FILE KEY) -->
   <div class="modal-overlay" id="forgotPasswordModal" onclick="if(event.target===this) closeForgotPasswordModal()">
-    <div class="modal-box" style="max-width: 400px; text-align:center;">
-      <h2 class="modal-title" style="color:#38bdf8;">Khôi Phục Mật Khẩu Admin</h2>
-      <p style="font-size:13px; color:#cbd5e1; margin-bottom:16px; line-height:1.5;">
-        Supabase Auth sẽ gửi mã OTP tới email cứu hộ đã cấu hình. Thời hạn mã được quản lý trong cài đặt Supabase.
+    <div class="modal-box" style="max-width: 420px;">
+      <h2 class="modal-title" style="color:#38bdf8;">🛡️ Cứu Hộ Quản Trị Viên</h2>
+      <p style="font-size:12.5px; color:#cbd5e1; text-align:center; margin-bottom:12px; line-height:1.4;">
+        Chọn 1 trong 2 phương thức cứu hộ an toàn dưới đây để đặt lại mật khẩu Admin mới:
       </p>
 
-      <div id="otpRequestStep" style="text-align:left;">
-        <div id="otpEmailHint" style="display:none; font-size:12px; color:#cbd5e1; text-align:center; margin-bottom:10px;"></div>
-        <div id="otpTimerText" style="display:none; font-size:12px; color:#93c5fd; text-align:center; margin-bottom:10px; font-weight:700;"></div>
-        <button type="button" class="btn-action btn-save" id="btnSendAdminOtp" style="width:100%; font-weight:700; background:#0284c7; padding:10px 14px; margin-bottom:12px;" onclick="requestAdminOtp()">
-          Gửi Mã OTP
+      <!-- Tab Switcher -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(0,0,0,0.3); padding:4px; border-radius:12px; margin-bottom:14px;">
+        <button type="button" id="tabBtnMaster" onclick="switchRecoveryTab('master')" class="active-tab" style="padding:8px 6px; border:none; border-radius:8px; font-size:12px; font-weight:700; background:#0284c7; color:#fff; cursor:pointer;">
+          🔑 Dùng Master Key
         </button>
-        <button type="button" class="btn-action btn-save" id="btnResendAdminOtp" style="display:none; width:100%; font-weight:700; background:#0284c7; padding:10px 14px; margin-bottom:12px;" onclick="requestAdminOtp()">
-          Gửi Lại Mã OTP
-        </button>
-      </div>
-
-      <div id="otpVerifyStep" style="display:none; text-align:left; border-top:1px solid rgba(255,255,255,0.1); padding-top:14px;">
-        <div style="font-size:12px; font-weight:600; color:#e2e8f0; margin-bottom:8px;">Nhập mã OTP vừa nhận:</div>
-        <div class="input-group" style="margin-bottom:8px;">
-          <input type="text" id="adminOtpInput" inputmode="numeric" maxlength="8" placeholder="Nhập mã OTP...">
-        </div>
-        <button type="button" class="btn-action btn-save" id="btnVerifyAdminOtp" style="width:100%; font-size:12.5px; background:#10b981;" onclick="verifyAdminOtp()">
-          Xác Minh OTP
+        <button type="button" id="tabBtnFile" onclick="switchRecoveryTab('file')" style="padding:8px 6px; border:none; border-radius:8px; font-size:12px; font-weight:700; background:rgba(255,255,255,0.08); color:#cbd5e1; cursor:pointer;">
+          📁 Dùng File Key (.json)
         </button>
       </div>
 
-      <div id="passwordResetStep" style="display:none; text-align:left; border-top:1px solid rgba(255,255,255,0.1); padding-top:14px; margin-top:14px;">
-        <div style="font-size:12px; font-weight:600; color:#e2e8f0; margin-bottom:8px;">Đặt mật khẩu Admin mới:</div>
-        <div class="input-group" style="margin-bottom:8px;">
-          <input type="password" id="newAdminPassDirect" placeholder="Nhập mật khẩu mới...">
+      <!-- Tab 1: Dùng Master Key -->
+      <div id="tabMasterSection" style="display:block;">
+        <div class="input-group">
+          <label for="recoveryMasterKeyInput">Mã Master Key cứu hộ:</label>
+          <input type="password" id="recoveryMasterKeyInput" placeholder="Nhập Master Key của bạn...">
         </div>
-        <div class="input-group" style="margin-bottom:12px;">
-          <input type="password" id="confirmAdminPassDirect" placeholder="Xác nhận mật khẩu mới...">
+        <div class="input-group">
+          <label for="recoveryNewPass1">Mật khẩu Admin mới:</label>
+          <input type="password" id="recoveryNewPass1" placeholder="Nhập mật khẩu Admin mới...">
         </div>
-        <button type="button" class="btn-action btn-save" id="btnResetAdminPassword" style="width:100%; font-size:12.5px; background:#10b981;" onclick="submitOtpPasswordReset()">
-          Đổi Mật Khẩu
+        <div class="input-group">
+          <label for="recoveryConfirmPass1">Xác nhận mật khẩu mới:</label>
+          <input type="password" id="recoveryConfirmPass1" placeholder="Nhập lại mật khẩu Admin mới...">
+        </div>
+        <button type="button" class="btn-action btn-save" style="width:100%; margin-top:10px; background:#0284c7;" onclick="submitMasterKeyRecoveryDirect()">
+          🔑 Đặt Lại Mật Khẩu Bằng Master Key
         </button>
       </div>
 
-      <div class="modal-actions" style="margin-top:14px; justify-content:center;">
-        <button type="button" class="btn-action btn-cancel" style="min-width:100px;" onclick="closeForgotPasswordModal()">Đóng</button>
+      <!-- Tab 2: Dùng File Key Cứu Hộ -->
+      <div id="tabFileSection" style="display:none;">
+        <input type="file" id="recoveryKeyFileInput" accept=".json,.key" style="display:none;" onchange="handleRescueFileUpload(event)">
+        <button type="button" class="btn-action" style="width:100%; background:rgba(255,255,255,0.12); border:1.5px dashed rgba(56,189,248,0.5); padding:16px 12px; color:#38bdf8; font-weight:600; cursor:pointer; border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:6px;" onclick="document.getElementById('recoveryKeyFileInput').click()">
+          <span style="font-size:24px;">📁</span>
+          <span>Bấm để chọn File Key Cứu Hộ (.json)</span>
+          <span style="font-size:11px; color:#94a3b8; font-weight:400;">(Chấp nhận file admin-rescue-key.json hoặc backup JSON)</span>
+        </button>
+
+        <div id="rescueFileStatus" style="display:none; margin-top:12px; padding:10px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); border-radius:8px; font-size:12px; line-height:1.4;"></div>
+
+        <div id="recoveryNewPassSection" style="display:none; margin-top:12px;">
+          <div class="input-group">
+            <label for="recoveryNewPass2">Mật khẩu Admin mới:</label>
+            <input type="password" id="recoveryNewPass2" placeholder="Nhập mật khẩu Admin mới...">
+          </div>
+          <div class="input-group">
+            <label for="recoveryConfirmPass2">Xác nhận mật khẩu mới:</label>
+            <input type="password" id="recoveryConfirmPass2" placeholder="Nhập lại mật khẩu Admin mới...">
+          </div>
+          <button type="button" class="btn-action btn-save" style="width:100%; margin-top:10px; background:#10b981;" onclick="submitFileKeyRecoveryDirect()">
+            🚀 Xác Nhận Đặt Lại Mật Khẩu
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:16px; justify-content:center;">
+        <button type="button" class="btn-action btn-cancel" style="min-width:110px;" onclick="closeForgotPasswordModal()">Đóng</button>
       </div>
     </div>
   </div>
@@ -584,6 +751,6 @@
   </div>
 
   <!-- Controller Logic -->
-  <script src="assets/js/dashboard.js?v=v17"></script>
+  <script src="assets/js/dashboard.js?v=v19"></script>
 </body>
 </html>

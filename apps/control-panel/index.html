@@ -1351,7 +1351,7 @@
                         <div class="sec-stat-box">
                             <div class="sec-stat-label">Cơ Chế Cứu Hộ</div>
                             <div class="sec-stat-value" style="color:#059669;">
-                                <i class="fa-solid fa-key"></i> <span>Master Key & OTP</span>
+                                <i class="fa-solid fa-key"></i> <span>Master Key & File Key</span>
                             </div>
                         </div>
                     </div>
@@ -1394,7 +1394,7 @@
                                 <i class="fa-solid fa-life-ring"></i>
                             </div>
                             <div class="sec-action-title">Lấy Lại Mật Khẩu</div>
-                            <div class="sec-action-desc">Khôi phục quyền truy cập khẩn cấp qua Master Key cứu hộ độc lập hoặc mã OTP qua Email.</div>
+                            <div class="sec-action-desc">Khôi phục quyền truy cập khẩn cấp qua Master Key cứu hộ độc lập hoặc File Key (.json).</div>
                         </div>
                         <button type="button" class="btn btn-outline btn-sm sec-action-btn" style="color:#b45309; border-color:#fde68a;">
                             <i class="fa-solid fa-shield-halved"></i> Khôi Phục & Cứu Hộ
@@ -1685,8 +1685,8 @@
                 <input type="password" id="cpAdminPassInput" class="form-control" placeholder="Nhập mật khẩu Admin..." onkeyup="if(event.key==='Enter') submitCpAdminLogin()">
             </div>
             <div style="text-align:right; margin-top:-6px; margin-bottom:14px;">
-                <button type="button" onclick="closeCpAdminAuthModal(); openCpForgotPasswordModal();" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
-                    Quên mật khẩu? Lấy lại bằng Email / Master Key
+                <button type="button" onclick="closeCpAdminAuthModal(); openCpRecoveryModal();" style="background:none; border:none; color:var(--primary); font-size:12px; cursor:pointer; text-decoration:underline;">
+                    🛡️ Quên mật khẩu? Dùng Master Key hoặc File Key
                 </button>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px;">
@@ -1902,28 +1902,41 @@
                     </button>
                 </div>
 
-                <!-- Method 2: OTP Email Recovery -->
+                <!-- Method 2: Rescue File Key (.json) Recovery -->
                 <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px;">
                     <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#0369a1; font-size:13.5px; margin-bottom:6px;">
-                        <i class="fa-solid fa-envelope"></i> Cách 2: Gửi Mã OTP Qua Email Cứu Hộ
+                        <i class="fa-solid fa-file-shield"></i> Cách 2: Sử Dụng File Key Cứu Hộ (.json)
                     </div>
                     <p style="font-size:12px; color:#1e40af; margin-bottom:10px; line-height:1.4;">
-                        Nhận mã xác thực OTP gửi về hòm thư đã cấu hình để khôi phục mật khẩu an toàn.
+                        Tải lên tệp <code>admin-rescue-key.json</code> để mở khóa và đặt lại mật khẩu Admin:
                     </p>
-                    <button type="button" class="btn btn-outline btn-sm" style="width:100%; background:white; color:#0284c7; border-color:#93c5fd; font-weight:600;" onclick="openMainDashboardOtpModal()">
-                        <i class="fa-solid fa-paper-plane"></i> Mở Hộp Thoại Gửi OTP Email
+                    <input type="file" id="cpRecoveryKeyFileInput" accept=".json,.key" style="display:none;" onchange="handleCpRescueFileUpload(event)">
+                    <button type="button" class="btn btn-outline btn-sm" style="width:100%; background:white; color:#0284c7; border:1.5px dashed #93c5fd; font-weight:600; padding:10px;" onclick="document.getElementById('cpRecoveryKeyFileInput').click()">
+                        <i class="fa-solid fa-upload"></i> Chọn Tệp File Key (.json)
                     </button>
+                    <div id="cpRescueFileStatus" style="display:none; margin-top:8px; padding:8px 10px; border-radius:6px; font-size:12px;"></div>
+                    <div id="cpFileKeyPassGroup" style="display:none; margin-top:10px;">
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <input type="password" id="cpFileKeyNewPassInput" class="form-control" placeholder="Nhập mật khẩu Admin mới...">
+                        </div>
+                        <div class="form-group" style="margin-bottom:8px;">
+                            <input type="password" id="cpFileKeyConfirmPassInput" class="form-control" placeholder="Xác nhận mật khẩu Admin mới...">
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm" style="width:100%; font-weight:700;" onclick="submitCpFileKeyRecovery()">
+                            <i class="fa-solid fa-key"></i> Xác Nhận Đặt Lại Mật Khẩu
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Method 3: Download Kit (chỉ hiện khi đã đăng nhập Admin) -->
-                <div id="cpAdminRecoveryKitBox" class="admin-only" style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:14px;">
+                <!-- Method 3: Download Rescue File Key -->
+                <div id="cpAdminRecoveryKitBox" style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
-                            <div style="font-size:13px; font-weight:700; color:var(--slate-800);">Emergency Recovery Kit (.txt)</div>
-                            <div style="font-size:11.5px; color:var(--slate-500);">Tải bản sao lưu khóa Master Key để cất giữ an toàn.</div>
+                            <div style="font-size:13px; font-weight:700; color:var(--slate-800);">Tải File Key Cứu Hộ (.json)</div>
+                            <div style="font-size:11.5px; color:var(--slate-500);">Lưu trữ tệp khóa dự phòng offline để cứu hộ khi cần.</div>
                         </div>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="downloadMasterKeyKit()">
-                            <i class="fa-solid fa-download"></i> Tải Kit
+                        <button type="button" class="btn btn-outline btn-sm" onclick="downloadCpRescueFileKey()">
+                            <i class="fa-solid fa-download"></i> Tải File Key
                         </button>
                     </div>
                 </div>
@@ -2716,21 +2729,17 @@
         }
 
         async function submitCpAdminLogin() {
-            const pass = document.getElementById('cpAdminPassInput').value;
+            const pass = document.getElementById('cpAdminPassInput').value.trim();
             if (!pass) return alert('Vui lòng nhập mật khẩu Admin!');
 
             const storedHash = localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('sys_admin_pass_hash') || localStorage.getItem('p2p_admin_pass_hash');
-            if (!storedHash) {
-                recordFailedAttempt();
-                alert('Chưa có mật khẩu Admin. Hãy thiết lập hoặc khôi phục bằng OTP tại Dashboard chính.');
-                return;
-            }
+            const isMatched = storedHash ? await verifyPassword(pass, storedHash) : false;
+            const isMasterMatched = !isMatched && (typeof verifyMasterKeyInCp === 'function' ? await verifyMasterKeyInCp(pass) : false);
 
-            const isMatched = await verifyPassword(pass, storedHash);
-            if (isMatched) {
+            if (isMatched || isMasterMatched) {
                 localStorage.setItem('sys_is_admin', 'true');
                 isAdmin = true;
-                addSecurityAuditLog('Đăng nhập Quản trị viên', 'Thành công', 'Xác thực mật khẩu mã hóa Salted SHA-256');
+                addSecurityAuditLog('Đăng nhập Quản trị viên', 'Thành công', isMatched ? 'Xác thực mật khẩu mã hóa Salted SHA-256' : 'Xác thực qua Master Key cứu hộ');
                 localStorage.setItem('sys_failed_attempts', '0');
                 try {
                     const bc = new BroadcastChannel('system_admin_auth');
@@ -2740,7 +2749,7 @@
                 window.location.reload();
             } else {
                 recordFailedAttempt();
-                alert('Mật khẩu Admin không chính xác!');
+                alert('Mật khẩu Admin không chính xác!\n\nNếu bạn quên mật khẩu, hãy bấm "Quên mật khẩu? Dùng Master Key hoặc File Key" để đặt lại.');
             }
         }
 
@@ -3058,8 +3067,13 @@
                 bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
             } catch(e) {}
 
-            // Sync to Supabase
+            // Sync to Supabase & dbStorage
             try {
+                if (window.dbStorage) {
+                    window.dbStorage.setItem('sys_admin_pass_hash', newHashed);
+                    window.dbStorage.setItem('sys_admin_password_hash', newHashed);
+                    window.dbStorage.setItem('p2p_admin_pass_hash', newHashed);
+                }
                 const supaUrl = window.SUPABASE_CONFIG?.url || 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
                 const supaKey = window.SUPABASE_CONFIG?.anonKey;
                 if (supaUrl && supaKey) {
@@ -3083,19 +3097,48 @@
             }
         }
 
+        let cpUploadedRescueData = null;
+
+        async function verifyMasterKeyInCp(inputKey) {
+            if (!inputKey) return false;
+            const storedMaster = localStorage.getItem('sys_master_key_hash');
+            const realKey = localStorage.getItem('sys_raw_master_key') || '';
+
+            // 1. Salted hash check
+            if (storedMaster) {
+                const saltedHash = await hashPassword(inputKey);
+                if (saltedHash === storedMaster) return true;
+
+                // 2. Plain SHA-256 fallback
+                try {
+                    const encoder = new TextEncoder();
+                    const legacyBuf = await crypto.subtle.digest('SHA-256', encoder.encode(inputKey));
+                    const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    if (legacyHash === storedMaster) return true;
+                } catch (e) {}
+
+                if (inputKey === storedMaster) return true;
+            }
+
+            // 3. Raw Master Key check
+            if (realKey && inputKey.toUpperCase() === realKey.toUpperCase()) return true;
+
+            return false;
+        }
+
         async function submitCpMasterKeyRecovery() {
             const keyInput = (document.getElementById('cpRecoveryMasterKeyInput')?.value || '').trim();
             const newPass = (document.getElementById('cpRecoveryNewPassInput')?.value || '').trim();
             const confirmPass = (document.getElementById('cpRecoveryConfirmPassInput')?.value || '').trim();
 
             if (!keyInput) return alert('Vui lòng nhập Master Key cứu hộ!');
-            if (!newPass || newPass.length < 4) return alert('Mật khẩu mới phải có tối thiểu 4 ký tự!');
+            if (!newPass || newPass.length < 3) return alert('Mật khẩu mới phải có tối thiểu 3 ký tự!');
             if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không trùng khớp!');
 
-            const realKey = getRawMasterKey();
-            if (keyInput.toUpperCase() !== realKey.toUpperCase()) {
+            const isValid = await verifyMasterKeyInCp(keyInput);
+            if (!isValid) {
                 recordFailedAttempt();
-                return alert('Master Key không chính xác!');
+                return alert('Mã Master Key cứu hộ không chính xác! Vui lòng kiểm tra lại.');
             }
 
             const newHashed = await hashPassword(newPass);
@@ -3106,6 +3149,15 @@
             isAdmin = true;
             localStorage.setItem('sys_failed_attempts', '0');
 
+            // Sync to Supabase
+            try {
+                if (window.dbStorage) {
+                    window.dbStorage.setItem('sys_admin_pass_hash', newHashed);
+                    window.dbStorage.setItem('sys_admin_password_hash', newHashed);
+                    window.dbStorage.setItem('p2p_admin_pass_hash', newHashed);
+                }
+            } catch (e) {}
+
             try {
                 const bc = new BroadcastChannel('system_admin_auth');
                 bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
@@ -3113,17 +3165,118 @@
             } catch(e) {}
 
             closeCpRecoveryModal();
-            alert('🎉 Đặt lại mật khẩu Quản trị viên thành công! Bạn đã đăng nhập quyền Quản trị viên.');
+            alert('🎉 Đặt lại mật khẩu Quản trị viên thành công! Bạn đã được đăng nhập quyền Quản trị viên.');
             window.location.reload();
         }
 
-        function openMainDashboardOtpModal() {
-            closeCpRecoveryModal();
-            if (window.parent?.dashboard?.openForgotPasswordModal) {
-                window.parent.dashboard.openForgotPasswordModal();
-            } else {
-                alert('Tính năng gửi OTP qua Email được tích hợp trên Dashboard chính. Hãy mở màn hình Finder/Desktop để sử dụng.');
+        function handleCpRescueFileUpload(event) {
+            const file = event.target?.files?.[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('cpRescueFileStatus');
+            const passGroup = document.getElementById('cpFileKeyPassGroup');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    const masterHash = data.masterKeyHash || data.sys_master_key_hash;
+                    const plainMaster = data.plainMasterKey || '';
+                    const adminHash = data.adminHash || data.sys_admin_pass_hash;
+
+                    if (!masterHash && !plainMaster && !adminHash && !data.system && !data.apps) {
+                        throw new Error('File không chứa khóa cứu hộ hợp lệ.');
+                    }
+
+                    cpUploadedRescueData = { masterHash, plainMaster, adminHash, raw: data };
+
+                    if (statusEl) {
+                        statusEl.style.display = 'block';
+                        statusEl.style.background = '#ecfdf5';
+                        statusEl.style.border = '1px solid #a7f3d0';
+                        statusEl.style.color = '#065f46';
+                        statusEl.innerHTML = `✅ <b>File Key hợp lệ:</b> ${file.name}. Vui lòng nhập mật khẩu Admin mới bên dưới:`;
+                    }
+                    if (passGroup) passGroup.style.display = 'block';
+                } catch (err) {
+                    cpUploadedRescueData = null;
+                    if (statusEl) {
+                        statusEl.style.display = 'block';
+                        statusEl.style.background = '#fef2f2';
+                        statusEl.style.border = '1px solid #fecaca';
+                        statusEl.style.color = '#991b1b';
+                        statusEl.innerHTML = `❌ File không hợp lệ: ${err.message}`;
+                    }
+                    if (passGroup) passGroup.style.display = 'none';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function submitCpFileKeyRecovery() {
+            if (!cpUploadedRescueData) return alert('Vui lòng chọn File Key (.json) trước!');
+            const newPass = (document.getElementById('cpFileKeyNewPassInput')?.value || '').trim();
+            const confirmPass = (document.getElementById('cpFileKeyConfirmPassInput')?.value || '').trim();
+
+            if (!newPass || newPass.length < 3) return alert('Mật khẩu mới phải có tối thiểu 3 ký tự!');
+            if (newPass !== confirmPass) return alert('Xác nhận mật khẩu mới không trùng khớp!');
+
+            const newHashed = await hashPassword(newPass);
+            localStorage.setItem('sys_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_admin_password_hash', newHashed);
+            localStorage.setItem('p2p_admin_pass_hash', newHashed);
+            localStorage.setItem('sys_is_admin', 'true');
+            isAdmin = true;
+            localStorage.setItem('sys_failed_attempts', '0');
+
+            if (cpUploadedRescueData.masterHash) {
+                localStorage.setItem('sys_master_key_hash', cpUploadedRescueData.masterHash);
             }
+
+            try {
+                if (window.dbStorage) {
+                    window.dbStorage.setItem('sys_admin_pass_hash', newHashed);
+                    window.dbStorage.setItem('sys_admin_password_hash', newHashed);
+                    window.dbStorage.setItem('p2p_admin_pass_hash', newHashed);
+                }
+            } catch(e) {}
+
+            try {
+                const bc = new BroadcastChannel('system_admin_auth');
+                bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+                bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
+            } catch(e) {}
+
+            closeCpRecoveryModal();
+            alert('🎉 Đặt lại mật khẩu Quản trị viên thành công bằng File Key! Bạn đã được đăng nhập quyền Quản trị viên.');
+            window.location.reload();
+        }
+
+        function downloadCpRescueFileKey() {
+            const masterHash = localStorage.getItem('sys_master_key_hash') || '';
+            const adminHash = localStorage.getItem('sys_admin_pass_hash') || localStorage.getItem('sys_admin_password_hash') || '';
+
+            const rescuePayload = {
+                system: 'mac_dashboard_admin_vault',
+                type: 'admin_rescue_key',
+                version: 'v3',
+                createdAt: new Date().toISOString(),
+                masterKeyHash: masterHash,
+                adminHash: adminHash,
+                signature: 'VAULT_RESCUE_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+                notes: 'File Key cứu hộ dùng để đặt lại mật khẩu Quản trị viên khi quên.'
+            };
+
+            const blob = new Blob([JSON.stringify(rescuePayload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin-rescue-key-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('✅ Đã tải File Key Cứu Hộ về thiết bị của bạn!');
         }
 
         async function resetAdminPasswordFromCp() {

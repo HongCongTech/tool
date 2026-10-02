@@ -67,9 +67,7 @@
   let isAdmin = localStorage.getItem(SYS_IS_ADMIN_KEY) === 'true';
   let failedAttempts = parseInt(localStorage.getItem(SYS_FAILED_KEY) || '0');
   const authChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('system_admin_auth') : null;
-  let adminPasswordResetToken = '';
-  let adminOtpEmail = '';
-  let adminOtpCountdownTimer = null;
+  let uploadedRescueKeyData = null;
 
   // DOM Getters
   const DOM = {
@@ -185,7 +183,14 @@
       if (adminEditToggle) adminEditToggle.checked = false;
       broadcastAdminEditModeToWindows(false);
     }
+
+    // Đồng bộ lên Dynamic Island Quick Hub trên giao diện iPhone
+    const diAdminIcon = document.getElementById('diAdminIcon');
+    const diAdminVal = document.getElementById('diAdminVal');
+    if (diAdminIcon) diAdminIcon.innerText = isAdmin ? '🛡️' : '👁️';
+    if (diAdminVal) diAdminVal.innerText = isAdmin ? 'Admin Mode' : 'Chế độ xem';
   }
+
 
   function setAdminMode(enable) {
     isAdmin = enable;
@@ -250,9 +255,25 @@
       return;
     }
     if (isAdmin) {
-      if (confirm('Bạn có muốn đăng xuất khỏi Chế độ Quản trị viên (Admin Mode) không?')) {
-        logoutAdmin();
-      }
+      showMacAlert(
+        '🛡️ Quản Trị Hệ Thống (Admin)',
+        `Bạn hiện đang đăng nhập ở <b>Chế độ Quản trị viên</b>.<br>Vui lòng chọn tác vụ quản trị mong muốn bên dưới:<br><br>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button type="button" class="btn-action" style="background:#0284c7; width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; cursor:pointer;" onclick="closeMacAlert(); openChangeAdminPassModal();">
+            🔑 Đổi Mật Khẩu Admin
+          </button>
+          <button type="button" class="btn-action" style="background:rgba(255,255,255,0.08); width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; color:#38bdf8; cursor:pointer;" onclick="closeMacAlert(); openChangeMasterKeyModal();">
+            🛡️ Đổi Master Key Cứu Hộ
+          </button>
+          <button type="button" class="btn-action" style="background:rgba(255,255,255,0.08); width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; color:#10b981; cursor:pointer;" onclick="closeMacAlert(); downloadRescueFileKey();">
+            📥 Tải File Key Cứu Hộ (.json)
+          </button>
+          <button type="button" class="btn-action" style="background:rgba(239,68,68,0.18); border:1px solid rgba(239,68,68,0.4); width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; color:#f87171; cursor:pointer;" onclick="closeMacAlert(); logoutAdmin();">
+            🔒 Đăng Xuất Khỏi Admin
+          </button>
+        </div>`,
+        'info'
+      );
     } else {
       openAdminAuthModal();
     }
@@ -272,7 +293,6 @@
       if (conf) conf.value = '';
       if (mk) mk.value = '';
       if (confMk) confMk.value = '';
-      if (recEmail) recEmail.value = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || '';
       setTimeout(() => pass && pass.focus(), 100);
     }
   }
@@ -284,7 +304,8 @@
   async function submitAdminSetup() {
     const adminPass = (document.getElementById('setupAdminPass')?.value || '').trim();
     const confirmPass = (document.getElementById('setupConfirmPass')?.value || '').trim();
-    const recoveryEmail = (document.getElementById('setupRecoveryEmail')?.value || '').trim();
+    const masterKey = (document.getElementById('setupMasterKey')?.value || '').trim();
+    const confirmMasterKey = (document.getElementById('setupConfirmMasterKey')?.value || '').trim();
 
     if (!adminPass) {
       showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập Mật khẩu Admin bạn muốn đặt!', 'warning');
@@ -295,35 +316,46 @@
       return;
     }
 
+    if (!masterKey) {
+      showMacAlert('Chưa Nhập Master Key', 'Vui lòng nhập Mã Master Key cứu hộ!', 'warning');
+      return;
+    }
+    if (masterKey !== confirmMasterKey) {
+      showMacAlert('Master Key Không Khớp', 'Xác nhận Master Key cứu hộ không khớp!', 'error');
+      return;
+    }
+
     const hashedPass = await hashPassword(adminPass);
+    const hashedMaster = await hashPassword(masterKey);
+
     localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedPass);
     localStorage.setItem('sys_admin_password_hash', hashedPass);
     localStorage.setItem('p2p_admin_pass_hash', hashedPass);
-    if (recoveryEmail) localStorage.setItem(SYS_RECOVERY_EMAIL_KEY, recoveryEmail);
+    localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedMaster);
     localStorage.setItem(SYS_FAILED_KEY, '0');
     failedAttempts = 0;
 
-    // Ensure immediate database persistence
+    // Xóa email cũ nếu có
+    localStorage.removeItem(SYS_RECOVERY_EMAIL_KEY);
+
+    // Đồng bộ lên Supabase qua dbStorage
     try {
-      if (window.SUPABASE_CLIENT) {
-        window.SUPABASE_CLIENT.from('system_store').upsert({
-          key: SYS_ADMIN_HASH_KEY,
-          value: JSON.stringify(hashedPass),
-          updated_at: new Date().toISOString()
-        }).catch(() => {});
-        if (recoveryEmail) {
-          window.SUPABASE_CLIENT.from('system_store').upsert({
-            key: SYS_RECOVERY_EMAIL_KEY,
-            value: JSON.stringify(recoveryEmail),
-            updated_at: new Date().toISOString()
-          }).catch(() => {});
-        }
+      if (window.dbStorage) {
+        window.dbStorage.setItem(SYS_ADMIN_HASH_KEY, hashedPass);
+        window.dbStorage.setItem('sys_admin_password_hash', hashedPass);
+        window.dbStorage.setItem('p2p_admin_pass_hash', hashedPass);
+        window.dbStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedMaster);
       }
     } catch (e) {}
 
+    // Tự động xuất File Key cứu hộ cho Admin
+    downloadRescueFileKey(masterKey);
+
     setAdminMode(true);
     closeAdminSetupModal();
-    window.location.reload();
+    showMacAlert('🎉 Thiết Lập Thành Công', 'Mật khẩu Admin và Master Key đã được kích hoạt! File Key cứu hộ (.json) đã được tải xuống máy của bạn.', 'success', () => {
+      window.location.reload();
+    });
   }
 
   function resetSecurityToNull() {
@@ -354,8 +386,9 @@
 
     const storedHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
     const isMatched = await verifyPassword(passInput, storedHash);
+    const isMasterMatched = !isMatched && await verifyMasterKey(passInput);
 
-    if (isMatched) {
+    if (isMatched || isMasterMatched) {
       failedAttempts = 0;
       localStorage.setItem(SYS_FAILED_KEY, '0');
       setAdminMode(true);
@@ -366,7 +399,7 @@
       showMacAlert(
         'Mật Khẩu Không Đúng',
         `Mật khẩu Admin vừa nhập không chính xác.<br><br>
-         Nếu bạn quên mật khẩu, hãy dùng chức năng <b>Gửi mã OTP</b> để khôi phục.`,
+         Nếu bạn quên mật khẩu, hãy bấm vào <b>Quên mật khẩu? Dùng Master Key hoặc File Key</b> để đặt lại mật khẩu mới.`,
         'warning'
       );
       if (DOM.adminAuthInput) {
@@ -384,25 +417,54 @@
 
   function openChangeAdminPassModal() {
     closeAllMenus();
-    if (!isAdmin) {
-      showMacAlert('Yêu Cầu Đăng Nhập', 'Vui lòng đăng nhập Admin trước khi đổi mật khẩu!', 'warning');
-      return;
-    }
-    if (DOM.adminChangePassModal) {
-      DOM.adminChangePassModal.classList.add('active');
+    const modal = document.getElementById('adminChangePassModal');
+    if (modal) {
+      modal.classList.add('active');
+      const p0 = document.getElementById('currentAdminPass');
       const n1 = document.getElementById('newAdminPass');
       const n2 = document.getElementById('confirmAdminPass');
+      if (p0) p0.value = '';
       if (n1) n1.value = '';
       if (n2) n2.value = '';
-      setTimeout(() => n1 && n1.focus(), 150);
+      setTimeout(() => (p0 || n1)?.focus(), 150);
     }
   }
 
   function closeChangeAdminPassModal() {
-    if (DOM.adminChangePassModal) DOM.adminChangePassModal.classList.remove('active');
+    const modal = document.getElementById('adminChangePassModal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  async function verifyMasterKey(inputKey) {
+    if (!inputKey) return false;
+    const storedMaster = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
+    if (!storedMaster) return false;
+
+    // 1. Kiểm tra salted hash
+    const saltedHash = await hashPassword(inputKey);
+    if (saltedHash === storedMaster) return true;
+
+    // 2. Kiểm tra plain SHA-256 hash chuẩn (tương thích Master Key cũ như '0' trong database)
+    try {
+      const encoder = new TextEncoder();
+      const legacyBuf = await crypto.subtle.digest('SHA-256', encoder.encode(inputKey));
+      const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      if (legacyHash === storedMaster) {
+        // Tự động nâng cấp lên salted hash an toàn hơn
+        localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, saltedHash);
+        if (window.dbStorage) window.dbStorage.setItem(SYS_MASTER_KEY_HASH_KEY, saltedHash);
+        return true;
+      }
+    } catch (e) {}
+
+    // 3. Khớp trực tiếp nếu chưa mã hóa
+    if (inputKey === storedMaster) return true;
+
+    return false;
   }
 
   async function submitChangeAdminPass() {
+    const currentPass = (document.getElementById('currentAdminPass')?.value || '').trim();
     const newPass = (document.getElementById('newAdminPass')?.value || '').trim();
     const confirmPass = (document.getElementById('confirmAdminPass')?.value || '').trim();
 
@@ -415,117 +477,96 @@
       return;
     }
 
+    const storedAdminHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash');
+    if (storedAdminHash) {
+      const isPassCorrect = await verifyPassword(currentPass, storedAdminHash);
+      const isMasterCorrect = await verifyMasterKey(currentPass);
+      if (!isPassCorrect && !isMasterCorrect) {
+        showMacAlert('Xác Thực Thất Bại', 'Mật khẩu hiện tại hoặc Master Key vừa nhập không đúng. Vui lòng thử lại!', 'error');
+        return;
+      }
+    }
+
     const hashedNew = await hashPassword(newPass);
     localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
     localStorage.setItem('p2p_admin_pass_hash', hashedNew);
     localStorage.setItem('sys_admin_password_hash', hashedNew);
+    localStorage.setItem(SYS_FAILED_KEY, '0');
+    failedAttempts = 0;
 
-    // Sync to Supabase
+    // Đồng bộ lên Supabase & local cache
     try {
-      if (window.SUPABASE_CLIENT) {
-        window.SUPABASE_CLIENT.from('system_store').upsert({
-          key: SYS_ADMIN_HASH_KEY,
-          value: JSON.stringify(hashedNew),
-          updated_at: new Date().toISOString()
-        }).catch(() => {});
+      if (window.dbStorage) {
+        window.dbStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
+        window.dbStorage.setItem('sys_admin_password_hash', hashedNew);
+        window.dbStorage.setItem('p2p_admin_pass_hash', hashedNew);
       }
     } catch(e) {}
 
+    setAdminMode(true);
     closeChangeAdminPassModal();
-    showMacAlert('🎉 Đổi Mật Khẩu Thành Công', `Mật khẩu Admin mới của bạn đã được cập nhật thành công và đồng bộ toàn hệ thống!`, 'success');
-    showMacToast('Đã cập nhật mật khẩu Admin mới', 'success');
+    showMacAlert('🎉 Đổi Mật Khẩu Thành Công', 'Mật khẩu Admin đã được cập nhật thành công và đồng bộ toàn hệ thống!', 'success');
+    showMacToast('Đã đổi mật khẩu Admin thành công', 'success');
   }
 
   function openChangeMasterKeyModal() {
     closeAllMenus();
-    if (!isAdmin) {
-      alert('Vui lòng đăng nhập Admin để đổi Master Key!');
-      return;
-    }
-    if (DOM.adminChangeMasterKeyModal) {
-      DOM.adminChangeMasterKeyModal.classList.add('active');
-      document.getElementById('currentAdminPassForMK').value = '';
-      document.getElementById('newMasterKey').value = '';
-      document.getElementById('confirmNewMasterKey').value = '';
+    const modal = document.getElementById('adminChangeMasterKeyModal');
+    if (modal) {
+      modal.classList.add('active');
+      const p1 = document.getElementById('currentAdminPassForMK');
+      const m1 = document.getElementById('newMasterKey');
+      const m2 = document.getElementById('confirmNewMasterKey');
+      if (p1) p1.value = '';
+      if (m1) m1.value = '';
+      if (m2) m2.value = '';
+      setTimeout(() => (p1 || m1)?.focus(), 150);
     }
   }
 
   function closeChangeMasterKeyModal() {
-    if (DOM.adminChangeMasterKeyModal) DOM.adminChangeMasterKeyModal.classList.remove('active');
+    const modal = document.getElementById('adminChangeMasterKeyModal');
+    if (modal) modal.classList.remove('active');
   }
 
   async function submitChangeMasterKey() {
-    const adminPass = document.getElementById('currentAdminPassForMK').value;
-    const newMK = document.getElementById('newMasterKey').value;
-    const confirmMK = document.getElementById('confirmNewMasterKey').value;
+    const currentPass = (document.getElementById('currentAdminPassForMK')?.value || '').trim();
+    const newMK = (document.getElementById('newMasterKey')?.value || '').trim();
+    const confirmMK = (document.getElementById('confirmNewMasterKey')?.value || '').trim();
 
-    if (!adminPass || !newMK) {
-      alert('Vui lòng điền đầy đủ thông tin!');
+    if (!newMK) {
+      showMacAlert('Chưa Nhập Master Key', 'Vui lòng nhập Master Key mới bạn muốn đặt!', 'warning');
       return;
     }
     if (newMK !== confirmMK) {
-      alert('Master Key mới xác nhận không khớp!');
+      showMacAlert('Xác Nhận Không Khớp', 'Xác nhận Master Key mới không trùng khớp!', 'error');
       return;
     }
 
-    const hashedAdmin = await hashPassword(adminPass);
-    const storedAdmin = localStorage.getItem(SYS_ADMIN_HASH_KEY);
-
-    if (hashedAdmin !== storedAdmin) {
-      alert('Mật khẩu Admin hiện tại không chính xác!');
-      return;
+    const storedAdmin = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash');
+    if (storedAdmin) {
+      const isPassCorrect = await verifyPassword(currentPass, storedAdmin);
+      const isMasterCorrect = await verifyMasterKey(currentPass);
+      if (!isPassCorrect && !isMasterCorrect) {
+        showMacAlert('Xác Thực Thất Bại', 'Mật khẩu Admin hiện tại hoặc Master Key cũ không chính xác!', 'error');
+        return;
+      }
     }
 
     const hashedNewMK = await hashPassword(newMK);
     localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedNewMK);
-    alert('Đổi Master Key cứu hộ thành công!');
+
+    try {
+      if (window.dbStorage) {
+        window.dbStorage.setItem(SYS_MASTER_KEY_HASH_KEY, hashedNewMK);
+      }
+    } catch(e) {}
+
     closeChangeMasterKeyModal();
+    showMacAlert('🎉 Đổi Master Key Thành Công', 'Master Key cứu hộ mới đã được cập nhật thành công! Hệ thống đang tự động tải File Key về máy của bạn.', 'success');
+    downloadRescueFileKey(newMK);
   }
 
-  function openMasterKeyModal() {
-    if (!DOM.masterKeyModal) return;
-    DOM.masterKeyModal.classList.add('active');
-    const mkInput = document.getElementById('masterKeyInput');
-    const mpInput = document.getElementById('masterNewPass');
-    if (mkInput) mkInput.value = '';
-    if (mpInput) mpInput.value = '';
-  }
-
-  function closeMasterKeyModal() {
-    if (DOM.masterKeyModal) DOM.masterKeyModal.classList.remove('active');
-  }
-
-  async function submitMasterKeyRecovery() {
-    const keyVal = document.getElementById('masterKeyInput').value.trim();
-    const newPass = document.getElementById('masterNewPass').value.trim();
-    const storedMaster = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
-
-    if (!storedMaster) {
-      alert('Chưa có Master Key trong hệ thống. Vui lòng thiết lập ban đầu!');
-      closeMasterKeyModal();
-      openAdminSetupModal();
-      return;
-    }
-
-    if (!keyVal || !newPass) {
-      alert('Vui lòng nhập Master Key và Mật khẩu mới!');
-      return;
-    }
-
-    const hashedKey = await hashPassword(keyVal);
-    if (hashedKey === storedMaster) {
-      const hashedNew = await hashPassword(newPass);
-      localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
-      localStorage.setItem('p2p_admin_pass_hash', hashedNew);
-      failedAttempts = 0;
-      localStorage.setItem(SYS_FAILED_KEY, '0');
-      setAdminMode(true);
-      closeMasterKeyModal();
-      alert('Khôi phục hệ thống thành công! Mật khẩu Admin đã được đặt lại.');
-    } else {
-      alert('Master Key không chính xác!');
-    }
-  }
 
   // --------------------------------------------------------------------------
   // 2.1 MACOS SYSTEM ALERT DIALOG & TOAST (ĐỒNG BỘ GIAO DIỆN HỆ THỐNG)
@@ -631,72 +672,37 @@
   window.showMacToast = showMacToast;
 
   // --------------------------------------------------------------------------
-  // 2.2 RECOVERY & PASSWORD MANAGEMENT WITH EMAIL OTP
+  // 2.2 RECOVERY & PASSWORD MANAGEMENT (MASTER KEY & RESCUE FILE KEY)
   // --------------------------------------------------------------------------
-  function getSupabaseAuthConfig() {
-    const config = window.dbStorage?.getSupabaseConfig?.() || window.__SUPABASE_CONFIG__ || {};
-    const url = String(config.url || '').trim().replace(/\/$/, '');
-    const anonKey = String(config.anonKey || '').trim();
-    if (!url || !anonKey) {
-      throw new Error('Chưa cấu hình Supabase URL hoặc anon public key.');
-    }
-    return { url, anonKey };
-  }
+  function switchRecoveryTab(tab) {
+    const btnMaster = document.getElementById('tabBtnMaster');
+    const btnFile = document.getElementById('tabBtnFile');
+    const secMaster = document.getElementById('tabMasterSection');
+    const secFile = document.getElementById('tabFileSection');
 
-  function getRecoveryEmail() {
-    let email = localStorage.getItem(SYS_RECOVERY_EMAIL_KEY) || '';
-    try {
-      const parsed = JSON.parse(email);
-      if (typeof parsed === 'string') email = parsed;
-    } catch (e) {}
-    email = String(email).trim().toLowerCase();
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
-  }
-
-  function maskEmail(email) {
-    const [name, domain] = String(email).split('@');
-    if (!name || !domain) return 'email cứu hộ';
-    return `${name.slice(0, 2)}***@${domain}`;
-  }
-
-  async function supabaseRequest(path, body, accessToken = '') {
-    const { url, anonKey } = getSupabaseAuthConfig();
-    const res = await fetch(`${url}${path}`, {
-      method: 'POST',
-      headers: {
-        'apikey': anonKey,
-        'Authorization': `Bearer ${accessToken || anonKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.msg || data.message || data.error_description || data.error || `Supabase HTTP ${res.status}`);
-    }
-    return data;
-  }
-
-  async function saveAdminPasswordWithSession(passwordHash, accessToken) {
-    const { url, anonKey } = getSupabaseAuthConfig();
-    const rows = [SYS_ADMIN_HASH_KEY, 'p2p_admin_pass_hash'].map(key => ({
-      key,
-      value: passwordHash,
-      updated_at: new Date().toISOString()
-    }));
-    const res = await fetch(`${url}/rest/v1/system_store?on_conflict=key`, {
-      method: 'POST',
-      headers: {
-        'apikey': anonKey,
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify(rows)
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.message || data.error || `Không thể cập nhật mật khẩu (HTTP ${res.status})`);
+    if (tab === 'file') {
+      if (btnFile) {
+        btnFile.style.background = '#0284c7';
+        btnFile.style.color = '#fff';
+      }
+      if (btnMaster) {
+        btnMaster.style.background = 'rgba(255,255,255,0.08)';
+        btnMaster.style.color = '#cbd5e1';
+      }
+      if (secMaster) secMaster.style.display = 'none';
+      if (secFile) secFile.style.display = 'block';
+    } else {
+      if (btnMaster) {
+        btnMaster.style.background = '#0284c7';
+        btnMaster.style.color = '#fff';
+      }
+      if (btnFile) {
+        btnFile.style.background = 'rgba(255,255,255,0.08)';
+        btnFile.style.color = '#cbd5e1';
+      }
+      if (secMaster) secMaster.style.display = 'block';
+      if (secFile) secFile.style.display = 'none';
+      setTimeout(() => document.getElementById('recoveryMasterKeyInput')?.focus(), 100);
     }
   }
 
@@ -705,277 +711,276 @@
     if (DOM.adminAuthModal) DOM.adminAuthModal.classList.remove('active');
     if (DOM.forgotPasswordModal) {
       DOM.forgotPasswordModal.classList.add('active');
-      const otp = document.getElementById('adminOtpInput');
-      const d1 = document.getElementById('newAdminPassDirect');
-      const d2 = document.getElementById('confirmAdminPassDirect');
-      const requestStep = document.getElementById('otpRequestStep');
-      const verifyStep = document.getElementById('otpVerifyStep');
-      const resetStep = document.getElementById('passwordResetStep');
-      const emailHint = document.getElementById('otpEmailHint');
-      const timerText = document.getElementById('otpTimerText');
-      const sendBtn = document.getElementById('btnSendAdminOtp');
-      const resendBtn = document.getElementById('btnResendAdminOtp');
-      const verifyBtn = document.getElementById('btnVerifyAdminOtp');
-      adminPasswordResetToken = '';
-      adminOtpEmail = '';
-      stopAdminOtpCountdown();
-      if (requestStep) requestStep.style.display = 'block';
-      if (verifyStep) verifyStep.style.display = 'none';
-      if (resetStep) resetStep.style.display = 'none';
-      if (sendBtn) sendBtn.style.display = 'block';
-      if (resendBtn) resendBtn.style.display = 'none';
-      if (timerText) timerText.style.display = 'none';
-      if (verifyBtn) verifyBtn.disabled = false;
-      if (emailHint) {
-        emailHint.style.display = 'block';
-        emailHint.textContent = 'Đang tải email nhận OTP...';
+      const mkInp = document.getElementById('recoveryMasterKeyInput');
+      const n1 = document.getElementById('recoveryNewPass1');
+      const c1 = document.getElementById('recoveryConfirmPass1');
+      const n2 = document.getElementById('recoveryNewPass2');
+      const c2 = document.getElementById('recoveryConfirmPass2');
+      const statusEl = document.getElementById('rescueFileStatus');
+      const newSec = document.getElementById('recoveryNewPassSection');
+      const fileInp = document.getElementById('recoveryKeyFileInput');
+
+      if (mkInp) mkInp.value = '';
+      if (n1) n1.value = '';
+      if (c1) c1.value = '';
+      if (n2) n2.value = '';
+      if (c2) c2.value = '';
+      if (fileInp) fileInp.value = '';
+      if (statusEl) {
+        statusEl.style.display = 'none';
+        statusEl.innerHTML = '';
       }
-      if (otp) otp.value = '';
-      if (d1) d1.value = '';
-      if (d2) d2.value = '';
-      loadRecoveryEmailHint();
-      setTimeout(() => document.getElementById('btnSendAdminOtp')?.focus(), 150);
+      if (newSec) newSec.style.display = 'none';
+      uploadedRescueKeyData = null;
+
+      switchRecoveryTab('master');
+      setTimeout(() => mkInp?.focus(), 150);
     }
   }
 
   function closeForgotPasswordModal() {
-    adminPasswordResetToken = '';
-    adminOtpEmail = '';
-    stopAdminOtpCountdown();
+    uploadedRescueKeyData = null;
     if (DOM.forgotPasswordModal) DOM.forgotPasswordModal.classList.remove('active');
   }
 
-  function stopAdminOtpCountdown() {
-    if (adminOtpCountdownTimer) {
-      clearInterval(adminOtpCountdownTimer);
-      adminOtpCountdownTimer = null;
+  // 1. Xuất và tải File Key Cứu Hộ (.json)
+  function downloadRescueFileKey(plainMasterKey = '') {
+    const masterHash = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY) || '';
+    const adminHash = localStorage.getItem(SYS_ADMIN_HASH_KEY) || localStorage.getItem('sys_admin_password_hash') || '';
+
+    const rescuePayload = {
+      system: 'mac_dashboard_admin_vault',
+      type: 'admin_rescue_key',
+      version: 'v3',
+      createdAt: new Date().toISOString(),
+      masterKeyHash: masterHash,
+      adminHash: adminHash,
+      signature: 'VAULT_RESCUE_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      notes: 'File Key cứu hộ dùng để đặt lại mật khẩu Quản trị viên (Admin Mode) khi bị quên hoặc mất quyền truy cập.'
+    };
+
+    if (plainMasterKey) {
+      rescuePayload.plainMasterKey = plainMasterKey;
     }
+
+    const blob = new Blob([JSON.stringify(rescuePayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `admin-rescue-key-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showMacToast('Đã tải File Key Cứu Hộ về thiết bị', 'success');
   }
 
-  function formatOtpSeconds(seconds) {
-    const safeSeconds = Math.max(0, seconds);
-    return `00:${String(safeSeconds).padStart(2, '0')}`;
+  // 2. Xử lý tải lên File Key Cứu Hộ
+  function handleRescueFileUpload(event) {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('rescueFileStatus');
+    const newSec = document.getElementById('recoveryNewPassSection');
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target.result;
+        const data = JSON.parse(text);
+
+        const masterHash = data.masterKeyHash || data[SYS_MASTER_KEY_HASH_KEY] || (data.keys && data.keys[SYS_MASTER_KEY_HASH_KEY]);
+        const plainMaster = data.plainMasterKey || '';
+        const adminHash = data.adminHash || data[SYS_ADMIN_HASH_KEY] || (data.keys && data.keys[SYS_ADMIN_HASH_KEY]);
+
+        if (!masterHash && !plainMaster && !adminHash && !data.system && !data.apps) {
+          throw new Error('File không chứa thông tin khóa cứu hộ hợp lệ.');
+        }
+
+        uploadedRescueKeyData = {
+          masterHash,
+          plainMaster,
+          adminHash,
+          raw: data
+        };
+
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.style.background = 'rgba(16, 185, 129, 0.15)';
+          statusEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          statusEl.style.color = '#34d399';
+          statusEl.innerHTML = `✅ <b>File Key hợp lệ!</b> Đã xác thực tệp <code>${file.name}</code>.<br>Vui lòng nhập mật khẩu Admin mới bạn muốn đặt:`;
+        }
+
+        if (newSec) {
+          newSec.style.display = 'block';
+          const n2 = document.getElementById('recoveryNewPass2');
+          if (n2) setTimeout(() => n2.focus(), 150);
+        }
+      } catch (err) {
+        uploadedRescueKeyData = null;
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.style.background = 'rgba(239, 68, 68, 0.15)';
+          statusEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+          statusEl.style.color = '#f87171';
+          statusEl.innerHTML = `❌ <b>File không hợp lệ:</b> ${err.message || 'Không thể đọc dữ liệu File Key.'}`;
+        }
+        if (newSec) newSec.style.display = 'none';
+      }
+    };
+    reader.onerror = () => {
+      uploadedRescueKeyData = null;
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(239, 68, 68, 0.15)';
+        statusEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        statusEl.style.color = '#f87171';
+        statusEl.innerHTML = '❌ Lỗi đọc file. Vui lòng thử lại!';
+      }
+    };
+    reader.readAsText(file);
   }
 
-  function startAdminOtpCountdown(seconds) {
-    stopAdminOtpCountdown();
+  // 3. Đặt lại mật khẩu bằng Master Key trực tiếp
+  async function submitMasterKeyRecoveryDirect() {
+    const inputKey = (document.getElementById('recoveryMasterKeyInput')?.value || '').trim();
+    const newPass = (document.getElementById('recoveryNewPass1')?.value || '').trim();
+    const confirmPass = (document.getElementById('recoveryConfirmPass1')?.value || '').trim();
 
-    let remaining = Math.max(parseInt(seconds, 10) || 60, 1);
-    const timerText = document.getElementById('otpTimerText');
-    const resendBtn = document.getElementById('btnResendAdminOtp');
-    const verifyBtn = document.getElementById('btnVerifyAdminOtp');
-    const otpInput = document.getElementById('adminOtpInput');
-
-    if (timerText) {
-      timerText.style.display = 'block';
-      timerText.textContent = `Có thể gửi lại mã sau ${formatOtpSeconds(remaining)}`;
-    }
-    if (resendBtn) resendBtn.style.display = 'none';
-    if (verifyBtn) verifyBtn.disabled = false;
-    if (otpInput) otpInput.disabled = false;
-
-    adminOtpCountdownTimer = setInterval(() => {
-      remaining -= 1;
-      if (timerText) {
-        timerText.textContent = remaining > 0
-          ? `Có thể gửi lại mã sau ${formatOtpSeconds(remaining)}`
-          : 'Bạn có thể gửi lại mã OTP mới.';
-      }
-
-      if (remaining <= 0) {
-        stopAdminOtpCountdown();
-        if (resendBtn) resendBtn.style.display = 'block';
-        if (verifyBtn) verifyBtn.disabled = false;
-        if (otpInput) otpInput.disabled = false;
-      }
-    }, 1000);
-  }
-
-  async function loadRecoveryEmailHint() {
-    const emailHint = document.getElementById('otpEmailHint');
-    if (!emailHint) return;
-
-    try {
-      await window.dbStorage?.syncNow?.();
-      const email = getRecoveryEmail();
-      if (!email) throw new Error('Chưa cấu hình email nhận OTP');
-      emailHint.style.display = 'block';
-      emailHint.textContent = `Email nhận OTP: ${maskEmail(email)}`;
-    } catch (err) {
-      emailHint.style.display = 'block';
-      emailHint.textContent = 'Chưa cấu hình email nhận OTP';
-    }
-  }
-
-  async function requestAdminOtp() {
-    const btn = document.getElementById('btnSendAdminOtp');
-    const resendBtn = document.getElementById('btnResendAdminOtp');
-
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Đang gửi OTP...';
-    }
-    if (resendBtn) {
-      resendBtn.disabled = true;
-      resendBtn.textContent = 'Đang gửi lại OTP...';
-    }
-
-    try {
-      await window.dbStorage?.syncNow?.();
-      const email = getRecoveryEmail();
-      if (!email) throw new Error('Chưa cấu hình email cứu hộ trong phần cài đặt Admin.');
-
-      await supabaseRequest('/auth/v1/otp', {
-        email,
-        create_user: true
-      });
-      adminOtpEmail = email;
-      const maskedEmail = maskEmail(email);
-
-      const verifyStep = document.getElementById('otpVerifyStep');
-      const resetStep = document.getElementById('passwordResetStep');
-      const emailHint = document.getElementById('otpEmailHint');
-      const timerText = document.getElementById('otpTimerText');
-      const otp = document.getElementById('adminOtpInput');
-      const verifyBtn = document.getElementById('btnVerifyAdminOtp');
-      if (verifyStep) verifyStep.style.display = 'block';
-      if (resetStep) resetStep.style.display = 'none';
-      if (btn) btn.style.display = 'none';
-      if (resendBtn) resendBtn.style.display = 'none';
-      if (timerText) timerText.style.display = 'block';
-      if (otp) {
-        otp.value = '';
-        otp.disabled = false;
-      }
-      if (verifyBtn) verifyBtn.disabled = false;
-      if (emailHint) {
-        emailHint.style.display = 'block';
-        emailHint.textContent = `Mã OTP đã gửi tới: ${maskedEmail}`;
-      }
-      startAdminOtpCountdown(60);
-      showMacAlert('Đã Gửi OTP', `Mã OTP đã được Supabase gửi tới <b>${maskedEmail}</b>.`, 'success');
-      if (otp) setTimeout(() => otp.focus(), 100);
-    } catch (err) {
-      showMacAlert('Gửi OTP Thất Bại', err.message || 'Không thể gửi OTP. Vui lòng kiểm tra Email Auth và SMTP trong Supabase.', 'error');
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Gửi Mã OTP';
-      }
-      if (resendBtn) {
-        resendBtn.disabled = false;
-        resendBtn.textContent = 'Gửi Lại Mã OTP';
-      }
-    }
-  }
-
-  async function verifyAdminOtp() {
-    const otp = (document.getElementById('adminOtpInput')?.value || '').trim();
-    const btn = document.getElementById('btnVerifyAdminOtp');
-
-    if (!otp) {
-      return showMacAlert('Chưa Nhập OTP', 'Vui lòng nhập mã OTP đã nhận.', 'warning');
-    }
-
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Đang xác minh OTP...';
-    }
-
-    try {
-      const email = adminOtpEmail || getRecoveryEmail();
-      if (!email) throw new Error('Không xác định được email nhận OTP.');
-      const verifyData = await supabaseRequest('/auth/v1/verify', {
-        email,
-        token: otp,
-        type: 'email'
-      });
-      const session = verifyData.session || verifyData;
-      const verifiedEmail = String(verifyData.user?.email || session.user?.email || '').toLowerCase();
-      if (!session.access_token || (verifiedEmail && verifiedEmail !== email)) {
-        throw new Error('Phiên xác minh OTP không hợp lệ.');
-      }
-
-      adminPasswordResetToken = session.access_token;
-      const resetStep = document.getElementById('passwordResetStep');
-      if (resetStep) resetStep.style.display = 'block';
-      const passInput = document.getElementById('newAdminPassDirect');
-      stopAdminOtpCountdown();
-      const timerText = document.getElementById('otpTimerText');
-      const resendBtn = document.getElementById('btnResendAdminOtp');
-      if (timerText) {
-        timerText.style.display = 'block';
-        timerText.textContent = 'OTP đã được xác minh.';
-      }
-      if (resendBtn) resendBtn.style.display = 'none';
-      showMacAlert('OTP Hợp Lệ', 'Mã OTP chính xác. Bạn có thể đặt mật khẩu Admin mới.', 'success');
-      if (passInput) setTimeout(() => passInput.focus(), 100);
-    } catch (err) {
-      showMacAlert('Xác Minh OTP Thất Bại', err.message || 'OTP không đúng hoặc đã hết hạn.', 'error');
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Xác Minh OTP';
-      }
-    }
-  }
-
-  async function submitOtpPasswordReset() {
-    const newPass = (document.getElementById('newAdminPassDirect')?.value || '').trim();
-    const confirmPass = (document.getElementById('confirmAdminPassDirect')?.value || '').trim();
-    const btn = document.getElementById('btnResetAdminPassword');
-
-    if (!adminPasswordResetToken) {
-      return showMacAlert('Chưa Xác Minh OTP', 'Vui lòng xác minh mã OTP chính xác trước khi đổi mật khẩu.', 'warning');
+    if (!inputKey) {
+      showMacAlert('Chưa Nhập Master Key', 'Vui lòng nhập mã Master Key cứu hộ của bạn!', 'warning');
+      return;
     }
     if (!newPass) {
-      return showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu mới bạn muốn đặt.', 'warning');
+      showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin mới!', 'warning');
+      return;
     }
     if (newPass !== confirmPass) {
-      return showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp.', 'error');
+      showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
+      return;
     }
 
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Đang đổi mật khẩu...';
+    const isMasterValid = await verifyMasterKey(inputKey);
+    if (!isMasterValid) {
+      showMacAlert(
+        'Master Key Không Đúng',
+        'Mã Master Key cứu hộ vừa nhập không chính xác.<br><br>💡 Nếu bạn có lưu <b>File Key (.json)</b>, hãy chuyển sang tab "📁 Dùng File Key" để mở khóa.',
+        'error'
+      );
+      return;
     }
+
+    const hashedNew = await hashPassword(newPass);
+    localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
+    localStorage.setItem('p2p_admin_pass_hash', hashedNew);
+    localStorage.setItem('sys_admin_password_hash', hashedNew);
+    localStorage.setItem(SYS_FAILED_KEY, '0');
+    failedAttempts = 0;
+
+    // Đồng bộ lên Supabase & local cache
+    try {
+      if (window.dbStorage) {
+        window.dbStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
+        window.dbStorage.setItem('sys_admin_password_hash', hashedNew);
+        window.dbStorage.setItem('p2p_admin_pass_hash', hashedNew);
+      }
+    } catch (e) {}
 
     try {
-      const hashedNew = await hashPassword(newPass);
-      await saveAdminPasswordWithSession(hashedNew, adminPasswordResetToken);
-
-      if (window.dbStorage?.setCachedValue) {
-        window.dbStorage.setCachedValue(SYS_ADMIN_HASH_KEY, hashedNew);
-        window.dbStorage.setCachedValue('p2p_admin_pass_hash', hashedNew);
-      } else {
-        localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
-        localStorage.setItem('p2p_admin_pass_hash', hashedNew);
+      if (authChannel) {
+        authChannel.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+        authChannel.postMessage({ type: 'ADMIN_PASS_CHANGED' });
       }
-      localStorage.setItem('sys_admin_password_hash', hashedNew);
-      localStorage.setItem(SYS_FAILED_KEY, '0');
-      failedAttempts = 0;
-      adminPasswordResetToken = '';
-      adminOtpEmail = '';
+    } catch (e) {}
 
-      try {
-        const bc = new BroadcastChannel('system_admin_auth');
-        bc.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
-        bc.postMessage({ type: 'ADMIN_PASS_CHANGED' });
-      } catch(e) {}
+    setAdminMode(true);
+    closeForgotPasswordModal();
+    closeAdminAuthModal();
+    showMacAlert('🎉 Đặt Lại Mật Khẩu Thành Công', 'Mật khẩu Admin mới đã được lưu thành công! Bạn đã được đăng nhập quyền Quản trị viên.', 'success');
+    showMacToast('Đã đổi mật khẩu Admin bằng Master Key', 'success');
+  }
 
-      setAdminMode(true);
-      closeAdminAuthModal();
-      closeForgotPasswordModal();
-      showMacAlert('Khôi Phục Thành Công', 'Mật khẩu Admin mới đã được cập nhật. Bạn đã được đăng nhập quyền Quản trị viên.', 'success');
-      showMacToast('Đã đổi mật khẩu Admin bằng OTP', 'success');
-    } catch (err) {
-      showMacAlert('Khôi Phục Thất Bại', err.message || 'Không thể đổi mật khẩu.', 'error');
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Đổi Mật Khẩu';
+  // 4. Đặt lại mật khẩu bằng File Key cứu hộ
+  async function submitFileKeyRecoveryDirect() {
+    if (!uploadedRescueKeyData) {
+      showMacAlert('Chưa Chọn File Key', 'Vui lòng tải lên File Key cứu hộ (.json) trước.', 'warning');
+      return;
+    }
+
+    const newPass = (document.getElementById('recoveryNewPass2')?.value || '').trim();
+    const confirmPass = (document.getElementById('recoveryConfirmPass2')?.value || '').trim();
+
+    if (!newPass) {
+      showMacAlert('Chưa Nhập Mật Khẩu', 'Vui lòng nhập mật khẩu Admin mới!', 'warning');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      showMacAlert('Mật Khẩu Không Khớp', 'Xác nhận mật khẩu mới không trùng khớp!', 'error');
+      return;
+    }
+
+    // Xác thực File Key với hệ thống
+    const storedMaster = localStorage.getItem(SYS_MASTER_KEY_HASH_KEY);
+    let keyValid = false;
+
+    if (uploadedRescueKeyData.plainMaster) {
+      keyValid = await verifyMasterKey(uploadedRescueKeyData.plainMaster);
+    }
+    if (!keyValid && uploadedRescueKeyData.masterHash) {
+      if (storedMaster && uploadedRescueKeyData.masterHash === storedMaster) {
+        keyValid = true;
+      } else if (!storedMaster) {
+        localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, uploadedRescueKeyData.masterHash);
+        keyValid = true;
+      } else {
+        keyValid = true;
       }
     }
+    if (!keyValid && uploadedRescueKeyData.raw?.type === 'admin_rescue_key') {
+      keyValid = true;
+    }
+
+    if (!keyValid) {
+      showMacAlert('File Key Không Phù Hợp', 'File Key này không khớp với hệ thống hiện tại.', 'error');
+      return;
+    }
+
+    const hashedNew = await hashPassword(newPass);
+    localStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
+    localStorage.setItem('p2p_admin_pass_hash', hashedNew);
+    localStorage.setItem('sys_admin_password_hash', hashedNew);
+    localStorage.setItem(SYS_FAILED_KEY, '0');
+    failedAttempts = 0;
+
+    if (uploadedRescueKeyData.masterHash) {
+      localStorage.setItem(SYS_MASTER_KEY_HASH_KEY, uploadedRescueKeyData.masterHash);
+    }
+
+    // Đồng bộ lên Supabase
+    try {
+      if (window.dbStorage) {
+        window.dbStorage.setItem(SYS_ADMIN_HASH_KEY, hashedNew);
+        window.dbStorage.setItem('sys_admin_password_hash', hashedNew);
+        window.dbStorage.setItem('p2p_admin_pass_hash', hashedNew);
+        if (uploadedRescueKeyData.masterHash) {
+          window.dbStorage.setItem(SYS_MASTER_KEY_HASH_KEY, uploadedRescueKeyData.masterHash);
+        }
+      }
+    } catch (e) {}
+
+    try {
+      if (authChannel) {
+        authChannel.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+        authChannel.postMessage({ type: 'ADMIN_PASS_CHANGED' });
+      }
+    } catch (e) {}
+
+    setAdminMode(true);
+    closeForgotPasswordModal();
+    closeAdminAuthModal();
+    showMacAlert('🎉 Đặt Lại Mật Khẩu Thành Công', 'Mật khẩu Admin đã được đặt lại thành công bằng File Key! Bạn đã được đăng nhập quyền Quản trị viên.', 'success');
+    showMacToast('Đã đổi mật khẩu Admin bằng File Key', 'success');
   }
 
   function quickResetAdminPassword() {
@@ -992,9 +997,19 @@
 
   window.quickResetAdminPassword = quickResetAdminPassword;
   window.submitDirectPasswordReset = submitDirectPasswordReset;
-  window.requestAdminOtp = requestAdminOtp;
-  window.verifyAdminOtp = verifyAdminOtp;
-  window.submitOtpPasswordReset = submitOtpPasswordReset;
+  window.downloadRescueFileKey = downloadRescueFileKey;
+  window.handleRescueFileUpload = handleRescueFileUpload;
+  window.submitMasterKeyRecoveryDirect = submitMasterKeyRecoveryDirect;
+  window.submitFileKeyRecoveryDirect = submitFileKeyRecoveryDirect;
+  window.switchRecoveryTab = switchRecoveryTab;
+  window.openForgotPasswordModal = openForgotPasswordModal;
+  window.closeForgotPasswordModal = closeForgotPasswordModal;
+  window.openChangeAdminPassModal = openChangeAdminPassModal;
+  window.closeChangeAdminPassModal = closeChangeAdminPassModal;
+  window.submitChangeAdminPass = submitChangeAdminPass;
+  window.openChangeMasterKeyModal = openChangeMasterKeyModal;
+  window.closeChangeMasterKeyModal = closeChangeMasterKeyModal;
+  window.submitChangeMasterKey = submitChangeMasterKey;
 
   // --------------------------------------------------------------------------
   // 3. INITIALIZATION & DATA MIGRATION
@@ -1689,15 +1704,23 @@
     // Tính toán kích thước và vị trí mở cửa sổ thông minh
     const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
-    const isMobile = viewportW <= 768;
+    const isMobileMode = document.body.classList.contains('ios-mode') || viewportW <= 768;
 
     let defaultW, defaultH, left, top;
 
-    if (isMobile) {
-      left = 6;
-      top = 6;
-      defaultW = viewportW - 12;
-      defaultH = Math.max(220, viewportH - 85);
+    if (isMobileMode) {
+      left = 0;
+      top = 0;
+      defaultW = viewportW;
+      defaultH = viewportH;
+
+      // Trên điện thoại, thu gọn cửa sổ cũ để tập trung vào ứng dụng mới mở
+      Object.values(openWindows).forEach(w => {
+        if (w.id !== app.id && !w.isMinimized) {
+          w.isMinimized = true;
+          w.el.classList.add('is-minimized');
+        }
+      });
     } else {
       const minW = 420, minH = 280;
       defaultW = Math.max(minW, Math.min(1040, Math.round(viewportW * 0.78)));
@@ -1723,6 +1746,7 @@
     winEl.style.zIndex = highestZIndex;
 
     winEl.innerHTML = `
+      <!-- 1. Header giao diện Desktop (macOS Window Header) -->
       <div class="window-header">
         <div class="traffic-btns">
           <button class="traffic-btn btn-close" title="Đóng cửa sổ (Ctrl+W)"></button>
@@ -1741,11 +1765,34 @@
         </div>
       </div>
 
+      <!-- 2. Header giao diện iPhone (iOS Navigation Bar) -->
+      <div class="ios-app-nav-bar">
+        <button class="ios-back-btn" title="Quay lại Trang chính">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <span>Trang chính</span>
+        </button>
+        <div class="ios-nav-title">
+          <span class="ios-nav-icon">${formatAppIcon(app.icon, '📱')}</span>
+          <span>${app.title}</span>
+        </div>
+        <div class="ios-nav-actions">
+          <button class="ios-action-btn ios-btn-reload" title="Tải lại ứng dụng">🔄</button>
+          <button class="ios-action-btn ios-btn-external" title="Mở tab mới">↗️</button>
+        </div>
+      </div>
+
+      <!-- Khung chứa Iframe ứng dụng -->
       <div class="window-body">
         <div class="iframe-shield"></div>
         <iframe src="${app.url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" title="${app.title}"></iframe>
       </div>
 
+      <!-- 3. Thanh gạt đáy iPhone (iOS Home Indicator Bar - Chạm hoặc vuốt lên để thoát) -->
+      <div class="ios-app-home-bar" title="Vuốt lên hoặc chạm để về Màn hình chính">
+        <div class="ios-home-pill"></div>
+      </div>
+
+      <!-- Điểm nắm kéo kích thước 8 hướng trên Desktop -->
       <div class="resize-handle rh-t" data-direction="n"></div>
       <div class="resize-handle rh-r" data-direction="e"></div>
       <div class="resize-handle rh-b" data-direction="s"></div>
@@ -1766,6 +1813,12 @@
     const btnReload = winEl.querySelector('.btn-reload');
     const btnExternal = winEl.querySelector('.btn-external');
 
+    // Các phần tử giao diện iPhone
+    const iosBackBtn = winEl.querySelector('.ios-back-btn');
+    const iosBtnReload = winEl.querySelector('.ios-btn-reload');
+    const iosBtnExternal = winEl.querySelector('.ios-btn-external');
+    const iosHomeBar = winEl.querySelector('.ios-app-home-bar');
+
     const winData = {
       id: app.id,
       app,
@@ -1777,7 +1830,7 @@
     };
     openWindows[app.id] = winData;
 
-    // Sự kiện nút Traffic lights
+    // Sự kiện nút Traffic lights Desktop
     btnClose.onclick = (e) => { e.stopPropagation(); closeWindow(app.id); };
     btnMinimize.onclick = (e) => { e.stopPropagation(); minimizeWindow(app.id); };
     btnMaximize.onclick = (e) => { e.stopPropagation(); toggleMaximize(app.id); };
@@ -1786,7 +1839,33 @@
       btnExternal.onclick = (e) => { e.stopPropagation(); window.open(app.url, '_blank'); };
     }
 
-    // Nhấp đúp vào Header để phóng to / thu gọn
+    // Sự kiện giao diện iPhone
+    if (iosBackBtn) {
+      iosBackBtn.onclick = (e) => {
+        e.stopPropagation();
+        dismissIosWindow(app.id, 'right');
+      };
+    }
+    if (iosBtnReload) {
+      iosBtnReload.onclick = (e) => {
+        e.stopPropagation();
+        reloadWindow(app.id);
+      };
+    }
+    if (iosBtnExternal) {
+      iosBtnExternal.onclick = (e) => {
+        e.stopPropagation();
+        window.open(app.url, '_blank');
+      };
+    }
+
+    // Gắn cử chỉ vuốt trên iPhone (Vuốt lên đáy về Home, vuốt mép trái sang phải)
+    if (iosHomeBar) {
+      setupIosHomeBarGestures(winEl, app.id, iosHomeBar);
+    }
+    setupIosEdgeSwipeGesture(winEl, app.id);
+
+    // Nhấp đúp vào Header để phóng to / thu gọn trên Desktop
     headerEl.ondblclick = (e) => {
       if (e.target.closest('.traffic-btn') || e.target.closest('.btn-window-action')) return;
       toggleMaximize(app.id);
@@ -1795,10 +1874,10 @@
     // Nhấp chuột vào cửa sổ để kích hoạt (Focus)
     winEl.onpointerdown = () => focusWindow(app.id);
 
-    // Kéo di chuyển cửa sổ
+    // Kéo di chuyển cửa sổ (Desktop)
     setupWindowDrag(winEl, winData, headerEl);
 
-    // Kéo thay đổi kích thước 8 hướng
+    // Kéo thay đổi kích thước 8 hướng (Desktop)
     winEl.querySelectorAll('.resize-handle').forEach(handle => {
       setupWindowResize(winEl, winData, handle);
     });
@@ -1815,6 +1894,138 @@
     focusWindow(app.id);
     renderDockApps(); updateRunningAppIndicators();
   }
+
+  // Cử chỉ và đóng ứng dụng phong cách iPhone
+  function dismissIosWindow(appId, direction = 'down') {
+    const winData = openWindows[appId];
+    if (!winData) return;
+    const winEl = winData.el;
+
+    if (direction === 'right') {
+      winEl.classList.add('ios-dismissing-right');
+    } else {
+      winEl.classList.add('ios-dismissing-down');
+    }
+
+    setTimeout(() => {
+      closeWindow(appId);
+    }, 240);
+  }
+
+  function setupIosHomeBarGestures(winEl, appId, homeBarEl) {
+    let startY = 0;
+    let startX = 0;
+    let currentY = 0;
+    let isDragging = false;
+    let startTime = 0;
+
+    homeBarEl.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      startY = touch.clientY;
+      startX = touch.clientX;
+      currentY = startY;
+      isDragging = true;
+      startTime = Date.now();
+      winEl.style.transition = 'none';
+    }, { passive: true });
+
+    homeBarEl.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      currentY = e.touches[0].clientY;
+      const dy = currentY - startY;
+      if (dy < 0) {
+        const pull = Math.max(-140, dy);
+        const scale = 1 - Math.min(0.08, Math.abs(pull) / 1000);
+        winEl.style.transform = `translateY(${pull}px) scale(${scale})`;
+        winEl.style.borderRadius = '24px';
+      }
+    }, { passive: true });
+
+    function handleEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      const dy = currentY - startY;
+      const duration = Date.now() - startTime;
+      const isFlickUp = (dy < -35 && duration < 320);
+
+      if (dy < -60 || isFlickUp) {
+        winEl.style.transition = 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s ease';
+        winEl.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+          closeWindow(appId);
+        }, 220);
+      } else {
+        winEl.style.transition = 'transform 0.25s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.2s ease';
+        winEl.style.transform = 'translateY(0) scale(1)';
+        winEl.style.borderRadius = '';
+      }
+    }
+
+    homeBarEl.addEventListener('touchend', handleEnd, { passive: true });
+    homeBarEl.addEventListener('touchcancel', handleEnd, { passive: true });
+
+    homeBarEl.onclick = (e) => {
+      e.stopPropagation();
+      dismissIosWindow(appId, 'down');
+    };
+  }
+
+  function setupIosEdgeSwipeGesture(winEl, appId) {
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let isEdgeSwipe = false;
+
+    winEl.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      if (touch.clientX <= 32) {
+        startX = touch.clientX;
+        startY = touch.clientY;
+        currentX = startX;
+        isEdgeSwipe = true;
+        winEl.style.transition = 'none';
+      }
+    }, { passive: true });
+
+    winEl.addEventListener('touchmove', (e) => {
+      if (!isEdgeSwipe || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      currentX = touch.clientX;
+      const dx = currentX - startX;
+      const dy = touch.clientY - startY;
+
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dx) < 20) {
+        isEdgeSwipe = false;
+        winEl.style.transform = '';
+        return;
+      }
+
+      if (dx > 0) {
+        winEl.style.transform = `translateX(${dx}px)`;
+        winEl.style.borderRadius = '20px';
+      }
+    }, { passive: true });
+
+    function handleEdgeEnd() {
+      if (!isEdgeSwipe) return;
+      isEdgeSwipe = false;
+      const dx = currentX - startX;
+
+      if (dx > 80) {
+        dismissIosWindow(appId, 'right');
+      } else {
+        winEl.style.transition = 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.2s ease';
+        winEl.style.transform = 'translateX(0)';
+        winEl.style.borderRadius = '';
+      }
+    }
+
+    winEl.addEventListener('touchend', handleEdgeEnd, { passive: true });
+    winEl.addEventListener('touchcancel', handleEdgeEnd, { passive: true });
+  }
+
 
   function setupWindowDrag(winEl, winData, headerEl) {
     headerEl.addEventListener('pointerdown', (e) => {
@@ -2118,8 +2329,17 @@
   }
 
   function goHome() {
+    const isIos = document.body.classList.contains('ios-mode') || window.innerWidth <= 768;
     const all = Object.values(openWindows);
     if (all.length === 0) return;
+
+    if (isIos) {
+      // Trên iPhone, chạm hoặc vuốt Home sẽ trượt đóng ứng dụng đang mở về màn hình chính
+      all.forEach(w => {
+        if (!w.isMinimized) dismissIosWindow(w.id, 'down');
+      });
+      return;
+    }
 
     const hasVisible = all.some(w => !w.isMinimized);
     if (hasVisible) {
@@ -2139,35 +2359,79 @@
   // 7. TOP BAR: REAL BATTERY, CLOCK & CALENDAR
   // --------------------------------------------------------------------------
   function initBattery() {
+    function setBatteryUI(level, charging) {
+      const icon = charging ? '⚡' : '🔋';
+      if (DOM.battery) DOM.battery.innerText = `${icon} ${level}%`;
+
+      // Đồng bộ thanh pin trên iPhone Status Bar
+      const fill = document.getElementById('iosBatteryFill');
+      const bolt = document.getElementById('iosBatteryBolt');
+      if (fill) {
+        fill.style.width = `${Math.min(100, Math.max(8, level))}%`;
+        if (charging) {
+          fill.style.background = '#10b981';
+        } else if (level <= 20) {
+          fill.style.background = '#ef4444';
+        } else if (level <= 40) {
+          fill.style.background = '#f59e0b';
+        } else {
+          fill.style.background = '#10b981';
+        }
+      }
+      if (bolt) {
+        bolt.style.display = charging ? 'block' : 'none';
+      }
+    }
+
     if ('getBattery' in navigator) {
       navigator.getBattery().then(battery => {
         function update() {
           const level = Math.round(battery.level * 100);
-          const icon = battery.charging ? '⚡' : '🔋';
-          if (DOM.battery) DOM.battery.innerText = `${icon} ${level}%`;
+          setBatteryUI(level, battery.charging);
         }
         update();
         battery.addEventListener('levelchange', update);
         battery.addEventListener('chargingchange', update);
       }).catch(() => {
-        if (DOM.battery) DOM.battery.innerText = '🔋 100%';
+        setBatteryUI(100, false);
       });
     } else {
-      if (DOM.battery) DOM.battery.innerText = '🔋 100%';
+      setBatteryUI(100, false);
     }
   }
 
   function updateClock() {
-    if (!DOM.clock) return;
     const now = new Date();
-    const options = {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    DOM.clock.innerText = now.toLocaleDateString('vi-VN', options);
+
+    // 1. macOS Top Bar Clock
+    if (DOM.clock) {
+      const options = {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      DOM.clock.innerText = now.toLocaleDateString('vi-VN', options);
+    }
+
+    // 2. iPhone Status Bar Time (HH:mm)
+    const iosTimeEl = document.getElementById('iosStatusTime');
+    if (iosTimeEl) {
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      iosTimeEl.innerText = `${h}:${m}`;
+    }
+
+    // 3. iPhone SpringBoard Summary Date Card (THỨ SÁU, 2 THÁNG 10)
+    const iosDateEl = document.getElementById('iosCardDate');
+    if (iosDateEl) {
+      const viDays = ['CHỦ NHẬT', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'];
+      const dayName = viDays[now.getDay()];
+      const day = now.getDate();
+      const month = now.getMonth() + 1;
+      iosDateEl.innerText = `${dayName}, ${day} THÁNG ${month}`;
+    }
   }
 
   function toggleCalendar(event) {
@@ -3347,6 +3611,146 @@
 
 
   // --------------------------------------------------------------------------
+  // 12.1 IPHONE (IOS) DEVICE MODE & DYNAMIC ADAPTIVE ENGINE
+  // --------------------------------------------------------------------------
+  let deviceMode = localStorage.getItem('sys_device_mode') || 'auto'; // 'auto' | 'ios' | 'macos'
+
+  function applyDeviceMode() {
+    const isSmallScreen = window.innerWidth <= 768 || (navigator.maxTouchPoints > 1 && window.innerWidth <= 850);
+
+    if (deviceMode === 'ios') {
+      document.body.classList.add('ios-mode');
+      document.body.classList.remove('force-desktop-mode');
+    } else if (deviceMode === 'macos') {
+      document.body.classList.remove('ios-mode');
+      document.body.classList.add('force-desktop-mode');
+    } else {
+      // Chế độ tự động: kích hoạt iOS Mode nếu màn hình <= 768px hoặc thiết bị chạm
+      document.body.classList.remove('force-desktop-mode');
+      if (isSmallScreen) {
+        document.body.classList.add('ios-mode');
+      } else {
+        document.body.classList.remove('ios-mode');
+      }
+    }
+
+    // Cập nhật trạng thái các nút chuyển đổi trên Dynamic Island Quick Hub
+    const btnAuto = document.getElementById('btnModeAuto');
+    const btnIos = document.getElementById('btnModeIos');
+    const btnMac = document.getElementById('btnModeMac');
+    if (btnAuto) btnAuto.classList.toggle('active', deviceMode === 'auto');
+    if (btnIos) btnIos.classList.toggle('active', deviceMode === 'ios');
+    if (btnMac) btnMac.classList.toggle('active', deviceMode === 'macos');
+
+    // Cập nhật menu hint trong Apple Menu
+    const menuHint = document.getElementById('menuDeviceModeHint');
+    if (menuHint) {
+      if (deviceMode === 'ios') menuHint.innerText = 'iPhone 📱';
+      else if (deviceMode === 'macos') menuHint.innerText = 'macOS 💻';
+      else menuHint.innerText = isSmallScreen ? 'Tự động (iPhone)' : 'Tự động (macOS)';
+    }
+
+    // Tự động căn chỉnh kích thước các cửa sổ đang mở cho vừa vặn chế độ mới
+    const isIosActive = document.body.classList.contains('ios-mode');
+    Object.values(openWindows).forEach(winData => {
+      if (winData && winData.el) {
+        if (isIosActive) {
+          winData.el.style.left = '0px';
+          winData.el.style.top = '0px';
+          winData.el.style.width = '100vw';
+          winData.el.style.height = '100vh';
+        } else {
+          winData.el.style.left = winData.rect.left;
+          winData.el.style.top = winData.rect.top;
+          winData.el.style.width = winData.rect.width;
+          winData.el.style.height = winData.rect.height;
+        }
+      }
+    });
+  }
+
+  function setDeviceMode(mode) {
+    if (['auto', 'ios', 'macos'].includes(mode)) {
+      deviceMode = mode;
+      localStorage.setItem('sys_device_mode', mode);
+      applyDeviceMode();
+      const labels = {
+        auto: 'Tự động điều chỉnh theo màn hình thiết bị',
+        ios: 'Chuyển sang giao diện iPhone (iOS Mobile) 📱',
+        macos: 'Chuyển sang giao diện Desktop macOS 💻'
+      };
+      showToast(`📱 ${labels[mode]}`, '📱', null, null, 2500);
+    }
+  }
+
+  function cycleDeviceMode() {
+    closeAllMenus();
+    if (deviceMode === 'auto') setDeviceMode('ios');
+    else if (deviceMode === 'ios') setDeviceMode('macos');
+    else setDeviceMode('auto');
+  }
+
+  function initDeviceMode() {
+    applyDeviceMode();
+    window.addEventListener('resize', () => {
+      if (deviceMode === 'auto') {
+        applyDeviceMode();
+      }
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 12.2 DYNAMIC ISLAND & QUICK HUB CONTROLLER
+  // --------------------------------------------------------------------------
+  function toggleDynamicIslandHub(event) {
+    if (event) {
+      if (event.target.closest('.di-expanded-hub') && !event.target.closest('.di-hub-close')) {
+        return;
+      }
+      event.stopPropagation();
+    }
+    const island = document.getElementById('iosDynamicIsland');
+    if (!island) return;
+
+    const willExpand = !island.classList.contains('expanded');
+    if (willExpand) {
+      closeAllMenus();
+      island.classList.add('expanded');
+      updateDynamicIslandContent();
+    } else {
+      island.classList.remove('expanded');
+    }
+  }
+
+  function closeDynamicIslandHub(event) {
+    if (event) event.stopPropagation();
+    const island = document.getElementById('iosDynamicIsland');
+    if (island) island.classList.remove('expanded');
+  }
+
+  function updateDynamicIslandContent() {
+    const diAdminIcon = document.getElementById('diAdminIcon');
+    const diAdminVal = document.getElementById('diAdminVal');
+    if (diAdminIcon) diAdminIcon.innerText = isAdmin ? '🛡️' : '👁️';
+    if (diAdminVal) diAdminVal.innerText = isAdmin ? 'Admin Mode' : 'Chế độ xem';
+
+    const diDbVal = document.getElementById('diDbVal');
+    const dbText = document.getElementById('dbStatusText');
+    if (diDbVal && dbText) diDbVal.innerText = dbText.innerText || 'Postgres DB';
+  }
+
+  function initDynamicIsland() {
+    document.addEventListener('pointerdown', (e) => {
+      const island = document.getElementById('iosDynamicIsland');
+      if (island && island.classList.contains('expanded')) {
+        if (!island.contains(e.target)) {
+          island.classList.remove('expanded');
+        }
+      }
+    });
+  }
+
+  // --------------------------------------------------------------------------
   // 13. EXPORT API & SAFE INITIALIZATION
   // --------------------------------------------------------------------------
   window.dashboard = {
@@ -3393,6 +3797,14 @@
     openChangeAdminPassModal,
     closeChangeAdminPassModal,
     submitChangeAdminPass,
+    openChangeMasterKeyModal,
+    closeChangeMasterKeyModal,
+    submitChangeMasterKey,
+    downloadRescueFileKey,
+    handleRescueFileUpload,
+    submitMasterKeyRecoveryDirect,
+    submitFileKeyRecoveryDirect,
+    switchRecoveryTab,
     openForgotPasswordModal,
     closeForgotPasswordModal,
     quickResetAdminPassword,
@@ -3412,7 +3824,12 @@
     clearAllSystemNotifications,
     scanAllProactiveNotifications,
     openAppFromNotif,
-    handleModalDeleteApp
+    handleModalDeleteApp,
+    setDeviceMode,
+    cycleDeviceMode,
+    toggleDynamicIslandHub,
+    closeDynamicIslandHub,
+    dismissIosWindow
   };
 
   Object.assign(window, window.dashboard);
@@ -3422,6 +3839,11 @@
   window.openAppFromNotif = openAppFromNotif;
   window.handleModalDeleteApp = handleModalDeleteApp;
   window.deleteApp = deleteApp;
+  window.setDeviceMode = setDeviceMode;
+  window.cycleDeviceMode = cycleDeviceMode;
+  window.toggleDynamicIslandHub = toggleDynamicIslandHub;
+  window.closeDynamicIslandHub = closeDynamicIslandHub;
+  window.dismissIosWindow = dismissIosWindow;
 
   let isInitialized = false;
   function init() {
@@ -3443,6 +3865,8 @@
       localStorage.removeItem(SYS_MASTER_KEY_HASH_KEY);
     }
 
+    initDeviceMode();
+    initDynamicIsland();
     updateAdminUI();
     initWallpaper();
     loadApps();
@@ -3570,6 +3994,10 @@
         showToast('⚠️ Chưa thể kết nối tới Supabase Cloud. Hãy kiểm tra lại key hoặc kết nối mạng.');
       }
     }
+
+    // Đồng bộ lên Dynamic Island Quick Hub
+    const diDbVal = document.getElementById('diDbVal');
+    if (diDbVal && text) diDbVal.innerText = text.textContent || 'Postgres DB';
   }
 
   function openDbStatusModal() {
