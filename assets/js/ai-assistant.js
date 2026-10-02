@@ -1,10 +1,11 @@
 /**
  * ==============================================================================
- * Apple Intelligence & Siri Trợ Lý AI (ai-assistant.js) - Version 2.0
- * Hỗ trợ Hội Thoại Đa Lượt (Conversational Chatbot) + Bán Trong Suốt Glassmorphism
- * Tích hợp Google Gemini 1.5 Flash & Bộ Phân Tích Ngôn Ngữ Tự Nhiên Thông Minh Offline
- * - Ghi nhận Tiền Cơm, Chia Bill kèm Thẻ xác nhận tương tác trực tiếp trong luồng chat
- * - Đặt lịch nhắc nhở (Reminders), tra cứu công nợ, sinh nhật, âm lịch & tính nhẩm
+ * Apple Intelligence & Siri Trợ Lý AI (ai-assistant.js) - Version 3.0
+ * Hỗ trợ Hội Thoại Đa Lượt + Kích Hoạt Trực Tuyến Google Gemini 1.5 Flash API
+ * - Phân tích ngữ cảnh tự nhiên sâu sắc, không máy móc
+ * - Nhập liệu Tiền Cơm, Chia Bill kèm Thẻ Xác Nhận tương tác trực tiếp
+ * - Lên lịch nhắc nhở (Reminders) đồng bộ Sticky Notes & macOS Notifications
+ * - Drawer Cài đặt trực tiếp ngay trong giao diện Assistant & Control Panel
  * ==============================================================================
  */
 
@@ -12,7 +13,7 @@
   'use strict';
 
   const AI_CONFIG_KEY = 'sys_ai_config';
-  const CHAT_HISTORY_KEY = 'sys_ai_chat_history_v2';
+  const CHAT_HISTORY_KEY = 'sys_ai_chat_history_v3';
   const DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash';
 
   // State
@@ -20,26 +21,41 @@
   let speechRecognizer = null;
   let chatHistory = [];
   let isThinking = false;
-  let activeConfirmationData = {}; // Lưu dữ liệu xác nhận theo message id
+  let activeConfirmationData = {};
 
   // --------------------------------------------------------------------------
   // 1. CẤU HÌNH & THÀNH VIÊN HỆ THỐNG
   // --------------------------------------------------------------------------
   function getAiConfig() {
-    try {
-      const raw = localStorage.getItem(AI_CONFIG_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return {
+    let cfg = {
       apiKey: '',
       model: DEFAULT_GEMINI_MODEL,
       enabled: true
     };
+
+    // Kiểm tra cấu hình tĩnh trong window.__AI_CONFIG__ (từ db-config.js)
+    if (window.__AI_CONFIG__ && window.__AI_CONFIG__.geminiApiKey) {
+      cfg.apiKey = window.__AI_CONFIG__.geminiApiKey.trim();
+      if (window.__AI_CONFIG__.model) cfg.model = window.__AI_CONFIG__.model;
+    }
+
+    // Kiểm tra cấu hình đã lưu trong localStorage
+    try {
+      const raw = localStorage.getItem(AI_CONFIG_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.apiKey) cfg.apiKey = parsed.apiKey.trim();
+        if (parsed.model) cfg.model = parsed.model;
+      }
+    } catch (e) {}
+
+    return cfg;
   }
 
   function saveAiConfig(cfg) {
     localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(cfg));
     if (window.dbStorage) window.dbStorage.set(AI_CONFIG_KEY, JSON.stringify(cfg));
+    updateAiStatusIndicator();
   }
 
   function getSystemMembers() {
@@ -92,6 +108,30 @@
   // --------------------------------------------------------------------------
   // 2. QUẢN LÝ LỊCH SỬ HỘI THOẠI (CHAT THREAD)
   // --------------------------------------------------------------------------
+  function getDefaultWelcomeMessage() {
+    const cfg = getAiConfig();
+    const hasKey = Boolean(cfg.apiKey && cfg.apiKey.length > 10);
+
+    if (hasKey) {
+      return {
+        id: 'welcome_' + Date.now(),
+        role: 'assistant',
+        text: `👋 **Xin chào! Tôi là Trợ lý AI Apple Intelligence** (Đang kết nối trực tuyến **Google Gemini 1.5 Flash**).\n\nTôi có thể trò chuyện tự nhiên cùng bạn, ghi nhận tiền cơm, lên lịch nhắc nhở, tra cứu công nợ hay giải đáp bất kỳ câu hỏi nào. Bạn cần tôi hỗ trợ việc gì hôm nay?`,
+        time: getCurrentTimeStr()
+      };
+    } else {
+      return {
+        id: 'welcome_' + Date.now(),
+        role: 'assistant',
+        text: `👋 **Xin chào! Tôi là Trợ lý AI Apple Intelligence**.\n\n⚠️ **Bạn chưa kích hoạt Google Gemini API**: Hiện AI đang chạy ở chế độ Offline nên các câu trả lời sẽ còn máy móc. Để AI trở nên thông minh, phân tích câu nói tự nhiên và sử dụng dữ liệu trực tuyến online:\n\n👉 Bạn hãy nhấn nút **[⚙️ Kích Hoạt Gemini Online]** bên dưới để dán API Key miễn phí từ Google (chỉ mất 30 giây lấy mã)!`,
+        card: {
+          type: 'ACTIVATE_ONLINE'
+        },
+        time: getCurrentTimeStr()
+      };
+    }
+  }
+
   function loadChatHistory() {
     try {
       const raw = sessionStorage.getItem(CHAT_HISTORY_KEY);
@@ -101,14 +141,7 @@
     } catch (e) {}
 
     if (!Array.isArray(chatHistory) || !chatHistory.length) {
-      chatHistory = [
-        {
-          id: 'welcome_' + Date.now(),
-          role: 'assistant',
-          text: '👋 **Xin chào! Tôi là Trợ lý AI Apple Intelligence**.\nTôi có thể trò chuyện cùng bạn, ghi chép tiền cơm văn phòng, lên lịch nhắc nhở công việc, tra cứu công nợ hay mở ứng dụng.\nBạn cần tôi hỗ trợ việc gì hôm nay?',
-          time: getCurrentTimeStr()
-        }
-      ];
+      chatHistory = [getDefaultWelcomeMessage()];
     }
   }
 
@@ -119,19 +152,12 @@
   }
 
   function clearAiChat() {
-    chatHistory = [
-      {
-        id: 'welcome_' + Date.now(),
-        role: 'assistant',
-        text: '🧹 Cuộc trò chuyện đã được làm mới. Tôi sẵn sàng hỗ trợ các câu hỏi và yêu cầu tiếp theo của bạn!',
-        time: getCurrentTimeStr()
-      }
-    ];
+    chatHistory = [getDefaultWelcomeMessage()];
     activeConfirmationData = {};
     saveChatHistory();
     renderChatThread();
     if (typeof window.showToast === 'function') {
-      window.showToast('🧹 Đã xóa lịch sử trò chuyện!');
+      window.showToast('🧹 Đã làm mới cuộc trò chuyện!');
     }
   }
 
@@ -166,6 +192,8 @@
             cardHtml = renderBirthdaysCardHtml();
           } else if (msg.card.type === 'SUCCESS') {
             cardHtml = renderSuccessCardHtml(msg.card.data);
+          } else if (msg.card.type === 'ACTIVATE_ONLINE') {
+            cardHtml = renderActivateOnlineCardHtml();
           }
         }
 
@@ -208,13 +236,9 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
 
-    // Markdown bold **text**
     out = out.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-    // Markdown italic *text*
     out = out.replace(/\*(.*?)\*/g, '<i>$1</i>');
-    // Markdown code `code`
     out = out.replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.15); padding:1px 5px; border-radius:4px; font-size:12px;">$1</code>');
-    // Line breaks
     out = out.replace(/\n/g, '<br>');
     return out;
   }
@@ -222,6 +246,27 @@
   // --------------------------------------------------------------------------
   // 3. THẺ XÁC NHẬN & TƯƠNG TÁC (CONFIRMATION CARDS)
   // --------------------------------------------------------------------------
+  function renderActivateOnlineCardHtml() {
+    return `
+      <div class="ai-online-activate-card">
+        <div style="font-weight:700; color:#38bdf8; font-size:13.5px; margin-bottom:4px;">
+          🚀 Kích Hoạt Google Gemini 1.5 Flash (Trực Tuyến)
+        </div>
+        <div style="font-size:12px; color:#cbd5e1; line-height:1.5; margin-bottom:10px;">
+          Google Gemini hiểu tiếng Việt xuất sắc, phân tích ngữ nghĩa sâu và dùng dữ liệu online. Hoàn toàn miễn phí trọn đời từ Google AI Studio!
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="ai-btn-execute" onclick="toggleAiSettingsDrawer()" style="padding:6px 14px; font-size:12px;">
+            <span>⚙️</span> Nhập Gemini API Key Ngay
+          </button>
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="ai-link-btn" style="font-size:12px; padding:6px 4px;">
+            <span>👉</span> Lấy Key miễn phí từ Google (30s)
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
   function renderMealConfirmationCardHtml(data, msgId) {
     const allMembers = getSystemMembers();
     const currentPayerName = data.payerName || 'Công';
@@ -229,7 +274,6 @@
     const initialEaters = Array.isArray(data.eaters) && data.eaters.length > 0 ? data.eaters : allMembers.map(m => m.nickname || m.name);
     const dateStr = data.date || new Date().toISOString().split('T')[0];
 
-    // Store state in activeConfirmationData
     if (!activeConfirmationData[msgId]) {
       activeConfirmationData[msgId] = {
         payerName: currentPayerName,
@@ -251,7 +295,6 @@
         </div>
 
         <div class="ai-form-grid">
-          <!-- Người trả -->
           <div class="ai-form-group">
             <label class="ai-form-label">👤 Người chi trả:</label>
             <select class="ai-form-select" id="aiPayerSelect_${msgId}" onchange="aiUpdatePayer('${msgId}', this.value)">
@@ -263,7 +306,6 @@
             </select>
           </div>
 
-          <!-- Đơn giá mỗi người -->
           <div class="ai-form-group">
             <label class="ai-form-label">💰 Giá mỗi người:</label>
             <div style="display:flex; align-items:center; gap:6px;">
@@ -272,20 +314,17 @@
             </div>
           </div>
 
-          <!-- Ngày ghi nhận -->
           <div class="ai-form-group">
             <label class="ai-form-label">📅 Ngày diễn ra:</label>
             <input type="date" class="ai-form-input" id="aiDateInput_${msgId}" value="${state.date}" onchange="aiUpdateDate('${msgId}', this.value)">
           </div>
 
-          <!-- Tổng tiền tự động tính -->
           <div class="ai-form-group">
             <label class="ai-form-label">💵 Tổng cộng:</label>
             <div class="ai-total-highlight" id="aiTotalDisplay_${msgId}">${formatMoney(totalAmount)}</div>
           </div>
         </div>
 
-        <!-- Danh sách người ăn dạng Chip tương tác -->
         <div style="margin-top:10px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <label class="ai-form-label" style="margin:0;">👥 Thành viên ăn (<span id="aiEatersCount_${msgId}">${state.eaters.length}</span> người):</label>
@@ -305,13 +344,11 @@
           </div>
         </div>
 
-        <!-- Ghi chú -->
         <div style="margin-top:8px;">
           <label class="ai-form-label">📝 Ghi chú bữa ăn:</label>
           <input type="text" class="ai-form-input" id="aiNoteInput_${msgId}" value="${escapeHtml(state.note)}" oninput="aiUpdateNote('${msgId}', this.value)">
         </div>
 
-        <!-- Nút hành động xác nhận -->
         <div class="ai-confirm-actions">
           <button type="button" class="ai-btn-cancel" onclick="aiDismissConfirmCard('${msgId}')">✕ Bỏ qua</button>
           <button type="button" class="ai-btn-execute" onclick="aiExecuteAddMeal('${msgId}')">
@@ -630,7 +667,6 @@
         } catch (e) {}
       });
 
-      // Update message card inline to Success card
       const targetMsg = chatHistory.find(m => m.id === msgId);
       if (targetMsg) {
         targetMsg.card = {
@@ -668,9 +704,59 @@
   };
 
   // --------------------------------------------------------------------------
-  // 4. PARSER LỊCH NHẮC NHỞ (SMART REMINDERS)
+  // 4. PARSER LỊCH NHẮC NHỞ & LƯU HỆ THỐNG
   // --------------------------------------------------------------------------
-  function parseReminder(rawText) {
+  function saveReminderToSystem(task, timeStr, dateStr, displayFormatted) {
+    try {
+      let reminders = [];
+      try { reminders = JSON.parse(localStorage.getItem('sys_reminders')) || []; } catch (e) {}
+
+      const [y, m, d] = (dateStr || '').split('-').map(Number);
+      const [h, min] = (timeStr || '').split(':').map(Number);
+      const targetDate = new Date(y || new Date().getFullYear(), (m ? m - 1 : new Date().getMonth()), d || new Date().getDate(), h || 9, min || 0);
+
+      const remItem = {
+        id: 'rem_' + Date.now(),
+        task,
+        timeStr,
+        dateStr,
+        displayFormatted,
+        timestamp: targetDate.getTime(),
+        completed: false
+      };
+      reminders.unshift(remItem);
+      localStorage.setItem('sys_reminders', JSON.stringify(reminders));
+      if (window.dbStorage) window.dbStorage.set('sys_reminders', JSON.stringify(reminders));
+
+      // Thêm vào Sticky Notes
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem('p2p_notes')) || []; } catch (e) {}
+      notes.unshift({
+        id: 'note_' + Date.now(),
+        title: `⏰ Nhắc nhở: ${displayFormatted}`,
+        content: task,
+        color: '#fbbf24',
+        date: new Date().toLocaleDateString('vi-VN')
+      });
+      localStorage.setItem('p2p_notes', JSON.stringify(notes));
+      if (window.dbStorage) window.dbStorage.set('p2p_notes', JSON.stringify(notes));
+
+      // Thông báo hệ thống
+      if (typeof window.pushSystemNotification === 'function') {
+        window.pushSystemNotification({
+          title: '⏰ Đã Lên Lịch Nhắc Nhở',
+          message: `${task} vào lúc ${displayFormatted}`,
+          icon: '⏰',
+          tag: 'Nhắc Nhở',
+          appUrl: 'apps/ghi-chu/index.html'
+        });
+      }
+    } catch (e) {
+      console.warn('Lỗi lưu reminder:', e);
+    }
+  }
+
+  function parseReminderOffline(rawText) {
     const norm = normalizeVietnamese(rawText);
 
     const isReminder = /^(nhac|hen|dat gio|luu lich|nho nhac|nhac nho|remind)/i.test(norm) ||
@@ -678,7 +764,6 @@
 
     if (!isReminder) return null;
 
-    // Extract task text
     let task = rawText
       .replace(/^(nhắc tôi|nhắc nhở|nhớ nhắc|hẹn giờ|lên lịch|nhắc|remind me|remind)\s*/i, '')
       .replace(/\b(ngày mai|mai|hôm nay|nay|ngày kia|mốt)\b/gi, '')
@@ -719,49 +804,7 @@
     const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     const displayFormatted = `${timeStr} ngày ${String(targetDate.getDate()).padStart(2, '0')}/${String(targetDate.getMonth() + 1).padStart(2, '0')}/${targetDate.getFullYear()}`;
 
-    // Lưu vào sys_reminders và p2p_notes
-    try {
-      let reminders = [];
-      try { reminders = JSON.parse(localStorage.getItem('sys_reminders')) || []; } catch (e) {}
-      const remItem = {
-        id: 'rem_' + Date.now(),
-        task,
-        timeStr,
-        dateStr,
-        displayFormatted,
-        timestamp: targetDate.getTime(),
-        completed: false
-      };
-      reminders.unshift(remItem);
-      localStorage.setItem('sys_reminders', JSON.stringify(reminders));
-      if (window.dbStorage) window.dbStorage.set('sys_reminders', JSON.stringify(reminders));
-
-      // Thêm Sticky Note
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem('p2p_notes')) || []; } catch (e) {}
-      notes.unshift({
-        id: 'note_' + Date.now(),
-        title: `⏰ Nhắc nhở: ${displayFormatted}`,
-        content: task,
-        color: '#fbbf24',
-        date: new Date().toLocaleDateString('vi-VN')
-      });
-      localStorage.setItem('p2p_notes', JSON.stringify(notes));
-      if (window.dbStorage) window.dbStorage.set('p2p_notes', JSON.stringify(notes));
-
-      // Push system notification
-      if (typeof window.pushSystemNotification === 'function') {
-        window.pushSystemNotification({
-          title: '⏰ Đã Lên Lịch Nhắc Nhở',
-          message: `${task} vào lúc ${displayFormatted}`,
-          icon: '⏰',
-          tag: 'Nhắc Nhở',
-          appUrl: 'apps/ghi-chu/index.html'
-        });
-      }
-    } catch (e) {
-      console.warn('Lỗi lưu reminder:', e);
-    }
+    saveReminderToSystem(task, timeStr, dateStr, displayFormatted);
 
     return {
       task,
@@ -772,7 +815,7 @@
   }
 
   // --------------------------------------------------------------------------
-  // 5. BỘ TRÍ TUỆ NHÂN TẠO OFFLINE (SMART OFFLINE NLP & CHAT ENGINE)
+  // 5. BỘ TRÍ TUỆ NHÂN TẠO OFFLINE (FALLBACK KHI KHÔNG CÓ API KEY HOẶC MẤT MẠNG)
   // --------------------------------------------------------------------------
   function processOfflineConversation(userText) {
     const raw = userText.trim();
@@ -781,11 +824,11 @@
     const members = getSystemMembers();
     const today = new Date().toISOString().split('T')[0];
 
-    // 1. Nhận diện Đặt Lịch Nhắc Nhở (VD: "nhắc tôi mua cơm ngày mai 9h")
-    const reminderData = parseReminder(raw);
+    // Nhắc nhở
+    const reminderData = parseReminderOffline(raw);
     if (reminderData) {
       return {
-        replyText: `Dạ vâng! Tôi đã đặt lịch nhắc nhở cho bạn: ⏰ **"${reminderData.task}"** vào lúc **${reminderData.displayFormatted}**.\nThông tin này đã được lưu vào hệ thống Ghi Chú & Thông Báo để bạn không bị bỏ lỡ nhé!`,
+        replyText: `Dạ vâng! Tôi đã đặt lịch nhắc nhở: ⏰ **"${reminderData.task}"** vào lúc **${reminderData.displayFormatted}**.\nThông tin này đã được lưu vào hệ thống Ghi Chú & Thông Báo để bạn không bị bỏ lỡ nhé!`,
         card: {
           type: 'REMINDER',
           data: reminderData
@@ -793,7 +836,7 @@
       };
     }
 
-    // 2. Nhận diện Ghi chép Tiền Cơm (VD: "Hôm nay Công trả tiền cơm mỗi người 40k")
+    // Tiền cơm
     const isMealRelated = norm.includes('tien com') || norm.includes('bua com') || norm.includes('an trua') || norm.includes('an toi') || (norm.includes('com') && (norm.includes('tra') || norm.includes('chi')));
     const isPaymentAction = norm.includes('tra') || norm.includes('chi') || norm.includes('bao') || norm.includes('ung') || norm.includes('thanh toan');
 
@@ -834,7 +877,7 @@
       const eaters = members.map(m => m.nickname || m.name);
 
       return {
-        replyText: `Tôi đã soạn sẵn phiếu ghi nhận tiền cơm theo yêu cầu của bạn. Người chi trả là **${payerName}** với mức **${formatMoney(amount)}/người**.\nBạn vui lòng kiểm tra lại các thông tin bên dưới và bấm nút **Xác nhận & Nhập ngay** nhé!`,
+        replyText: `Tôi đã soạn sẵn phiếu ghi nhận tiền cơm cho **${payerName}** với mức **${formatMoney(amount)}/người**.\nBạn vui lòng kiểm tra lại thông tin bên dưới và bấm nút **Xác nhận & Nhập ngay** nhé!`,
         card: {
           type: 'MEAL_CONFIRM',
           data: {
@@ -848,7 +891,7 @@
       };
     }
 
-    // 3. Tra cứu công nợ tiền cơm (VD: "ai nợ tiền cơm nhiều nhất")
+    // Công nợ
     if (norm.includes('no tien') || norm.includes('no com') || norm.includes('ai no') || norm.includes('du tien') || norm.includes('am tien')) {
       return {
         replyText: `Dưới đây là tình hình đối soát công nợ tiền cơm hiện tại của các thành viên trong văn phòng:`,
@@ -856,7 +899,7 @@
       };
     }
 
-    // 4. Tra cứu sinh nhật (VD: "tháng này sinh nhật ai")
+    // Sinh nhật
     if (norm.includes('sinh nhat') || norm.includes('sn') || norm.includes('birthday')) {
       return {
         replyText: `Dưới đây là danh sách sinh nhật các thành viên trong tháng này. Hãy gửi lời chúc ấm áp nhé! 🎂`,
@@ -864,26 +907,13 @@
       };
     }
 
-    // 5. Mở ứng dụng hệ thống
+    // Mở app
     if (norm.includes('mo tien com') || norm.includes('vao tien com')) { openAppById('tien-com'); return { replyText: `Đang mở ứng dụng **Tiền Cơm** cho bạn ngay đây! 🥘` }; }
     if (norm.includes('mo danh ba') || norm.includes('vao danh ba')) { openAppById('danh-ba'); return { replyText: `Đang mở ứng dụng **Danh Bạ** cho bạn ngay đây! 👥` }; }
     if (norm.includes('mo ghi chu') || norm.includes('vao ghi chu')) { openAppById('ghi-chu'); return { replyText: `Đang mở ứng dụng **Sticky Notes** cho bạn ngay đây! 📝` }; }
     if (norm.includes('mo chia bill') || norm.includes('vao chia bill')) { openAppById('chia-bill'); return { replyText: `Đang mở ứng dụng **Chia Bill** cho bạn ngay đây! 🧾` }; }
-    if (norm.includes('mo cai dat') || norm.includes('control panel')) { openControlPanelAi(); return { replyText: `Đang mở **Bảng điều khiển hệ thống** cho bạn! ⚙️` }; }
 
-    // 6. Ngày giờ & Âm lịch
-    if (norm.includes('may gio') || norm.includes('ngay may') || norm.includes('thu may') || norm.includes('am lich') || norm.includes('ngay am')) {
-      const d = new Date();
-      const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-      const dayName = weekdays[d.getDay()];
-      const solarStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-      const timeStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-      return {
-        replyText: `Hôm nay là **${dayName}, ngày ${solarStr}**.\nBây giờ là **${timeStr}** ⏰. Chúc bạn làm việc hiệu quả và nhiều niềm vui!`
-      };
-    }
-
-    // 7. Tính nhẩm nhanh (VD: "500k / 3", "120 * 4", "1500k chia 5")
+    // Tính nhẩm
     const mathMatch = raw.match(/(\d+[\.,]?\d*)\s*(k|nghìn|ngàn)?\s*([\+\-\*\/]|chia|nhân|cộng|trừ)\s*(\d+[\.,]?\d*)\s*(k|nghìn|ngàn)?/i);
     if (mathMatch) {
       try {
@@ -905,68 +935,56 @@
       } catch (e) {}
     }
 
-    // 8. Chào hỏi & Trò chuyện xã giao
+    // Chào hỏi xã giao
     if (norm.includes('chao') || norm.includes('hello') || norm.includes('hi') || norm.includes('alo')) {
       return {
-        replyText: `Xin chào! Rất vui được gặp bạn hôm nay. Chúc bạn một ngày làm việc thật năng suất! 🌟\nTôi có thể giúp bạn ghi nhận tiền cơm, lên lịch nhắc nhở hay hỗ trợ việc gì không?`
+        replyText: `Xin chào! Chúc bạn một ngày làm việc thật nhiều năng lượng và hiệu quả! 🌟\nTôi có thể giúp bạn ghi chép tiền cơm, lên lịch nhắc việc hay hỗ trợ điều gì không?`
       };
     }
 
-    if (norm.includes('ban la ai') || norm.includes('la gi') || norm.includes('gioi thieu')) {
-      return {
-        replyText: `Tôi là **Apple Intelligence • Trợ lý AI**, được tích hợp trực tiếp trên macOS Web Dashboard. Tôi có thể:\n• 🥘 Tự động bóc tách & tạo phiếu ghi nhận tiền cơm\n• ⏰ Đặt lịch nhắc nhở thông minh\n• 📊 Tra cứu công nợ & số dư đối soát\n• 🎂 Thông báo sinh nhật các thành viên\n• 💬 Trò chuyện & giải đáp các thắc mắc văn phòng!`
-      };
-    }
-
-    if (norm.includes('cam on') || norm.includes('thank')) {
-      return {
-        replyText: `Không có chi! Luôn sẵn sàng hỗ trợ bạn bất kỳ lúc nào. Hãy gọi tôi khi cần nhé! 😊`
-      };
-    }
-
-    if (norm.includes('cuoi') || norm.includes('hai huoc') || norm.includes('joke')) {
-      return {
-        replyText: `Một dev bước vào quán cà phê gọi: 1 ly cà phê, 2 ly cà phê, 0 ly cà phê, 99999 ly cà phê và 1 con ếch. Tất cả đều pass test! Khách hàng thật bước vào hỏi nhà vệ sinh ở đâu, quán cà phê liền bốc cháy! 😂`
-      };
-    }
-
-    // Fallback thông minh
     return {
-      replyText: `Tôi đã hiểu câu nói của bạn: *"${raw}"*.\nBạn có thể thử các câu lệnh mẫu nhanh như:\n• "Hôm nay Công trả tiền cơm mỗi người 40k"\n• "Nhắc tôi mua cơm ngày mai 9h"\n• "Ai đang nợ tiền cơm nhiều nhất?"\n• "Tháng này sinh nhật những ai?"\n• Hoặc bấm **⚙️ Cấu hình Gemini AI** bên dưới để kích hoạt mô hình Google Gemini 1.5 Flash trò chuyện siêu thông minh nhé!`
+      replyText: `Tôi đã nhận được tin nhắn của bạn: *"${raw}"*.\n\n💡 **Mẹo:** Để AI phân tích ngữ nghĩa sâu và trò chuyện thông minh như ChatGPT/Gemini, bạn hãy bấm vào **⚙️ Cài đặt AI** ở góc trên để dán mã Google Gemini API Key miễn phí nhé!`
     };
   }
 
   // --------------------------------------------------------------------------
-  // 6. TÍCH HỢP GOOGLE GEMINI 1.5 MULTI-TURN CONVERSATION
+  // 6. TÍCH HỢP GOOGLE GEMINI 1.5 FLASH TRỰC TUYẾN (MULTI-TURN CHAT)
   // --------------------------------------------------------------------------
   async function callGeminiApi(userPrompt, apiKey, model) {
     const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const timeNow = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const dayOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][now.getDay()];
     const members = getSystemMembers();
-    const membersSummary = members.map(m => `"${m.nickname || m.name}" (${m.fullName || m.name})`).join(', ');
+    const membersSummary = members.map(m => `"${m.nickname || m.name}" (Họ tên: ${m.fullName || m.name})`).join(', ');
 
-    const systemPrompt = `Bạn là Trợ lý AI Apple Intelligence cho Hệ thống macOS Dashboard Văn Phòng.
-Ngày hôm nay: ${today}.
-Danh sách thành viên: [${membersSummary}].
+    const systemPrompt = `Bạn là Trợ lý AI Apple Intelligence cho Hệ thống macOS Dashboard Văn Phòng, chạy trên Google Gemini.
+Thời gian hiện tại: ${dayOfWeek}, ngày ${today} lúc ${timeNow}.
+Danh sách thành viên công ty: [${membersSummary}].
 
-Nhiệm vụ: Trò chuyện tự nhiên, thân thiện, thông minh bằng Tiếng Việt.
-Nếu người dùng yêu cầu:
-1. Ghi nhận tiền cơm / bữa ăn: hãy trò chuyện lịch sự và BẮT BUỘC chèn khối thẻ sau vào cuối câu trả lời:
-<ACTION_MEAL_LOG>{"payerName":"Công","amountPerPerson":40000,"eaters":["Công","Đạt","Đô","Hạnh","Quyền","Duy"],"date":"${today}","note":"Ghi chú"}</ACTION_MEAL_LOG>
+Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng Việt. Phân tích ngữ cảnh người dùng:
+1. Nếu người dùng muốn ĐẶT LỊCH NHẮC NHỞ / HẸN GIỜ (ví dụ: "nhắc tôi mua cơm ngày mai 9h", "hẹn giờ 14h chiều mai họp"):
+   - Hãy trả lời ân cần, tự nhiên.
+   - BẮT BUỘC chèn thẻ hành động sau vào cuối câu trả lời:
+   <ACTION_REMINDER>{"task":"Mua cơm","timeStr":"09:00","dateStr":"2026-10-03","displayFormatted":"09:00 ngày 03/10/2026"}</ACTION_REMINDER>
+   (Lưu ý: "ngày mai" tính từ ${today} là ngày tiếp theo).
 
-2. Đặt lịch nhắc nhở: hãy xác nhận lịch nhắc và BẮT BUỘC chèn khối thẻ sau:
-<ACTION_REMINDER>{"task":"Mua cơm","timeStr":"09:00","dateStr":"${today}","displayFormatted":"09:00 ngày mai"}</ACTION_REMINDER>
+2. Nếu người dùng muốn GHI TIỀN CƠM (ví dụ: "hôm nay Công trả tiền cơm mỗi người 40k", "Đô bao 35k tiền cơm hôm qua"):
+   - Trả lời xác nhận lịch sự, tự nhiên.
+   - BẮT BUỘC chèn thẻ hành động sau vào cuối câu trả lời:
+   <ACTION_MEAL_LOG>{"payerName":"Công","amountPerPerson":40000,"eaters":["Đô","Đạt Còi","Công","Hạnh","Quyền","Duy"],"date":"${today}","note":"Công trả tiền cơm"}</ACTION_MEAL_LOG>
 
-3. Mở ứng dụng: chèn:
-<ACTION_OPEN_APP>{"appId":"tien-com"}</ACTION_OPEN_APP>
+3. Nếu người dùng muốn MỞ ỨNG DỤNG (ví dụ: "mở tiền cơm", "mở danh bạ", "mở ghi chú", "mở chia bill"):
+   - Chèn: <ACTION_OPEN_APP>{"appId":"tien-com"}</ACTION_OPEN_APP>
 
-Đối với các câu hỏi trò chuyện, tính toán, văn phòng khác: hãy trả lời tự nhiên, hóm hỉnh và hữu ích!`;
+4. Với tất cả các câu hỏi khác (viết văn, tính toán, tra cứu, trò chuyện, lời khuyên, giải thích khoa học): Trả lời chi tiết, sắc sảo, tự nhiên, mang phong cách trợ lý thông minh cao cấp.`;
 
     const contents = [
       { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'model', parts: [{ text: 'Dạ tôi đã hiểu! Tôi sẽ trò chuyện tự nhiên và chèn đúng thẻ Action khi người dùng yêu cầu thao tác.' }] }
+      { role: 'model', parts: [{ text: 'Dạ vâng! Tôi đã hiểu rõ ngữ cảnh văn phòng và nhiệm vụ phân tích ngữ nghĩa thông minh của mình. Tôi sẵn sàng phục vụ!' }] }
     ];
 
-    // Gửi kèm tối đa 6 lượt chat gần nhất để hiểu ngữ cảnh
+    // Gửi kèm tối đa 6 lượt chat gần nhất để hiểu ngữ cảnh liên tục
     const recentMessages = chatHistory.slice(-6);
     recentMessages.forEach(msg => {
       contents.push({
@@ -989,7 +1007,7 @@ Nếu người dùng yêu cầu:
         contents: contents,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 800
+          maxOutputTokens: 1000
         }
       })
     });
@@ -1025,21 +1043,34 @@ Nếu người dùng yêu cầu:
     isThinking = true;
     saveChatHistory();
     renderChatThread();
-    setAiStatus('Trí tuệ nhân tạo đang suy nghĩ... ✨', 'loading');
+    setAiStatusText('Trí tuệ nhân tạo đang suy nghĩ... ✨');
 
     const cfg = getAiConfig();
     let replyText = '';
     let card = null;
-    let modelUsed = 'Apple Intelligence Offline Engine';
+    let modelUsed = 'Offline Fallback';
 
-    try {
-      if (cfg.apiKey && cfg.apiKey.trim()) {
+    const hasKey = Boolean(cfg.apiKey && cfg.apiKey.trim().length > 10);
+
+    if (hasKey) {
+      try {
         modelUsed = `Google ${cfg.model || DEFAULT_GEMINI_MODEL}`;
         const geminiRaw = await callGeminiApi(query, cfg.apiKey.trim(), cfg.model);
 
-        // Kiểm tra xem Gemini có nhúng các thẻ Action không
         let cleanedText = geminiRaw;
 
+        // Bóc tách thẻ Action Nhắc Nhở
+        const reminderMatch = geminiRaw.match(/<ACTION_REMINDER>([\s\S]*?)<\/ACTION_REMINDER>/i);
+        if (reminderMatch) {
+          try {
+            const parsed = JSON.parse(reminderMatch[1]);
+            saveReminderToSystem(parsed.task, parsed.timeStr, parsed.dateStr, parsed.displayFormatted);
+            card = { type: 'REMINDER', data: parsed };
+            cleanedText = cleanedText.replace(reminderMatch[0], '').trim();
+          } catch (e) {}
+        }
+
+        // Bóc tách thẻ Action Tiền Cơm
         const mealMatch = geminiRaw.match(/<ACTION_MEAL_LOG>([\s\S]*?)<\/ACTION_MEAL_LOG>/i);
         if (mealMatch) {
           try {
@@ -1049,15 +1080,7 @@ Nếu người dùng yêu cầu:
           } catch (e) {}
         }
 
-        const reminderMatch = geminiRaw.match(/<ACTION_REMINDER>([\s\S]*?)<\/ACTION_REMINDER>/i);
-        if (reminderMatch) {
-          try {
-            const parsed = JSON.parse(reminderMatch[1]);
-            card = { type: 'REMINDER', data: parsed };
-            cleanedText = cleanedText.replace(reminderMatch[0], '').trim();
-          } catch (e) {}
-        }
-
+        // Bóc tách thẻ Mở App
         const openAppMatch = geminiRaw.match(/<ACTION_OPEN_APP>([\s\S]*?)<\/ACTION_OPEN_APP>/i);
         if (openAppMatch) {
           try {
@@ -1068,18 +1091,19 @@ Nếu người dùng yêu cầu:
         }
 
         replyText = cleanedText || 'Tôi đã xử lý yêu cầu của bạn!';
-      } else {
-        // Chế độ Offline NLP siêu mượt
+      } catch (err) {
+        console.warn('[AI Assistant] Lỗi Gemini API, chuyển sang bộ xử lý cục bộ:', err);
+        modelUsed = 'Offline (Lỗi kết nối Gemini API)';
         const offRes = processOfflineConversation(query);
         replyText = offRes.replyText;
         card = offRes.card || null;
       }
-    } catch (err) {
-      console.warn('[AI Assistant] Lỗi Gemini, chuyển sang bộ xử lý thông minh Offline:', err);
-      modelUsed = 'Apple Intelligence Offline (Fallback)';
+    } else {
+      // Chưa cấu hình API Key -> Chạy bộ phân tích cục bộ và nhắc nhở
       const offRes = processOfflineConversation(query);
       replyText = offRes.replyText;
       card = offRes.card || null;
+      modelUsed = 'Offline (Chưa nhập API Key)';
     }
 
     // 2. Thêm phản hồi của Assistant vào luồng hội thoại
@@ -1095,11 +1119,155 @@ Nếu người dùng yêu cầu:
 
     saveChatHistory();
     renderChatThread();
-    setAiStatus(`Đã phân tích bởi ${modelUsed}`, 'success');
+    updateAiStatusIndicator();
   }
 
   // --------------------------------------------------------------------------
-  // 8. WEB SPEECH RECOGNITION (GIỌNG NÓI TIẾNG VIỆT)
+  // 8. CẬP NHẬT TRẠNG THÁI STATUS BAR & DRAWER SETTINGS
+  // --------------------------------------------------------------------------
+  function updateAiStatusIndicator() {
+    const cfg = getAiConfig();
+    const hasKey = Boolean(cfg.apiKey && cfg.apiKey.trim().length > 10);
+    const dot = document.getElementById('aiOnlineDot');
+    const label = document.getElementById('aiOnlineStatusLabel');
+
+    if (dot && label) {
+      if (hasKey) {
+        dot.classList.remove('offline');
+        label.innerText = `🟢 Trực tuyến • Google ${cfg.model || DEFAULT_GEMINI_MODEL}`;
+      } else {
+        dot.classList.add('offline');
+        label.innerText = `⚪ Ngoại tuyến (Chưa có API Key) • Bấm ⚙️ để kích hoạt`;
+      }
+    }
+  }
+
+  function setAiStatusText(text) {
+    const label = document.getElementById('aiOnlineStatusLabel');
+    if (label) label.innerText = text;
+  }
+
+  function toggleAiSettingsDrawer() {
+    const drawer = document.getElementById('aiSettingsDrawer');
+    if (!drawer) return;
+
+    const isOpen = drawer.style.display === 'block';
+    drawer.style.display = isOpen ? 'none' : 'block';
+
+    if (!isOpen) {
+      const cfg = getAiConfig();
+      const keyInput = document.getElementById('drawerGeminiKeyInput');
+      const modelSelect = document.getElementById('drawerGeminiModelSelect');
+      const statusEl = document.getElementById('drawerAiTestStatus');
+
+      if (keyInput) keyInput.value = cfg.apiKey || '';
+      if (modelSelect) modelSelect.value = cfg.model || DEFAULT_GEMINI_MODEL;
+      if (statusEl) statusEl.style.display = 'none';
+      if (keyInput) setTimeout(() => keyInput.focus(), 150);
+    }
+  }
+
+  function toggleDrawerKeyVisibility() {
+    const input = document.getElementById('drawerGeminiKeyInput');
+    if (input) {
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+  }
+
+  async function testDrawerGeminiConnection() {
+    const keyInput = document.getElementById('drawerGeminiKeyInput');
+    const modelSelect = document.getElementById('drawerGeminiModelSelect');
+    const statusEl = document.getElementById('drawerAiTestStatus');
+    const btn = document.getElementById('btnDrawerTestAi');
+
+    const apiKey = keyInput ? keyInput.value.trim() : '';
+    const model = modelSelect ? modelSelect.value : DEFAULT_GEMINI_MODEL;
+
+    if (!apiKey) {
+      alert('Vui lòng dán Google Gemini API Key trước khi kiểm tra!');
+      if (keyInput) keyInput.focus();
+      return;
+    }
+
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#38bdf8';
+      statusEl.innerHTML = '⏳ Đang gửi yêu cầu kiểm tra tới Google Gemini API...';
+    }
+    if (btn) btn.disabled = true;
+
+    const t0 = performance.now();
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "Hãy trả lời đúng từ 'OK' nếu bạn đã nhận được tin này." }] }]
+        })
+      });
+
+      const t1 = performance.now();
+      const latency = Math.round(t1 - t0);
+
+      if (res.ok) {
+        const data = await res.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'OK';
+        if (statusEl) {
+          statusEl.style.color = '#34d399';
+          statusEl.innerHTML = `✅ <b>Kết nối Google Gemini thành công!</b> (Độ trễ: ${latency}ms)<br>Phản hồi từ AI: <i>${reply.trim()}</i>`;
+        }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        if (statusEl) {
+          statusEl.style.color = '#f87171';
+          statusEl.textContent = `❌ Lỗi kết nối (HTTP ${res.status}): ${err?.error?.message || 'API Key không hợp lệ hoặc đã hết hạn ngạch!'}`;
+        }
+      }
+    } catch (e) {
+      if (statusEl) {
+        statusEl.style.color = '#f87171';
+        statusEl.textContent = '❌ Lỗi mạng: ' + e.message;
+      }
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function saveDrawerGeminiSettings() {
+    const keyInput = document.getElementById('drawerGeminiKeyInput');
+    const modelSelect = document.getElementById('drawerGeminiModelSelect');
+    const apiKey = keyInput ? keyInput.value.trim() : '';
+    const model = modelSelect ? modelSelect.value : DEFAULT_GEMINI_MODEL;
+
+    const cfg = { apiKey, model, enabled: true };
+    saveAiConfig(cfg);
+
+    toggleAiSettingsDrawer();
+
+    if (apiKey) {
+      if (typeof window.showToast === 'function') {
+        window.showToast('✅ Đã kích hoạt Google Gemini Trực Tuyến thành công!');
+      } else {
+        alert('✅ Đã kích hoạt Google Gemini Trực Tuyến thành công!');
+      }
+
+      // Thêm thông báo chào mừng kích hoạt vào luồng chat
+      chatHistory.push({
+        id: 'online_activated_' + Date.now(),
+        role: 'assistant',
+        text: `🎉 **Đã kích hoạt Google Gemini ${model} Trực Tuyến thành công!**\nTừ bây giờ, tôi sẽ sử dụng toàn bộ trí tuệ nhân tạo online của Google để phân tích câu nói, hiểu ngữ cảnh và trò chuyện tự nhiên cùng bạn. Hãy thử hỏi hoặc ra lệnh cho tôi ngay nhé! ✨`,
+        time: getCurrentTimeStr()
+      });
+      saveChatHistory();
+      renderChatThread();
+    } else {
+      alert('Đã lưu cấu hình (chế độ Offline).');
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 9. WEB SPEECH RECOGNITION (GIỌNG NÓI TIẾNG VIỆT)
   // --------------------------------------------------------------------------
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1114,7 +1282,7 @@ Nếu người dùng yêu cầu:
     recognizer.onstart = function () {
       isListening = true;
       updateVoiceUI(true);
-      setAiStatus('Đang lắng nghe bạn nói... 🎙️', 'listening');
+      setAiStatusText('Đang lắng nghe bạn nói... 🎙️');
     };
 
     recognizer.onresult = function (event) {
@@ -1143,15 +1311,16 @@ Nếu người dùng yêu cầu:
       console.warn('[AI Assistant] Lỗi giọng nói:', event.error);
       stopVoiceListening();
       if (event.error === 'not-allowed') {
-        setAiStatus('Microphone bị chặn. Vui lòng cấp quyền micro trong trình duyệt!', 'error');
+        setAiStatusText('Microphone bị chặn. Hãy cấp quyền truy cập micro trong trình duyệt!');
       } else if (event.error === 'no-speech') {
-        setAiStatus('Không nhận diện được âm thanh. Hãy thử nói lại!', 'idle');
+        setAiStatusText('Không nghe rõ âm thanh. Hãy thử nói lại!');
       }
     };
 
     recognizer.onend = function () {
       isListening = false;
       updateVoiceUI(false);
+      updateAiStatusIndicator();
     };
 
     return recognizer;
@@ -1193,7 +1362,7 @@ Nếu người dùng yêu cầu:
   }
 
   // --------------------------------------------------------------------------
-  // 9. HIỂN THỊ, ĐÓNG MỞ & TIỆN ÍCH MODAL
+  // 10. HIỂN THỊ, ĐÓNG MỞ & TIỆN ÍCH MODAL
   // --------------------------------------------------------------------------
   function showAiAssistantModal() {
     const modal = document.getElementById('aiAssistantModal');
@@ -1203,6 +1372,7 @@ Nếu người dùng yêu cầu:
         loadChatHistory();
       }
       renderChatThread();
+      updateAiStatusIndicator();
       const input = document.getElementById('aiAssistantInput');
       if (input) setTimeout(() => input.focus(), 120);
     }
@@ -1213,6 +1383,8 @@ Nếu người dùng yêu cầu:
     if (modal) {
       modal.classList.remove('show');
     }
+    const drawer = document.getElementById('aiSettingsDrawer');
+    if (drawer) drawer.style.display = 'none';
     stopVoiceListening();
   }
 
@@ -1224,11 +1396,6 @@ Nếu người dùng yêu cầu:
     } else {
       showAiAssistantModal();
     }
-  }
-
-  function setAiStatus(text) {
-    const el = document.getElementById('aiStatusText');
-    if (el) el.innerText = text;
   }
 
   function submitAiPrompt(promptText) {
@@ -1262,7 +1429,7 @@ Nếu người dùng yêu cầu:
   }
 
   // --------------------------------------------------------------------------
-  // 10. KHỞI TẠO & PHÍM TẮT
+  // 11. KHỞI TẠO & PHÍM TẮT
   // --------------------------------------------------------------------------
   window.addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
@@ -1279,6 +1446,7 @@ Nếu người dùng yêu cầu:
 
   document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
+    updateAiStatusIndicator();
   });
 
   // Export ra toàn cục window
@@ -1291,7 +1459,10 @@ Nếu người dùng yêu cầu:
     showAiAssistantModal,
     closeAiAssistant,
     submitAiPrompt,
-    clearAiChat
+    clearAiChat,
+    toggleAiSettingsDrawer,
+    saveDrawerGeminiSettings,
+    testDrawerGeminiConnection
   };
 
   window.toggleAiAssistant = toggleAiAssistant;
@@ -1299,5 +1470,9 @@ Nếu người dùng yêu cầu:
   window.toggleVoiceListening = toggleVoiceListening;
   window.submitAiPrompt = submitAiPrompt;
   window.clearAiChat = clearAiChat;
+  window.toggleAiSettingsDrawer = toggleAiSettingsDrawer;
+  window.toggleDrawerKeyVisibility = toggleDrawerKeyVisibility;
+  window.testDrawerGeminiConnection = testDrawerGeminiConnection;
+  window.saveDrawerGeminiSettings = saveDrawerGeminiSettings;
 
 })();
