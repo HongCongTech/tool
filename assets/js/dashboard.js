@@ -62,6 +62,8 @@
   let activeWindowId = null;
   let highestZIndex = 500;
   let cascadeOffset = 0;
+  const WORKSPACE_SESSION_KEY = 'mac_dashboard_active_workspace_v1';
+  let isRestoringSession = false;
 
   // Admin State
   let isAdmin = localStorage.getItem(SYS_IS_ADMIN_KEY) === 'true';
@@ -1893,6 +1895,7 @@
 
     focusWindow(app.id);
     renderDockApps(); updateRunningAppIndicators();
+    saveWorkspaceSession();
   }
 
   // Cử chỉ và đóng ứng dụng phong cách iPhone
@@ -2064,6 +2067,7 @@
 
         winData.rect.left = winEl.style.left;
         winData.rect.top = winEl.style.top;
+        saveWorkspaceSession();
       }
 
       headerEl.addEventListener('pointermove', onPointerMove);
@@ -2147,6 +2151,7 @@
           width: winEl.style.width,
           height: winEl.style.height
         };
+        saveWorkspaceSession();
       }
 
       handleEl.addEventListener('pointermove', onPointerMove);
@@ -2192,6 +2197,7 @@
         }
       }
       renderDockApps(); updateRunningAppIndicators();
+      saveWorkspaceSession();
     }, 360);
   }
 
@@ -2232,6 +2238,7 @@
       winData.isMinimized = false;
       focusWindow(appId);
       renderDockApps(); updateRunningAppIndicators();
+      saveWorkspaceSession();
     }, 360);
   }
 
@@ -2257,6 +2264,7 @@
         }
       }
       renderDockApps(); updateRunningAppIndicators();
+      saveWorkspaceSession();
     }, 220);
   }
 
@@ -2283,6 +2291,8 @@
       winEl.classList.add('is-maximized');
       winData.isMaximized = true;
     }
+    renderDockApps(); updateRunningAppIndicators();
+    saveWorkspaceSession();
   }
 
   function focusWindow(appId) {
@@ -2302,6 +2312,7 @@
     });
 
     renderDockApps(); updateRunningAppIndicators();
+    saveWorkspaceSession();
   }
 
   function reloadWindow(appId) {
@@ -2338,6 +2349,7 @@
       all.forEach(w => {
         if (!w.isMinimized) dismissIosWindow(w.id, 'down');
       });
+      saveWorkspaceSession();
       return;
     }
 
@@ -2352,6 +2364,122 @@
       all.forEach(w => {
         if (w.isMinimized) restoreWindow(w.id);
       });
+    }
+    saveWorkspaceSession();
+  }
+
+  // --------------------------------------------------------------------------
+  // WORKSPACE SESSION PERSISTENCE (LƯU VÀ KHÔI PHỤC PHIÊN LÀM VIỆC KHI RELOAD)
+  // --------------------------------------------------------------------------
+  function saveWorkspaceSession() {
+    if (isRestoringSession) return;
+    try {
+      const winEntries = Object.values(openWindows).map(w => ({
+        appId: w.id,
+        isMinimized: !!w.isMinimized,
+        isMaximized: !!w.isMaximized,
+        rect: w.rect || {
+          left: (w.el && w.el.style.left) || '50px',
+          top: (w.el && w.el.style.top) || '36px',
+          width: (w.el && w.el.style.width) || '800px',
+          height: (w.el && w.el.style.height) || '560px'
+        }
+      }));
+
+      const session = {
+        windows: winEntries,
+        activeWindowId: activeWindowId || (winEntries.length > 0 ? winEntries[winEntries.length - 1].appId : null),
+        updatedAt: Date.now()
+      };
+
+      localStorage.setItem(WORKSPACE_SESSION_KEY, JSON.stringify(session));
+    } catch (e) {
+      console.warn('[Workspace] Could not save workspace session:', e);
+    }
+  }
+
+  function restoreWorkspaceSession() {
+    try {
+      const raw = localStorage.getItem(WORKSPACE_SESSION_KEY);
+      if (!raw) return;
+      const session = JSON.parse(raw);
+      if (!session || !Array.isArray(session.windows) || session.windows.length === 0) return;
+
+      isRestoringSession = true;
+      const isMobileMode = document.body.classList.contains('ios-mode') || window.innerWidth <= 768;
+
+      if (isMobileMode) {
+        // Trên iPhone/mobile: khôi phục ứng dụng đang hoạt động hoặc app mở gần nhất
+        const targetWin = session.windows.find(w => w.appId === session.activeWindowId && !w.isMinimized) ||
+                          session.windows.find(w => !w.isMinimized) ||
+                          session.windows[session.windows.length - 1];
+        if (targetWin) {
+          const app = appsList.find(a => String(a.id) === String(targetWin.appId)) ||
+                      (targetWin.appId === 'control-panel' ? {
+                        id: 'control-panel',
+                        title: 'Cài Đặt',
+                        icon: '⚙️',
+                        url: 'apps/control-panel/index.html',
+                        adminOnly: true
+                      } : null);
+          if (app && (!app.adminOnly || isAdmin)) {
+            openApp(app);
+          }
+        }
+        return;
+      }
+
+      // Trên desktop: khôi phục tất cả các cửa sổ đã mở trước đó
+      session.windows.forEach(savedWin => {
+        const app = appsList.find(a => String(a.id) === String(savedWin.appId)) ||
+                    (savedWin.appId === 'control-panel' ? {
+                      id: 'control-panel',
+                      title: 'Cài Đặt',
+                      icon: '⚙️',
+                      url: 'apps/control-panel/index.html',
+                      adminOnly: true
+                    } : null);
+
+        if (!app) return;
+        if (app.adminOnly && !isAdmin) return;
+
+        openApp(app);
+
+        const winData = openWindows[app.id];
+        if (winData) {
+          if (savedWin.rect && winData.el) {
+            winData.rect = savedWin.rect;
+            if (savedWin.rect.left) winData.el.style.left = savedWin.rect.left;
+            if (savedWin.rect.top) winData.el.style.top = savedWin.rect.top;
+            if (savedWin.rect.width) winData.el.style.width = savedWin.rect.width;
+            if (savedWin.rect.height) winData.el.style.height = savedWin.rect.height;
+          }
+          if (savedWin.isMaximized) {
+            winData.isMaximized = true;
+            winData.el.classList.add('is-maximized');
+          }
+          if (savedWin.isMinimized) {
+            winData.isMinimized = true;
+            winData.el.classList.add('is-minimized');
+          }
+        }
+      });
+
+      // Focus lại đúng cửa sổ trước đó
+      if (session.activeWindowId && openWindows[session.activeWindowId] && !openWindows[session.activeWindowId].isMinimized) {
+        focusWindow(session.activeWindowId);
+      } else {
+        const nextVisible = Object.values(openWindows).reverse().find(w => !w.isMinimized);
+        if (nextVisible) focusWindow(nextVisible.id);
+      }
+
+      renderDockApps();
+      updateRunningAppIndicators();
+    } catch (e) {
+      console.warn('[Workspace] Could not restore workspace session:', e);
+    } finally {
+      isRestoringSession = false;
+      saveWorkspaceSession();
     }
   }
 
@@ -2960,7 +3088,7 @@
                   </div>
                 </div>
                 <div style="display:flex; gap:6px;">
-                  <button type="button" class="cal-bday-btn" onclick="copyCalendarBirthdayWish('${encodedName}', '${age || ''}')">
+                  <button type="button" class="cal-bday-btn" onclick="copyCalendarBirthdayWish('${encodedName}', '${age || ''}', event)">
                     🎉 Sao chép lời chúc
                   </button>
                   <button type="button" class="cal-bday-btn" style="background:#0284c7;" onclick="openDanhBaFromCalendar()">
@@ -3000,7 +3128,7 @@
       const isSun = (firstDayIndex - 1 - i) % 7 === 0;
 
       gridCellsHtml += `
-        <div class="cal-cell other-month ${hasBday ? 'has-bday' : ''}" onclick="selectCalendarDate(${prevY}, ${prevM}, ${d})" title="${hasBday ? '🎂 ' + bdayTitle : ''}">
+        <div class="cal-cell other-month ${hasBday ? 'has-bday' : ''}" onclick="selectCalendarDate(${prevY}, ${prevM}, ${d}, event)" title="${hasBday ? '🎂 ' + bdayTitle : ''}">
           <span class="cell-solar ${isSun ? 'sunday' : ''}">${d}</span>
           <span class="cell-lunar ${l.day === 1 ? 'lunar-first' : ''}">${l.day === 1 ? `1/${l.month}` : l.day}</span>
           ${hasBday ? `<span class="cell-badge-bday">🎂</span>` : ''}
@@ -3028,7 +3156,7 @@
 
       gridCellsHtml += `
         <div class="cal-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${hasBday ? 'has-bday' : ''}" 
-             onclick="selectCalendarDate(${viewYear}, ${viewMonth}, ${d})" 
+             onclick="selectCalendarDate(${viewYear}, ${viewMonth}, ${d}, event)" 
              title="${hasBday ? '🎂 ' + bdayTitle : (hasEvent ? '🚩 ' + eventTitle : '')}">
           <span class="cell-solar ${isSun ? 'sunday' : ''}">${d}</span>
           <span class="cell-lunar ${l.day === 1 ? 'lunar-first' : ''}">${l.day === 1 ? `1/${l.month}` : l.day}</span>
@@ -3054,7 +3182,7 @@
       const isSun = cellWeekday === 0;
 
       gridCellsHtml += `
-        <div class="cal-cell other-month ${hasBday ? 'has-bday' : ''}" onclick="selectCalendarDate(${nextY}, ${nextM}, ${d})" title="${hasBday ? '🎂 ' + bdayTitle : ''}">
+        <div class="cal-cell other-month ${hasBday ? 'has-bday' : ''}" onclick="selectCalendarDate(${nextY}, ${nextM}, ${d}, event)" title="${hasBday ? '🎂 ' + bdayTitle : ''}">
           <span class="cell-solar ${isSun ? 'sunday' : ''}">${d}</span>
           <span class="cell-lunar ${l.day === 1 ? 'lunar-first' : ''}">${l.day === 1 ? `1/${l.month}` : l.day}</span>
           ${hasBday ? `<span class="cell-badge-bday">🎂</span>` : ''}
@@ -3068,9 +3196,9 @@
         <div class="cal-nav-bar">
           <div class="cal-month-title">${MONTH_NAMES[viewMonth]}, ${viewYear}</div>
           <div class="cal-nav-actions">
-            <button type="button" class="cal-nav-btn" onclick="navigateCalendarMonth(-1)" title="Tháng trước">◀</button>
-            <button type="button" class="cal-today-btn" onclick="resetCalendarToToday()" title="Trở về hôm nay">Hôm nay</button>
-            <button type="button" class="cal-nav-btn" onclick="navigateCalendarMonth(1)" title="Tháng sau">▶</button>
+            <button type="button" class="cal-nav-btn" onclick="navigateCalendarMonth(-1, event)" title="Tháng trước">◀</button>
+            <button type="button" class="cal-today-btn" onclick="resetCalendarToToday(event)" title="Trở về hôm nay">Hôm nay</button>
+            <button type="button" class="cal-nav-btn" onclick="navigateCalendarMonth(1, event)" title="Tháng sau">▶</button>
             <button type="button" class="cal-nav-btn" onclick="toggleCalendar(event)" title="Đóng lịch" style="margin-left:4px;">✕</button>
           </div>
         </div>
@@ -3098,7 +3226,7 @@
                 const diffText = item.diff === 0 ? 'Hôm nay!' : (item.diff > 0 ? `Còn ${item.diff} ngày` : 'Đã qua');
                 const nickOrName = item.member.nickname || item.member.name;
                 return `
-                  <button type="button" class="cal-mbday-chip ${isSelected ? 'active-chip' : ''}" onclick="selectCalendarDate(${viewYear}, ${viewMonth}, ${item.day})">
+                  <button type="button" class="cal-mbday-chip ${isSelected ? 'active-chip' : ''}" onclick="selectCalendarDate(${viewYear}, ${viewMonth}, ${item.day}, event)">
                     🎂 ${String(item.day).padStart(2, '0')}/${viewMonth + 1} ${escapeHtml(nickOrName)} <span style="opacity:0.8; font-size:10px;">(${diffText})</span>
                   </button>
                 `;
@@ -3116,10 +3244,10 @@
     // Mobile tabs switcher
     const mobileTabsHtml = `
       <div class="cal-mobile-tabs">
-        <button type="button" class="cal-mob-tab-btn ${calState.mobileTab === 'bloc' ? 'active' : ''}" onclick="switchCalendarMobileTab('bloc')">
+        <button type="button" class="cal-mob-tab-btn ${calState.mobileTab === 'bloc' ? 'active' : ''}" onclick="switchCalendarMobileTab('bloc', event)">
           📅 Tờ Lịch Bloc Chi Tiết
         </button>
-        <button type="button" class="cal-mob-tab-btn ${calState.mobileTab === 'matrix' ? 'active' : ''}" onclick="switchCalendarMobileTab('matrix')">
+        <button type="button" class="cal-mob-tab-btn ${calState.mobileTab === 'matrix' ? 'active' : ''}" onclick="switchCalendarMobileTab('matrix', event)">
           🗓️ Lịch Tháng (${thisMonthBirthdays.length} 🎂)
         </button>
       </div>
@@ -3128,7 +3256,13 @@
     DOM.calendarPopover.innerHTML = mobileTabsHtml + wallBlocHtml + matrixHtml;
   }
 
-  function selectCalendarDate(year, month, day) {
+  function selectCalendarDate(year, month, day, event) {
+    if (event) {
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    if (window.event) window.event.cancelBubble = true;
+
     calState.selectedDate = new Date(year, month, day, 12, 0, 0);
     calState.viewYear = year;
     calState.viewMonth = month;
@@ -3136,9 +3270,18 @@
       calState.mobileTab = 'bloc';
     }
     renderCalendar();
+    if (DOM.calendarPopover) {
+      DOM.calendarPopover.classList.add('show');
+    }
   }
 
-  function navigateCalendarMonth(delta) {
+  function navigateCalendarMonth(delta, event) {
+    if (event) {
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    if (window.event) window.event.cancelBubble = true;
+
     calState.viewMonth += delta;
     if (calState.viewMonth < 0) {
       calState.viewMonth = 11;
@@ -3148,23 +3291,50 @@
       calState.viewYear++;
     }
     renderCalendar();
+    if (DOM.calendarPopover) {
+      DOM.calendarPopover.classList.add('show');
+    }
   }
 
-  function resetCalendarToToday() {
+  function resetCalendarToToday(event) {
+    if (event) {
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    if (window.event) window.event.cancelBubble = true;
+
     const now = new Date();
     calState.selectedDate = now;
     calState.viewYear = now.getFullYear();
     calState.viewMonth = now.getMonth();
     renderCalendar();
+    if (DOM.calendarPopover) {
+      DOM.calendarPopover.classList.add('show');
+    }
     showToast('📅 Đã trở về ngày hôm nay!');
   }
 
-  function switchCalendarMobileTab(tab) {
+  function switchCalendarMobileTab(tab, event) {
+    if (event) {
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    if (window.event) window.event.cancelBubble = true;
+
     calState.mobileTab = tab;
     renderCalendar();
+    if (DOM.calendarPopover) {
+      DOM.calendarPopover.classList.add('show');
+    }
   }
 
-  function copyCalendarBirthdayWish(encodedName, age) {
+  function copyCalendarBirthdayWish(encodedName, age, event) {
+    if (event) {
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    }
+    if (window.event) window.event.cancelBubble = true;
+
     const name = decodeURIComponent(encodedName);
     const ageText = age ? `tuổi ${age}` : 'tuổi mới';
     const wish = `🎉 Happy Birthday ${name}! 🎂✨ Chúc bạn ${ageText} luôn tràn đầy năng lượng, sức khỏe dồi dào, ngập tràn niềm vui và gặt hái thật nhiều thành công rực rỡ nhé! 🥳🎁`;
@@ -3887,7 +4057,13 @@
     if (!e.target.closest('.top-bar-left') && !e.target.closest('.apple-menu-dropdown')) {
       if (DOM.appleMenu) DOM.appleMenu.classList.remove('show');
     }
-    if (!e.target.closest('#mac-clock') && !e.target.closest('#iosStatusTime') && !e.target.closest('#iosCardDate') && !e.target.closest('.calendar-popover')) {
+    const path = (e.composedPath && e.composedPath()) || [];
+    const isInsideCal = path.some(el => el && ((el.classList && el.classList.contains && el.classList.contains('calendar-popover')) || el.id === 'calendar-popover')) ||
+      (e.target && e.target.closest && (e.target.closest('.calendar-popover') || e.target.closest('#calendar-popover')));
+    const isClockTrigger = path.some(el => el && el.id && (el.id === 'mac-clock' || el.id === 'iosStatusTime' || el.id === 'iosCardDate')) ||
+      (e.target && e.target.closest && (e.target.closest('#mac-clock') || e.target.closest('#iosStatusTime') || e.target.closest('#iosCardDate')));
+
+    if (!isClockTrigger && !isInsideCal) {
       if (DOM.calendarPopover) DOM.calendarPopover.classList.remove('show');
     }
   });
@@ -4548,6 +4724,8 @@
     resetCalendarToToday,
     switchCalendarMobileTab,
     copyCalendarBirthdayWish,
+    saveWorkspaceSession,
+    restoreWorkspaceSession,
     openDanhBaFromCalendar,
     openSpotlight,
     closeSpotlight,
@@ -4650,6 +4828,17 @@
     initBattery();
     updateClock();
     setInterval(updateClock, 1000);
+
+    // Chặn đóng lịch khi tương tác bên trong calendar popover
+    if (DOM.calendarPopover) {
+      DOM.calendarPopover.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+
+    // Khôi phục lại phiên làm việc (các cửa sổ đang mở) trước khi reload/refresh
+    restoreWorkspaceSession();
+    window.addEventListener('beforeunload', saveWorkspaceSession);
 
     if (DOM.spotlightInput) {
       DOM.spotlightInput.addEventListener('input', (e) => {

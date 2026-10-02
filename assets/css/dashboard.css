@@ -96,8 +96,12 @@ body {
 
 .apple-logo-btn {
   font-size: 16px;
-  padding: 2px 6px;
+  padding: 3px 7px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
 }
 
 /* Apple Dropdown Menu */
