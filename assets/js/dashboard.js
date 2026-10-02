@@ -1684,6 +1684,21 @@
     });
   }
 
+  function openControlPanelAi() {
+    if (typeof window.closeAiAssistant === 'function') window.closeAiAssistant();
+    openControlPanel();
+    setTimeout(() => {
+      const cpWin = openWindows['control-panel'];
+      if (cpWin && cpWin.iframe && cpWin.iframe.contentWindow) {
+        try {
+          if (typeof cpWin.iframe.contentWindow.switchSection === 'function') {
+            cpWin.iframe.contentWindow.switchSection('ai');
+          }
+        } catch (e) {}
+      }
+    }, 600);
+  }
+
   function openApp(app) {
     if (!DOM.windowsContainer) return;
 
@@ -4734,6 +4749,7 @@
     applyCustomWallpaper,
     toggleFullscreen,
     openControlPanel,
+    openControlPanelAi,
     openAboutModal,
     closeAboutModal,
     resetDefaultApps,

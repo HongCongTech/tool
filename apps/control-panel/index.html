@@ -970,6 +970,10 @@
                 <i class="fa-solid fa-lightbulb" style="color: #f97316;"></i>
                 <span>Đề Xuất Tính Năng</span>
             </button>
+            <button class="cp-nav-item" onclick="switchSection('ai')">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: #ec4899;"></i>
+                <span>Trợ Lý AI & Gemini</span>
+            </button>
         </nav>
 
         <!-- CONTENT PANES -->
@@ -1525,6 +1529,64 @@
                 </div>
             </section>
 
+            <!-- ========================================================================= -->
+            <!-- 8. CẤU HÌNH TRỢ LÝ AI (GOOGLE GEMINI & SIRI) -->
+            <!-- ========================================================================= -->
+            <section class="cp-section" id="sec-ai">
+                <div class="section-header">
+                    <div class="section-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #ec4899;"></i> Cấu Hình Trợ Lý AI (Google Gemini & Siri)</div>
+                    <div class="section-desc">Tích hợp mô hình AI Google Gemini 1.5 Flash và Nhận diện giọng nói tiếng Việt để nhập liệu tiền cơm, ghi chú, chia bill và tra cứu tự động.</div>
+                </div>
+
+                <div class="card" style="margin-bottom:20px;">
+                    <h3 style="font-size:1rem; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        <span>✨ Google Gemini API</span>
+                        <span id="aiApiStatusBadge" class="admin-badge" style="background:#f1f5f9; color:#64748b;">Chưa cấu hình API Key</span>
+                    </h3>
+                    
+                    <p style="font-size:0.88rem; color:var(--slate-600); margin-bottom:16px; line-height:1.6;">
+                        Google Gemini cung cấp gói <b>Free Tier hoàn toàn miễn phí</b> (15 yêu cầu/phút), phản hồi cực nhanh dưới 1 giây và hiểu tiếng Việt xuất sắc.
+                        <br>👉 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--primary); font-weight:600; text-decoration:none;">Nhấp vào đây để lấy API Key miễn phí tại Google AI Studio</a> (chỉ mất 30 giây).
+                    </p>
+
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label class="form-label" style="font-weight:700;">Google Gemini API Key:</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="password" id="geminiApiKeyInput" class="form-control" placeholder="Dán khóa API Key của bạn (VD: AIzaSy...)" style="font-family:monospace;">
+                            <button type="button" class="btn btn-outline" onclick="toggleGeminiKeyVisibility()" title="Ẩn/Hiện API Key">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:18px;">
+                        <label class="form-label" style="font-weight:700;">Mô hình AI (Gemini Model):</label>
+                        <select id="geminiModelSelect" class="form-control">
+                            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Khuyên dùng - Cực nhanh, thông minh & Miễn phí)</option>
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Thế hệ mới nhất của Google)</option>
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Xử lý ngữ cảnh sâu và phức tạp)</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-primary" onclick="saveGeminiSettings()">💾 Lưu Cài Đặt AI</button>
+                        <button type="button" class="btn btn-outline" id="btnTestGemini" onclick="testGeminiConnection()">⚡ Kiểm Tra Kết Nối API</button>
+                    </div>
+                    <div id="geminiTestResult" style="margin-top:12px; font-size:13px; display:none;"></div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:1rem; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        <span>🎙️ Hướng Dẫn Ra Lệnh Bằng Giọng Nói & Câu Lệnh Mẫu</span>
+                    </h3>
+                    <div style="font-size:0.88rem; color:var(--slate-600); line-height:1.7;">
+                        <p>• <b>Kích hoạt:</b> Nhấn nút <b>✨ Siri AI</b> trên thanh Menu bar hoặc phím tắt <b>Ctrl + Space</b> (hoặc Cmd + Space trên Mac). Bạn cũng có thể bấm biểu tượng Micro trên điện thoại.</p>
+                        <p>• <b>Nhập tiền cơm:</b> <i>"Hôm nay Công trả tiền cơm mỗi người 40k"</i> hoặc <i>"Bữa trưa nay Tuấn trả 45k cho Tuấn, Công, Đạt"</i>. AI sẽ hiển thị Thẻ xác nhận trực quan để bạn kiểm tra và duyệt.</p>
+                        <p>• <b>Hỏi đáp công nợ:</b> <i>"Ai đang nợ tiền cơm nhiều nhất?"</i> hoặc <i>"Ai đang âm tiền cơm?"</i></p>
+                        <p>• <b>Tra cứu sinh nhật:</b> <i>"Tháng này sinh nhật những ai?"</i></p>
+                        <p>• <b>Chế độ Offline:</b> Kể cả khi chưa có API Key, hệ thống vẫn tích hợp sẵn bộ phân tích ngôn ngữ tự nhiên Offline để xử lý các câu lệnh nhập tiền cơm và tra cứu thông dụng!</p>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -2047,6 +2109,9 @@
 
             if (secId === 'security' && typeof initSecurityCenter === 'function') {
                 initSecurityCenter();
+            }
+            if (secId === 'ai' && typeof initAiSettings === 'function') {
+                initAiSettings();
             }
         }
 
@@ -4194,6 +4259,118 @@ HƯỚNG DẪN SỬ DỤNG:
             closeCpForgotModal();
             alert('🎉 Đổi mật khẩu Admin thành công! Bạn đã đăng nhập quyền Quản trị viên.');
             window.location.reload();
+        }
+
+        // =========================================================================
+        // AI ASSISTANT CONFIGURATION LOGIC
+        // =========================================================================
+        function initAiSettings() {
+            const raw = localStorage.getItem('sys_ai_config');
+            let cfg = { apiKey: '', model: 'gemini-1.5-flash', enabled: true };
+            if (raw) {
+                try { cfg = JSON.parse(raw); } catch(e) {}
+            }
+            const keyInput = document.getElementById('geminiApiKeyInput');
+            const modelSelect = document.getElementById('geminiModelSelect');
+            const statusBadge = document.getElementById('aiApiStatusBadge');
+
+            if (keyInput) keyInput.value = cfg.apiKey || '';
+            if (modelSelect) modelSelect.value = cfg.model || 'gemini-1.5-flash';
+
+            if (statusBadge) {
+                if (cfg.apiKey && cfg.apiKey.trim().length > 10) {
+                    statusBadge.textContent = '🟢 Đã cấu hình API Key';
+                    statusBadge.style.background = '#dcfce7';
+                    statusBadge.style.color = '#15803d';
+                } else {
+                    statusBadge.textContent = 'Chưa cấu hình API Key';
+                    statusBadge.style.background = '#f1f5f9';
+                    statusBadge.style.color = '#64748b';
+                }
+            }
+        }
+
+        function toggleGeminiKeyVisibility() {
+            const input = document.getElementById('geminiApiKeyInput');
+            if (input) {
+                input.type = input.type === 'password' ? 'text' : 'password';
+            }
+        }
+
+        function saveGeminiSettings() {
+            const keyInput = document.getElementById('geminiApiKeyInput');
+            const modelSelect = document.getElementById('geminiModelSelect');
+            const apiKey = keyInput ? keyInput.value.trim() : '';
+            const model = modelSelect ? modelSelect.value : 'gemini-1.5-flash';
+
+            const cfg = { apiKey, model, enabled: true };
+            localStorage.setItem('sys_ai_config', JSON.stringify(cfg));
+            if (window.parent && window.parent.dbStorage) {
+                window.parent.dbStorage.set('sys_ai_config', JSON.stringify(cfg));
+            }
+
+            initAiSettings();
+            alert('✅ Đã lưu cấu hình Google Gemini AI thành công!');
+        }
+
+        async function testGeminiConnection() {
+            const keyInput = document.getElementById('geminiApiKeyInput');
+            const modelSelect = document.getElementById('geminiModelSelect');
+            const apiKey = keyInput ? keyInput.value.trim() : '';
+            const model = modelSelect ? modelSelect.value : 'gemini-1.5-flash';
+            const resultEl = document.getElementById('geminiTestResult');
+            const btn = document.getElementById('btnTestGemini');
+
+            if (!apiKey) {
+                alert('Vui lòng nhập API Key Google Gemini trước khi kiểm tra!');
+                if (keyInput) keyInput.focus();
+                return;
+            }
+
+            if (resultEl) {
+                resultEl.style.display = 'block';
+                resultEl.style.color = '#0284c7';
+                resultEl.textContent = '⏳ Đang gửi yêu cầu kiểm tra đến Google Gemini API...';
+            }
+            if (btn) btn.disabled = true;
+
+            const t0 = performance.now();
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: "Hãy trả lời đúng từ 'OK' nếu bạn đã nhận được tin này." }] }]
+                    })
+                });
+
+                const t1 = performance.now();
+                const latency = Math.round(t1 - t0);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'OK';
+                    if (resultEl) {
+                        resultEl.style.color = '#15803d';
+                        resultEl.innerHTML = `✅ <b>Kết nối Google Gemini thành công!</b> (Độ trễ: ${latency}ms)<br>Phản hồi: <i>${reply.trim()}</i>`;
+                    }
+                    initAiSettings();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    if (resultEl) {
+                        resultEl.style.color = '#dc2626';
+                        resultEl.textContent = `❌ Lỗi kết nối (HTTP ${res.status}): ${err?.error?.message || 'API Key không hợp lệ hoặc đã hết hạn ngạch!'}`;
+                    }
+                }
+            } catch (e) {
+                if (resultEl) {
+                    resultEl.style.color = '#dc2626';
+                    resultEl.textContent = '❌ Lỗi mạng: ' + e.message;
+                }
+            } finally {
+                if (btn) btn.disabled = false;
+            }
         }
 
     </script>

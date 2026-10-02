@@ -3,13 +3,14 @@
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v22';
+const CACHE_NAME = 'macos-dashboard-v23';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './assets/css/dashboard.css',
   './assets/js/db-config.js',
   './assets/js/db-storage.js',
+  './assets/js/ai-assistant.js',
   './assets/js/dashboard.js',
   './manifest.json',
   './apps/chia-bill/index.html',
