@@ -51,9 +51,27 @@
     return cfg;
   }
 
+  function safeDbSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn('localStorage.setItem error:', e);
+    }
+    if (window.dbStorage) {
+      try {
+        if (typeof window.dbStorage.setItem === 'function') {
+          window.dbStorage.setItem(key, value);
+        } else if (typeof window.dbStorage.set === 'function') {
+          window.dbStorage.set(key, value);
+        }
+      } catch (e) {
+        console.warn('dbStorage set error:', e);
+      }
+    }
+  }
+
   function saveAiConfig(cfg) {
-    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(cfg));
-    if (window.dbStorage) window.dbStorage.set(AI_CONFIG_KEY, JSON.stringify(cfg));
+    safeDbSet(AI_CONFIG_KEY, JSON.stringify(cfg));
     updateAiStatusIndicator();
   }
 
@@ -625,8 +643,7 @@
         });
       });
 
-      localStorage.setItem('p2p_members', JSON.stringify(p2pMembers));
-      if (window.dbStorage) window.dbStorage.set('p2p_members', JSON.stringify(p2pMembers));
+      safeDbSet('p2p_members', JSON.stringify(p2pMembers));
 
       let logs = [];
       try {
@@ -652,8 +669,7 @@
 
       logs.unshift(newLog);
 
-      localStorage.setItem('p2p_logs', JSON.stringify(logs));
-      if (window.dbStorage) window.dbStorage.set('p2p_logs', JSON.stringify(logs));
+      safeDbSet('p2p_logs', JSON.stringify(logs));
 
       window.dispatchEvent(new StorageEvent('storage', {
         key: 'p2p_logs',
@@ -724,8 +740,7 @@
         completed: false
       };
       reminders.unshift(remItem);
-      localStorage.setItem('sys_reminders', JSON.stringify(reminders));
-      if (window.dbStorage) window.dbStorage.set('sys_reminders', JSON.stringify(reminders));
+      safeDbSet('sys_reminders', JSON.stringify(reminders));
 
       // Thêm vào Sticky Notes
       let notes = [];
@@ -737,8 +752,7 @@
         color: '#fbbf24',
         date: new Date().toLocaleDateString('vi-VN')
       });
-      localStorage.setItem('p2p_notes', JSON.stringify(notes));
-      if (window.dbStorage) window.dbStorage.set('p2p_notes', JSON.stringify(notes));
+      safeDbSet('p2p_notes', JSON.stringify(notes));
 
       // Thông báo hệ thống
       if (typeof window.pushSystemNotification === 'function') {
