@@ -883,11 +883,270 @@
             .member-table th { background: #eee !important; color: #000 !important; }
         }
 
+        /* -------------------------------------------------------------------------
+           BÁO SINH NHẬT & LỊCH CHÚC MỪNG (BIRTHDAY ALERT & UPCOMING MODULE)
+           ------------------------------------------------------------------------- */
+        .birthday-alert-section {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .birthday-alert-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ec4899, #f59e0b, #38bdf8);
+        }
+        .birthday-alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .bday-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .bday-icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #d97706;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+            flex-shrink: 0;
+        }
+        .bday-title-wrap h2 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bday-title-wrap p {
+            font-size: 0.8rem;
+            color: var(--slate-500);
+            margin-top: 2px;
+        }
+        .bday-header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .bday-summary-pill {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--slate-100);
+            color: var(--slate-700);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .bday-summary-pill.today-active {
+            background: #fff1f2;
+            color: #e11d48;
+            border: 1px solid #fecdd3;
+            animation: pulseBday 2s infinite ease-in-out;
+        }
+        @keyframes pulseBday {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        /* SIMPLE & CLEAN BIRTHDAY ALERT LIST */
+        .bday-simple-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .bday-simple-item {
+            background: var(--slate-50);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bday-simple-item:hover {
+            background: #ffffff;
+            border-color: var(--primary-border);
+            box-shadow: var(--shadow-sm);
+        }
+        .bday-simple-item.is-today {
+            background: linear-gradient(135deg, #fff1f2 0%, #fffbeb 100%);
+            border-color: #fb7185;
+            box-shadow: 0 4px 14px rgba(244, 63, 94, 0.12);
+        }
+        .bday-simple-item.is-tomorrow {
+            background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%);
+            border-color: #fde047;
+        }
+        .bday-simple-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.96rem;
+            color: var(--slate-800);
+            min-width: 0;
+            flex: 1;
+        }
+        .bday-simple-emoji {
+            font-size: 1.4rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .bday-simple-text {
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .bday-simple-text b {
+            color: var(--slate-900);
+            font-weight: 800;
+        }
+        .bday-simple-text .bday-target-name {
+            color: var(--primary);
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .bday-simple-text .bday-target-name:hover {
+            color: #0369a1;
+        }
+        .bday-simple-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .bday-simple-btn {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--slate-700);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .bday-simple-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .bday-simple-btn.btn-zalo {
+            color: #0068ff;
+            border-color: #bfdbfe;
+        }
+        .bday-simple-btn.btn-zalo:hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        /* PASSED IN MONTH NOTE */
+        .bday-passed-wrap {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: var(--slate-50);
+            border: 1px dashed var(--slate-200);
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            color: var(--slate-600);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .bday-passed-tag {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--slate-700);
+            transition: all 0.15s ease;
+        }
+        .bday-passed-tag:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .bday-empty-box {
+            background: var(--slate-50);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            color: var(--slate-500);
+            font-size: 0.84rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* TOAST NOTIFICATION */
+        .danhba-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255,255,255,0.18);
+            animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 90vw;
+        }
+        @keyframes toastIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @media (max-width: 768px) {
             .app-header { padding: 12px 16px; }
             .main-container { padding: 16px; }
             .cards-grid { grid-template-columns: 1fr; }
             .search-wrap { max-width: 100%; }
+            .bday-simple-item { flex-direction: column; align-items: flex-start; }
+            .bday-simple-right { width: 100%; justify-content: flex-start; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px; }
         }
     </style>
 </head>
@@ -920,6 +1179,9 @@
             </div>
 
             <!-- Action buttons -->
+            <button type="button" class="btn btn-outline btn-sm" id="btnHeaderBirthday" onclick="toggleBirthdaySection()" title="Báo Sinh Nhật & Lịch Chúc Mừng">
+                <i class="fa-solid fa-cake-candles" style="color:#f59e0b;"></i> Báo Sinh Nhật <span id="headerBdayBadge" style="display:none; background:#ec4899; color:white; font-size:10px; font-weight:800; padding:1px 6px; border-radius:10px; margin-left:4px;">0</span>
+            </button>
             <button type="button" class="btn btn-outline btn-sm" onclick="exportDirectoryCsv()" title="Tải file Excel / CSV danh bạ">
                 <i class="fa-solid fa-file-csv"></i> Xuất CSV
             </button>
@@ -951,14 +1213,14 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" onclick="focusBirthdaySection()" style="cursor:pointer;" title="Bấm để xem Báo Sinh Nhật & Lịch Chúc Mừng">
                 <div class="stat-icon" style="background:#fef3c7; color:#d97706;">
                     <i class="fa-solid fa-cake-candles"></i>
                 </div>
                 <div class="stat-content">
                     <span class="stat-label">Sinh Nhật Tháng Này</span>
                     <span class="stat-value" id="kpiBirthdayMonth" style="color:#d97706;">0</span>
-                    <span class="stat-sub" id="kpiBirthdaySub">Tháng này</span>
+                    <span class="stat-sub" id="kpiBirthdaySub">Tháng này • Bấm xem lịch</span>
                 </div>
             </div>
 
@@ -985,6 +1247,35 @@
             </div>
         </div>
 
+        <!-- BÁO SINH NHẬT & LỊCH CHÚC MỪNG -->
+        <section id="birthdayAlertSection" class="birthday-alert-section">
+            <div class="birthday-alert-header">
+                <div class="bday-header-left">
+                    <div class="bday-icon-circle">
+                        <i class="fa-solid fa-cake-candles"></i>
+                    </div>
+                    <div class="bday-title-wrap">
+                        <h2>
+                            <span id="bdayAlertTitle">Báo Sinh Nhật Trong Tháng</span>
+                        </h2>
+                        <p id="bdayAlertSubtitle">Theo dõi ngày sinh nhật của các thành viên trong tháng</p>
+                    </div>
+                </div>
+
+                <div class="bday-header-right">
+                    <span id="bdaySummaryToday" class="bday-summary-pill" style="display:none;"></span>
+                    <span id="bdaySummaryMonth" class="bday-summary-pill" style="display:none;"></span>
+                    <button type="button" class="btn btn-outline btn-sm" id="btnToggleBdayCollapse" onclick="toggleBdayCollapse()" title="Thu gọn / Mở rộng lịch sinh nhật">
+                        <i class="fa-solid fa-chevron-up" id="iconBdayCollapse"></i> <span id="textBdayCollapse">Thu gọn</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="bdayAlertContent" class="bday-alert-content">
+                <!-- Dynamic Content injected via renderBirthdayAlert() -->
+            </div>
+        </section>
+
         <!-- SEARCH & FILTER TOOLBAR -->
         <div class="toolbar-box">
             <div class="search-wrap">
@@ -994,6 +1285,7 @@
 
             <div class="filter-chips">
                 <button type="button" class="filter-chip active" data-filter="all" onclick="setDirectoryFilter('all', this)">Tất cả (<span id="countFilterAll">0</span>)</button>
+                <button type="button" class="filter-chip" id="chipFilterToday" style="display:none;" data-filter="birthdayToday" onclick="setDirectoryFilter('birthdayToday', this)">🎉 Hôm nay (<span id="countFilterToday">0</span>)</button>
                 <button type="button" class="filter-chip" data-filter="birthday" onclick="setDirectoryFilter('birthday', this)">🎂 Sinh nhật tháng này (<span id="countFilterBirthday">0</span>)</button>
                 <button type="button" class="filter-chip" data-filter="hasBank" onclick="setDirectoryFilter('hasBank', this)">🏦 Có STK (<span id="countFilterHasBank">0</span>)</button>
                 <button type="button" class="filter-chip" data-filter="noBank" onclick="setDirectoryFilter('noBank', this)">Chưa có STK (<span id="countFilterNoBank">0</span>)</button>
@@ -1282,9 +1574,9 @@
         // -------------------------------------------------------------------------
         const MEMBERS_STORAGE_KEY = 'sys_global_members';
         const DEFAULT_MEMBERS = [
-            { id: 1, name: "Đô", fullName: "Nguyễn Văn Đô", nickname: "Đô", dob: "1994-05-15", phone: "0981234561", bankId: "MB", accountNo: "0981234561", accountName: "NGUYEN VAN DO", note: "Trưởng nhóm" },
-            { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt Còi", dob: "1996-08-20", phone: "0972345672", bankId: "VCB", accountNo: "1012345672", accountName: "TRAN THANH DAT", note: "Kỹ thuật" },
-            { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", dob: "1995-11-12", phone: "0963456783", bankId: "TCB", accountNo: "1903456783", accountName: "LE THANH CONG", note: "Kế toán" },
+            { id: 1, name: "Đô", fullName: "Nguyễn Văn Đô", nickname: "Đô", dob: "1994-10-02", phone: "0981234561", bankId: "MB", accountNo: "0981234561", accountName: "NGUYEN VAN DO", note: "Trưởng nhóm" },
+            { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt Còi", dob: "1996-10-15", phone: "0972345672", bankId: "VCB", accountNo: "1012345672", accountName: "TRAN THANH DAT", note: "Kỹ thuật" },
+            { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", dob: "1995-10-26", phone: "0963456783", bankId: "TCB", accountNo: "1903456783", accountName: "LE THANH CONG", note: "Kế toán" },
             { id: 4, name: "Hạnh", fullName: "Phạm Mỹ Hạnh", nickname: "Hạnh", dob: "1998-03-28", phone: "0914567894", bankId: "ACB", accountNo: "214567894", accountName: "PHAM MY HANH", note: "Thiết kế" },
             { id: 5, name: "Quyền", fullName: "Vũ Đình Quyền", nickname: "Quyền", dob: "1997-07-09", phone: "0935678905", bankId: "VPB", accountNo: "0935678905", accountName: "VU DINH QUYEN", note: "Marketing" },
             { id: 6, name: "Duy", fullName: "Hoàng Đức Duy", nickname: "Duy", dob: "1999-12-05", phone: "0906789016", bankId: "BIDV", accountNo: "1206789016", accountName: "HOANG DUC DUY", note: "Phát triển" }
@@ -1308,6 +1600,16 @@
             'linear-gradient(135deg, #f97316, #c2410c)',
             'linear-gradient(135deg, #6366f1, #4338ca)'
         ];
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
         function getAvatarBg(str) {
             let hash = 0;
@@ -1351,32 +1653,286 @@
 
             const now = new Date();
             const currentYear = now.getFullYear();
-            let age = currentYear - year;
+            const curMonth = now.getMonth() + 1;
+            const curDay = now.getDate();
 
-            // Birthday in current year
-            const nextBirthday = new Date(currentYear, month - 1, day);
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const isThisMonth = (month === curMonth);
+            const isToday = isThisMonth && (day === curDay);
+            const diffDaysInMonth = isThisMonth ? (day - curDay) : null;
 
-            // If birthday has passed this year, next one is next year
-            if (nextBirthday < today) {
-                nextBirthday.setFullYear(currentYear + 1);
+            const turningAge = currentYear - year;
+            let currentAge = turningAge;
+            if (curMonth < month || (curMonth === month && curDay < day)) {
+                currentAge = turningAge - 1;
             }
-
-            const diffTime = nextBirthday - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const isToday = (today.getMonth() + 1 === month) && (today.getDate() === day);
-            const isThisMonth = (today.getMonth() + 1 === month);
 
             const zodiac = getZodiacSign(day, month);
 
             return {
                 dobFormatted: `${String(day).padStart(2,'0')}/${String(month).padStart(2,'0')}/${year}`,
-                age: age > 0 ? `${age} tuổi` : '',
+                age: currentAge > 0 ? `${currentAge} tuổi` : '',
+                turningAge,
+                day,
+                month,
+                year,
                 zodiac,
-                diffDays,
+                diffDaysInMonth,
                 isToday,
                 isThisMonth
             };
+        }
+
+        // -------------------------------------------------------------------------
+        // BÁO SINH NHẬT TRONG THÁNG MODULE
+        // -------------------------------------------------------------------------
+        let isBdayCollapsed = localStorage.getItem('danhba_bday_collapsed') === 'true';
+
+        function showToast(msg, icon = '🎉') {
+            let toast = document.getElementById('danhBaToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'danhBaToast';
+                toast.className = 'danhba-toast';
+                document.body.appendChild(toast);
+            }
+            toast.innerHTML = `<span style="font-size:18px;">${icon}</span> <span>${msg}</span>`;
+            toast.style.display = 'flex';
+            if (window._danhBaToastTimer) clearTimeout(window._danhBaToastTimer);
+            window._danhBaToastTimer = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3500);
+        }
+
+        function renderBirthdayAlert() {
+            const container = document.getElementById('bdayAlertContent');
+            const summaryTodayEl = document.getElementById('bdaySummaryToday');
+            const summaryMonthEl = document.getElementById('bdaySummaryMonth');
+            const headerBadgeEl = document.getElementById('headerBdayBadge');
+            const chipTodayEl = document.getElementById('chipFilterToday');
+            const countTodayEl = document.getElementById('countFilterToday');
+            const countMonthEl = document.getElementById('countFilterBirthday');
+            const subtitleEl = document.getElementById('bdayAlertSubtitle');
+            const titleEl = document.getElementById('bdayAlertTitle');
+
+            if (!container) return;
+
+            const now = new Date();
+            const curMonth = now.getMonth() + 1;
+            const curDay = now.getDate();
+
+            if (titleEl) {
+                titleEl.innerText = `Báo Sinh Nhật Tháng ${curMonth}`;
+            }
+
+            // Filter members whose birthday is in current month
+            const thisMonthMembers = [];
+            members.forEach(m => {
+                const bday = getBirthdayInfo(m.dob);
+                if (bday && bday.isThisMonth) {
+                    thisMonthMembers.push({ member: m, bday });
+                }
+            });
+
+            // Separate: still have days left in the month (including today) vs already passed
+            const upcomingList = thisMonthMembers.filter(item => item.bday.diffDaysInMonth >= 0);
+            const passedList = thisMonthMembers.filter(item => item.bday.diffDaysInMonth < 0);
+
+            // Sort upcoming ascending by remaining days (0 = today first, then 1, 2, ...)
+            upcomingList.sort((a, b) => a.bday.diffDaysInMonth - b.bday.diffDaysInMonth);
+            // Sort passed descending by day
+            passedList.sort((a, b) => b.bday.day - a.bday.day);
+
+            const todayList = upcomingList.filter(item => item.bday.diffDaysInMonth === 0);
+
+            // Update badge counts
+            if (countTodayEl) countTodayEl.innerText = todayList.length;
+            if (countMonthEl) countMonthEl.innerText = thisMonthMembers.length;
+            if (chipTodayEl) {
+                chipTodayEl.style.display = todayList.length > 0 ? 'inline-flex' : 'none';
+            }
+
+            // Header button badge
+            if (headerBadgeEl) {
+                if (todayList.length > 0) {
+                    headerBadgeEl.style.display = 'inline-block';
+                    headerBadgeEl.style.background = '#e11d48';
+                    headerBadgeEl.innerText = todayList.length;
+                } else if (upcomingList.length > 0) {
+                    headerBadgeEl.style.display = 'inline-block';
+                    headerBadgeEl.style.background = '#0284c7';
+                    headerBadgeEl.innerText = upcomingList.length;
+                } else {
+                    headerBadgeEl.style.display = 'none';
+                }
+            }
+
+            // Summary pills in section header
+            if (summaryTodayEl) {
+                if (todayList.length > 0) {
+                    summaryTodayEl.style.display = 'inline-flex';
+                    summaryTodayEl.className = 'bday-summary-pill today-active';
+                    summaryTodayEl.innerHTML = `<i class="fa-solid fa-cake-candles"></i> <b>${todayList.length}</b> hôm nay!`;
+                } else {
+                    summaryTodayEl.style.display = 'none';
+                }
+            }
+
+            if (summaryMonthEl) {
+                if (upcomingList.length > 0) {
+                    summaryMonthEl.style.display = 'inline-flex';
+                    summaryMonthEl.innerHTML = `<i class="fa-regular fa-calendar-check"></i> Còn <b>${upcomingList.length}</b> người tới sinh nhật`;
+                } else if (thisMonthMembers.length > 0) {
+                    summaryMonthEl.style.display = 'inline-flex';
+                    summaryMonthEl.innerHTML = `<i class="fa-regular fa-calendar-check"></i> Tháng ${curMonth}: ${thisMonthMembers.length} người (đã qua)`;
+                } else {
+                    summaryMonthEl.style.display = 'none';
+                }
+            }
+
+            // Subtitle
+            if (subtitleEl) {
+                if (todayList.length > 0) {
+                    subtitleEl.innerHTML = `<b style="color:#e11d48;">🎉 Hôm nay có ${todayList.length} thành viên sinh nhật!</b> Hãy gửi lời chúc mừng ấm áp nhé.`;
+                } else if (upcomingList.length > 0) {
+                    subtitleEl.innerHTML = `Có <b>${upcomingList.length}</b> thành viên còn ngày tới sinh nhật trong tháng ${curMonth}.`;
+                } else if (passedList.length > 0) {
+                    subtitleEl.innerText = `Các thành viên có sinh nhật trong tháng ${curMonth} đều đã qua ngày sinh nhật.`;
+                } else {
+                    subtitleEl.innerText = `Tháng ${curMonth} này không có thành viên nào có ngày sinh nhật trong danh bạ.`;
+                }
+            }
+
+            let html = '';
+
+            if (upcomingList.length === 0 && passedList.length === 0) {
+                html = `
+                    <div class="bday-empty-box">
+                        <i class="fa-solid fa-calendar-check" style="font-size:1.2rem; color:var(--primary);"></i>
+                        <span>Tháng ${curMonth} này không có thành viên nào có ngày sinh nhật trong danh bạ.</span>
+                    </div>
+                `;
+            } else {
+                if (upcomingList.length > 0) {
+                    html += `<div class="bday-simple-list">`;
+                    html += upcomingList.map(item => {
+                        const m = item.member;
+                        const b = item.bday;
+                        const displayName = m.nickname || m.fullName;
+                        const phoneClean = (m.phone || '').replace(/\D/g, '');
+                        const dateShort = `${String(b.day).padStart(2,'0')}/${String(b.month).padStart(2,'0')}`;
+
+                        let itemClass = '';
+                        let emoji = '⏳';
+                        let messageHtml = '';
+
+                        if (b.diffDaysInMonth === 0) {
+                            itemClass = 'is-today';
+                            emoji = '🎉';
+                            messageHtml = `Hôm nay là sinh nhật <span class="bday-target-name" onclick="openMemberProfileModal(${m.id})" title="Xem hồ sơ">${escapeHtml(displayName)}</span>! (Tròn <b>${b.turningAge}</b> tuổi)`;
+                        } else if (b.diffDaysInMonth === 1) {
+                            itemClass = 'is-tomorrow';
+                            emoji = '🎂';
+                            messageHtml = `Còn <b>1 ngày nữa</b> tới sinh nhật <span class="bday-target-name" onclick="openMemberProfileModal(${m.id})" title="Xem hồ sơ">${escapeHtml(displayName)}</span> (ngày mai - <b>${dateShort}</b>)`;
+                        } else {
+                            itemClass = 'is-soon';
+                            emoji = '⏳';
+                            messageHtml = `Còn <b>${b.diffDaysInMonth} ngày nữa</b> tới sinh nhật <span class="bday-target-name" onclick="openMemberProfileModal(${m.id})" title="Xem hồ sơ">${escapeHtml(displayName)}</span> (ngày <b>${dateShort}</b>)`;
+                        }
+
+                        return `
+                            <div class="bday-simple-item ${itemClass}">
+                                <div class="bday-simple-left">
+                                    <span class="bday-simple-emoji">${emoji}</span>
+                                    <div class="bday-simple-text">${messageHtml}</div>
+                                </div>
+                                <div class="bday-simple-right">
+                                    ${phoneClean ? `<a href="https://zalo.me/${phoneClean}" target="_blank" class="bday-simple-btn btn-zalo" title="Nhắn tin Zalo"><i class="fa-solid fa-comment-dots"></i> Zalo</a>` : ''}
+                                    <button type="button" class="bday-simple-btn" onclick="copyBirthdayWish('${escapeHtml(displayName)}')" title="Sao chép lời chúc"><i class="fa-regular fa-copy"></i> Lời chúc</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    html += `</div>`;
+                } else if (passedList.length > 0) {
+                    html += `
+                        <div class="bday-empty-box" style="margin-bottom:10px;">
+                            <i class="fa-solid fa-calendar-check" style="font-size:1.2rem; color:var(--primary);"></i>
+                            <span>Trong tháng ${curMonth}, các sinh nhật đều đã qua.</span>
+                        </div>
+                    `;
+                }
+
+                // If some birthdays already passed in the month, show subtle note
+                if (passedList.length > 0) {
+                    html += `
+                        <div class="bday-passed-wrap">
+                            <span style="font-weight:700; color:var(--slate-500);"><i class="fa-solid fa-calendar-check"></i> Đã qua sinh nhật trong tháng ${curMonth}:</span>
+                            ${passedList.map(item => {
+                                const m = item.member;
+                                const dName = m.nickname || m.fullName;
+                                const dShort = `${String(item.bday.day).padStart(2,'0')}/${String(item.bday.month).padStart(2,'0')}`;
+                                return `<span class="bday-passed-tag" onclick="openMemberProfileModal(${item.member.id})" style="cursor:pointer;" title="Bấm xem hồ sơ">${escapeHtml(dName)} (${dShort})</span>`;
+                            }).join(' ')}
+                        </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = html;
+            applyBdayCollapseState();
+        }
+
+        function applyBdayCollapseState() {
+            const content = document.getElementById('bdayAlertContent');
+            const icon = document.getElementById('iconBdayCollapse');
+            const text = document.getElementById('textBdayCollapse');
+            if (!content || !icon || !text) return;
+
+            if (isBdayCollapsed) {
+                content.style.display = 'none';
+                icon.className = 'fa-solid fa-chevron-down';
+                text.innerText = 'Mở rộng';
+            } else {
+                content.style.display = 'block';
+                icon.className = 'fa-solid fa-chevron-up';
+                text.innerText = 'Thu gọn';
+            }
+        }
+
+        function toggleBdayCollapse() {
+            isBdayCollapsed = !isBdayCollapsed;
+            localStorage.setItem('danhba_bday_collapsed', isBdayCollapsed ? 'true' : 'false');
+            applyBdayCollapseState();
+        }
+
+        function focusBirthdaySection() {
+            const sec = document.getElementById('birthdayAlertSection');
+            if (!sec) return;
+            if (isBdayCollapsed) {
+                toggleBdayCollapse();
+            }
+            sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            sec.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+            sec.style.borderColor = 'var(--primary)';
+            sec.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.2)';
+            setTimeout(() => {
+                sec.style.borderColor = 'var(--border)';
+                sec.style.boxShadow = 'var(--shadow-sm)';
+            }, 1800);
+        }
+
+        function toggleBirthdaySection() {
+            focusBirthdaySection();
+        }
+
+        function copyBirthdayWish(name) {
+            const wishes = [
+                `🎂 Chúc mừng sinh nhật ${name}! Chúc bạn bước sang tuổi mới luôn dồi dào sức khỏe, tràn ngập niềm vui, vạn sự hanh thông và gặt hái thật nhiều thành công rực rỡ! 🎉✨`,
+                `🎉 Happy Birthday ${name}! Chúc bạn một ngày sinh nhật thật ấm áp, ý nghĩa bên người thân và bạn bè, tuổi mới luôn tươi trẻ, yêu đời và hạnh phúc! 🥳🍰`,
+                `✨ Chúc mừng sinh nhật ${name}! Tuổi mới chúc bạn luôn vui vẻ, may mắn, công việc thăng tiến và luôn giữ vững phong độ nhé! 🎂🎁`
+            ];
+            const wish = wishes[Math.floor(Math.random() * wishes.length)];
+            copyText(wish, `Đã sao chép lời chúc sinh nhật ${name}! Hãy gửi tin nhắn Zalo nhé.`);
         }
 
         // -------------------------------------------------------------------------
@@ -1410,7 +1966,18 @@
 
             updateAdminState();
             renderStats();
+            try {
+                renderBirthdayAlert();
+            } catch (err) {
+                console.error('Error in renderBirthdayAlert:', err);
+            }
             renderDirectory();
+
+            // Check URL parameters for birthday view
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('view') === 'birthday' || window.location.hash === '#birthday') {
+                setTimeout(focusBirthdaySection, 250);
+            }
         }
 
         function updateAdminState() {
@@ -1443,7 +2010,7 @@
 
             document.getElementById('kpiTotalMembers').innerText = total;
             document.getElementById('kpiBirthdayMonth').innerText = bdayMonthCount;
-            document.getElementById('kpiBirthdaySub').innerText = `Trong tháng ${curMonth}`;
+            document.getElementById('kpiBirthdaySub').innerText = `Trong tháng ${curMonth} • Bấm xem lịch`;
             document.getElementById('kpiHasBank').innerText = `${hasBankCount} / ${total}`;
             document.getElementById('kpiHasBankRate').innerText = total > 0 ? `${Math.round((hasBankCount / total) * 100)}% hồ sơ` : '0%';
             document.getElementById('kpiHasPhone').innerText = hasPhoneCount;
@@ -1474,12 +2041,14 @@
             const now = new Date();
             const curMonth = now.getMonth() + 1;
 
-            return members.filter(m => {
+            let filtered = members.filter(m => {
+                const bday = getBirthdayInfo(m.dob);
+
                 // Filter chips
-                if (currentFilter === 'birthday') {
-                    if (!m.dob) return false;
-                    const p = m.dob.split('-');
-                    if (parseInt(p[1], 10) !== curMonth) return false;
+                if (currentFilter === 'birthdayToday') {
+                    if (!bday || !bday.isToday) return false;
+                } else if (currentFilter === 'birthday') {
+                    if (!bday || !bday.isThisMonth) return false;
                 } else if (currentFilter === 'hasBank') {
                     if (!m.accountNo || !m.accountNo.trim()) return false;
                 } else if (currentFilter === 'noBank') {
@@ -1493,6 +2062,21 @@
                 }
                 return true;
             });
+
+            // Sort by closest birthday if viewing birthday filters
+            if (currentFilter === 'birthday' || currentFilter === 'birthdayToday') {
+                filtered.sort((a, b) => {
+                    const bA = getBirthdayInfo(a.dob);
+                    const bB = getBirthdayInfo(b.dob);
+                    const dA = bA ? bA.diffDaysInMonth : 999;
+                    const dB = bB ? bB.diffDaysInMonth : 999;
+                    const scoreA = (dA !== null && dA >= 0) ? dA : (1000 + Math.abs(dA || 999));
+                    const scoreB = (dB !== null && dB >= 0) ? dB : (1000 + Math.abs(dB || 999));
+                    return scoreA - scoreB;
+                });
+            }
+
+            return filtered;
         }
 
         // -------------------------------------------------------------------------
@@ -1575,12 +2159,17 @@
                 }
 
                 if (bdayRow && bdayVal) {
-                    if (bday.isToday) {
+                    if (bday.isThisMonth) {
                         bdayRow.style.display = 'flex';
-                        bdayVal.innerText = '🎉 Sinh nhật hôm nay! 🎂';
-                    } else if (bday.diffDays <= 30) {
-                        bdayRow.style.display = 'flex';
-                        bdayVal.innerText = `🎂 Còn ${bday.diffDays} ngày nữa đến sinh nhật`;
+                        if (bday.diffDaysInMonth === 0) {
+                            bdayVal.innerText = '🎉 Sinh nhật hôm nay! 🎂';
+                        } else if (bday.diffDaysInMonth === 1) {
+                            bdayVal.innerText = '🎂 Còn 1 ngày nữa (Ngày mai)';
+                        } else if (bday.diffDaysInMonth > 1) {
+                            bdayVal.innerText = `⏳ Còn ${bday.diffDaysInMonth} ngày nữa đến sinh nhật trong tháng`;
+                        } else {
+                            bdayVal.innerText = `Đã qua ngày sinh nhật trong tháng (ngày ${bday.dobFormatted.slice(0, 5)})`;
+                        }
                     } else {
                         bdayRow.style.display = 'none';
                     }
@@ -1668,11 +2257,13 @@
                 const avatarLetter = (displayName || 'T').charAt(0).toUpperCase();
 
                 let bdayBadgeHtml = '';
-                if (bday) {
-                    if (bday.isToday) {
+                if (bday && bday.isThisMonth) {
+                    if (bday.diffDaysInMonth === 0) {
                         bdayBadgeHtml = `<span class="badge-birthday-today"><i class="fa-solid fa-cake-candles"></i> Sinh nhật hôm nay! 🎂</span>`;
-                    } else if (bday.diffDays <= 30) {
-                        bdayBadgeHtml = `<span class="badge-birthday-soon"><i class="fa-solid fa-hourglass-half"></i> Còn ${bday.diffDays} ngày</span>`;
+                    } else if (bday.diffDaysInMonth === 1) {
+                        bdayBadgeHtml = `<span class="badge-birthday-soon" style="background:#fef3c7; color:#b45309; border-color:#fde68a;"><i class="fa-solid fa-hourglass-start"></i> Ngày mai (còn 1 ngày)</span>`;
+                    } else if (bday.diffDaysInMonth > 1) {
+                        bdayBadgeHtml = `<span class="badge-birthday-soon"><i class="fa-solid fa-hourglass-half"></i> Còn ${bday.diffDaysInMonth} ngày</span>`;
                     }
                 }
 
@@ -1778,11 +2369,21 @@
 
                 let bdayHtml = '<span style="color:var(--slate-400);">--</span>';
                 if (bday) {
+                    let statusBadge = '';
+                    if (bday.isThisMonth) {
+                        if (bday.diffDaysInMonth === 0) {
+                            statusBadge = `<div style="margin-top:3px;"><span class="badge-birthday-today"><i class="fa-solid fa-cake-candles"></i> Hôm nay sinh nhật! 🎂</span></div>`;
+                        } else if (bday.diffDaysInMonth === 1) {
+                            statusBadge = `<div style="margin-top:3px;"><span class="badge-birthday-soon" style="background:#fef3c7; color:#b45309; border-color:#fde68a;"><i class="fa-solid fa-hourglass-start"></i> Ngày mai (còn 1 ngày)</span></div>`;
+                        } else if (bday.diffDaysInMonth > 1) {
+                            statusBadge = `<div style="margin-top:3px;"><span class="badge-birthday-soon"><i class="fa-solid fa-hourglass-half"></i> Còn ${bday.diffDaysInMonth} ngày</span></div>`;
+                        }
+                    }
                     bdayHtml = `
                         <div>
                             <b>${bday.dobFormatted}</b> ${bday.age ? `<span style="font-size:11px; background:var(--slate-100); padding:2px 6px; border-radius:4px; margin-left:4px;">${bday.age}</span>` : ''}
                             <span class="badge-zodiac">${bday.zodiac}</span>
-                            ${bday.isToday ? `<div style="margin-top:3px;"><span class="badge-birthday-today">🎂 Sinh nhật hôm nay!</span></div>` : ''}
+                            ${statusBadge}
                         </div>
                     `;
                 }
@@ -1928,9 +2529,10 @@
             saveMembersToStorage();
             closeMemberModal();
             renderStats();
+            renderBirthdayAlert();
             renderDirectory();
             broadcastMembers();
-            alert('Đã lưu thông tin thành viên thành công!');
+            showToast('Đã lưu thông tin thành viên thành công!', '✅');
         }
 
         function deleteMember(id) {
@@ -1942,6 +2544,7 @@
                 members = members.filter(mem => mem.id != id);
                 saveMembersToStorage();
                 renderStats();
+                renderBirthdayAlert();
                 renderDirectory();
                 broadcastMembers();
             }
@@ -2111,7 +2714,7 @@
 
         function copyText(text, successMsg = 'Đã sao chép!') {
             navigator.clipboard.writeText(text).then(() => {
-                alert(successMsg);
+                showToast(successMsg, '✅');
             }).catch(() => {
                 prompt('Sao chép thủ công:', text);
             });
@@ -2189,5 +2792,8 @@
             loadMembers();
         });
     </script>
+
+    <!-- Toast Notification Container -->
+    <div id="danhBaToast" class="danhba-toast" style="display:none;"></div>
 </body>
 </html>

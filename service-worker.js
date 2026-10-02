@@ -3,7 +3,7 @@
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v15-deletefix';
+const CACHE_NAME = 'macos-dashboard-v17';
 const STATIC_ASSETS = [
   './',
   './index.html',
