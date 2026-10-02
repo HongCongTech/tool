@@ -201,6 +201,12 @@
         if (msg.card) {
           if (msg.card.type === 'MEAL_CONFIRM') {
             cardHtml = renderMealConfirmationCardHtml(msg.card.data, msg.id);
+          } else if (msg.card.type === 'BILL_CONFIRM') {
+            cardHtml = renderBillConfirmationCardHtml(msg.card.data, msg.id);
+          } else if (msg.card.type === 'NOTE_CONFIRM') {
+            cardHtml = renderNoteConfirmationCardHtml(msg.card.data, msg.id);
+          } else if (msg.card.type === 'CONTACT_CONFIRM') {
+            cardHtml = renderContactConfirmationCardHtml(msg.card.data, msg.id);
           } else if (msg.card.type === 'REMINDER') {
             cardHtml = renderReminderCardHtml(msg.card.data);
           } else if (msg.card.type === 'DEBTS') {
@@ -376,6 +382,239 @@
     `;
   }
 
+  function renderBillConfirmationCardHtml(data, msgId) {
+    const allMembers = getSystemMembers();
+    const currentPayerName = data.payerName || 'Công';
+    const totalAmount = data.totalAmount || 600000;
+    const initialParticipants = Array.isArray(data.participants) && data.participants.length > 0
+      ? data.participants
+      : allMembers.map(m => m.nickname || m.name);
+    const dateStr = data.date || new Date().toISOString().split('T')[0];
+    const billTitle = data.title || 'Khoản chi chia tiền';
+
+    if (!activeConfirmationData[msgId]) {
+      activeConfirmationData[msgId] = {
+        type: 'bill',
+        title: billTitle,
+        payerName: currentPayerName,
+        totalAmount: totalAmount,
+        participants: [...initialParticipants],
+        date: dateStr,
+        note: data.note || `Chia bill: ${billTitle}`
+      };
+    }
+    const state = activeConfirmationData[msgId];
+    const participantCount = Math.max(1, state.participants.length);
+    const costPerPerson = Math.round(state.totalAmount / participantCount);
+
+    return `
+      <div class="ai-confirm-card" id="billConfirmCard_${msgId}">
+        <div class="ai-confirm-header">
+          <div class="ai-confirm-tag" style="color:#38bdf8;">🍻 CHIA BILL & QUỸ NHÓM</div>
+          <div class="ai-confirm-title">Phiếu Nhập Hóa Đơn Chia Tiền</div>
+          <div class="ai-confirm-sub">Kiểm tra thông tin chi phí trước khi ghi nhận vào sổ quỹ:</div>
+        </div>
+
+        <div class="ai-form-grid">
+          <div class="ai-form-group">
+            <label class="ai-form-label">🏷️ Tên khoản chi (Bill):</label>
+            <input type="text" class="ai-form-input" id="aiBillTitle_${msgId}" value="${escapeHtml(state.title)}" oninput="aiUpdateBillTitle('${msgId}', this.value)">
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">👤 Người trả tiền trước:</label>
+            <select class="ai-form-select" id="aiBillPayerSelect_${msgId}" onchange="aiUpdateBillPayer('${msgId}', this.value)">
+              ${allMembers.map(m => {
+                const name = m.nickname || m.name;
+                const isSelected = name.toLowerCase() === state.payerName.toLowerCase() || (m.fullName && m.fullName.toLowerCase().includes(state.payerName.toLowerCase()));
+                return `<option value="${escapeHtml(name)}" ${isSelected ? 'selected' : ''}>${escapeHtml(name)} ${m.fullName ? `(${escapeHtml(m.fullName)})` : ''}</option>`;
+              }).join('')}
+            </select>
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">💰 Tổng số tiền bill:</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="number" class="ai-form-input" id="aiBillTotal_${msgId}" value="${state.totalAmount}" step="10000" oninput="aiUpdateBillTotal('${msgId}', this.value)">
+              <span style="font-size:11.5px; color:#94a3b8; font-weight:600;">VNĐ</span>
+            </div>
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">📅 Ngày chi tiêu:</label>
+            <input type="date" class="ai-form-input" id="aiBillDate_${msgId}" value="${state.date}" onchange="aiUpdateBillDate('${msgId}', this.value)">
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <label class="ai-form-label" style="margin:0;">👥 Người tham gia chia (<span id="aiBillPartCount_${msgId}">${state.participants.length}</span> người):</label>
+            <button type="button" class="ai-mini-btn" onclick="aiToggleAllBillParticipants('${msgId}')">Chọn tất cả</button>
+          </div>
+          <div class="ai-chips-list" id="aiBillPartChips_${msgId}">
+            ${allMembers.map(m => {
+              const name = m.nickname || m.name;
+              const isChecked = state.participants.some(e => e.toLowerCase() === name.toLowerCase());
+              return `
+                <button type="button" class="ai-member-chip ${isChecked ? 'selected' : ''}" onclick="aiToggleBillParticipant('${msgId}', '${escapeHtml(name)}')">
+                  <span class="chip-check">${isChecked ? '✓' : '+'}</span>
+                  <span>${escapeHtml(name)}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.25); padding:8px 12px; border-radius:8px;">
+          <span style="font-size:12px; color:#cbd5e1;">Mỗi người chia đều:</span>
+          <span class="ai-total-highlight" id="aiBillPerPerson_${msgId}" style="font-size:14px; padding:0;">${formatMoney(costPerPerson)}/người</span>
+        </div>
+
+        <div class="ai-confirm-actions">
+          <button type="button" class="ai-btn-cancel" onclick="aiDismissConfirmCard('${msgId}')">✕ Bỏ qua</button>
+          <button type="button" class="ai-btn-execute" onclick="aiExecuteAddBill('${msgId}')">
+            <span>✅ Xác nhận & Nhập Chia Bill</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderNoteConfirmationCardHtml(data, msgId) {
+    const text = data.text || '';
+    const now = new Date();
+    const defaultDeadline = data.deadline || new Date(now.getTime() + 24 * 3600 * 1000).toISOString().slice(0, 16);
+    const type = data.type || 'todo';
+
+    if (!activeConfirmationData[msgId]) {
+      activeConfirmationData[msgId] = {
+        type: 'note',
+        text: text,
+        deadline: defaultDeadline,
+        noteType: type
+      };
+    }
+    const state = activeConfirmationData[msgId];
+
+    return `
+      <div class="ai-confirm-card" id="noteConfirmCard_${msgId}">
+        <div class="ai-confirm-header">
+          <div class="ai-confirm-tag" style="color:#a855f7;">📝 GHI CHÚ & CÔNG VIỆC</div>
+          <div class="ai-confirm-title">Phiếu Tạo Ghi Chú Mới</div>
+          <div class="ai-confirm-sub">Kiểm tra thông tin trước khi đưa vào bảng Việc Cần Làm:</div>
+        </div>
+
+        <div class="ai-form-group" style="margin-bottom:8px;">
+          <label class="ai-form-label">📌 Nội dung công việc / ghi chú:</label>
+          <textarea class="ai-form-input" id="aiNoteText_${msgId}" rows="2" oninput="aiUpdateNoteText('${msgId}', this.value)" style="resize:vertical;">${escapeHtml(state.text)}</textarea>
+        </div>
+
+        <div class="ai-form-grid">
+          <div class="ai-form-group">
+            <label class="ai-form-label">⏰ Thời hạn (Deadline):</label>
+            <input type="datetime-local" class="ai-form-input" id="aiNoteDeadline_${msgId}" value="${state.deadline}" onchange="aiUpdateNoteDeadline('${msgId}', this.value)">
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">📂 Phân loại ghi chú:</label>
+            <select class="ai-form-select" id="aiNoteType_${msgId}" onchange="aiUpdateNoteType('${msgId}', this.value)">
+              <option value="todo" ${state.noteType === 'todo' ? 'selected' : ''}>Việc Phải Làm</option>
+              <option value="countdown" ${state.noteType === 'countdown' ? 'selected' : ''}>Sự Kiện Đếm Ngược</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="ai-confirm-actions">
+          <button type="button" class="ai-btn-cancel" onclick="aiDismissConfirmCard('${msgId}')">✕ Bỏ qua</button>
+          <button type="button" class="ai-btn-execute" onclick="aiExecuteAddNote('${msgId}')">
+            <span>✅ Xác nhận & Lưu Ghi Chú</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderContactConfirmationCardHtml(data, msgId) {
+    if (!activeConfirmationData[msgId]) {
+      activeConfirmationData[msgId] = {
+        type: 'contact',
+        fullName: data.fullName || '',
+        nickname: data.nickname || data.fullName || '',
+        phone: data.phone || '',
+        dob: data.dob || '',
+        role: data.role || data.note || 'Thành viên',
+        bankId: data.bankId || 'MB',
+        accountNo: data.accountNo || ''
+      };
+    }
+    const state = activeConfirmationData[msgId];
+
+    return `
+      <div class="ai-confirm-card" id="contactConfirmCard_${msgId}">
+        <div class="ai-confirm-header">
+          <div class="ai-confirm-tag" style="color:#10b981;">👥 DANH BẠ THÀNH VIÊN</div>
+          <div class="ai-confirm-title">Phiếu Thêm Thành Viên / Đồng Nghiệp</div>
+          <div class="ai-confirm-sub">Kiểm tra thông tin trước khi lưu vào Danh Bạ Hệ Thống:</div>
+        </div>
+
+        <div class="ai-form-grid">
+          <div class="ai-form-group">
+            <label class="ai-form-label">👤 Họ và tên đầy đủ:</label>
+            <input type="text" class="ai-form-input" id="aiContactFullName_${msgId}" value="${escapeHtml(state.fullName)}" oninput="aiUpdateContactField('${msgId}', 'fullName', this.value)">
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">🏷️ Biệt danh (Nickname):</label>
+            <input type="text" class="ai-form-input" id="aiContactNickname_${msgId}" value="${escapeHtml(state.nickname)}" oninput="aiUpdateContactField('${msgId}', 'nickname', this.value)">
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">📞 Số điện thoại:</label>
+            <input type="tel" class="ai-form-input" id="aiContactPhone_${msgId}" value="${escapeHtml(state.phone)}" oninput="aiUpdateContactField('${msgId}', 'phone', this.value)">
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">🎂 Ngày sinh:</label>
+            <input type="date" class="ai-form-input" id="aiContactDob_${msgId}" value="${escapeHtml(state.dob)}" onchange="aiUpdateContactField('${msgId}', 'dob', this.value)">
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">🏦 Ngân hàng:</label>
+            <select class="ai-form-select" id="aiContactBankId_${msgId}" onchange="aiUpdateContactField('${msgId}', 'bankId', this.value)">
+              <option value="MB" ${state.bankId === 'MB' ? 'selected' : ''}>MBBank</option>
+              <option value="VCB" ${state.bankId === 'VCB' ? 'selected' : ''}>Vietcombank</option>
+              <option value="TCB" ${state.bankId === 'TCB' ? 'selected' : ''}>Techcombank</option>
+              <option value="VPB" ${state.bankId === 'VPB' ? 'selected' : ''}>VPBank</option>
+              <option value="ACB" ${state.bankId === 'ACB' ? 'selected' : ''}>ACB</option>
+              <option value="BIDV" ${state.bankId === 'BIDV' ? 'selected' : ''}>BIDV</option>
+              <option value="ICB" ${state.bankId === 'ICB' ? 'selected' : ''}>VietinBank</option>
+              <option value="TPB" ${state.bankId === 'TPB' ? 'selected' : ''}>TPBank</option>
+              <option value="VIB" ${state.bankId === 'VIB' ? 'selected' : ''}>VIB</option>
+              <option value="STB" ${state.bankId === 'STB' ? 'selected' : ''}>Sacombank</option>
+            </select>
+          </div>
+
+          <div class="ai-form-group">
+            <label class="ai-form-label">💳 Số tài khoản (STK):</label>
+            <input type="text" class="ai-form-input" id="aiContactAccountNo_${msgId}" value="${escapeHtml(state.accountNo)}" oninput="aiUpdateContactField('${msgId}', 'accountNo', this.value)">
+          </div>
+        </div>
+
+        <div class="ai-form-group" style="margin-top:8px;">
+          <label class="ai-form-label">📝 Chức vụ / Ghi chú:</label>
+          <input type="text" class="ai-form-input" id="aiContactRole_${msgId}" value="${escapeHtml(state.role)}" oninput="aiUpdateContactField('${msgId}', 'role', this.value)">
+        </div>
+
+        <div class="ai-confirm-actions">
+          <button type="button" class="ai-btn-cancel" onclick="aiDismissConfirmCard('${msgId}')">✕ Bỏ qua</button>
+          <button type="button" class="ai-btn-execute" onclick="aiExecuteAddContact('${msgId}')">
+            <span>✅ Xác nhận & Thêm Danh Bạ</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   function renderReminderCardHtml(data) {
     return `
       <div class="ai-reminder-card">
@@ -482,6 +721,49 @@
   }
 
   function renderSuccessCardHtml(data) {
+    if (data.type === 'bill') {
+      return `
+        <div class="ai-success-card">
+          <div style="font-size:22px; margin-bottom:4px;">🍻</div>
+          <div style="font-size:14px; font-weight:800; color:#38bdf8; margin-bottom:2px;">ĐÃ NHẬP CHIA BILL THÀNH CÔNG!</div>
+          <div style="font-size:12px; color:#cbd5e1; line-height:1.5; margin-bottom:8px;">
+            Hóa đơn: <b>${escapeHtml(data.title)}</b> (<b>${formatMoney(data.totalAmount)}</b>).<br>
+            Người trả: <b style="color:#fbbf24;">${escapeHtml(data.payerName)}</b> • Cho <b>${data.participantsCount} người</b> (${formatMoney(data.costPerPerson)}/người).
+          </div>
+          <button type="button" class="ai-mini-btn-action" onclick="openAppById('chia-bill')">🍻 Mở Bảng Chia Bill</button>
+        </div>
+      `;
+    }
+
+    if (data.type === 'note') {
+      return `
+        <div class="ai-success-card">
+          <div style="font-size:22px; margin-bottom:4px;">📝</div>
+          <div style="font-size:14px; font-weight:800; color:#c084fc; margin-bottom:2px;">ĐÃ LƯU GHI CHÚ THÀNH CÔNG!</div>
+          <div style="font-size:12px; color:#cbd5e1; line-height:1.5; margin-bottom:8px;">
+            Công việc: <b>${escapeHtml(data.text)}</b>.<br>
+            Hạn định: <b style="color:#fbbf24;">${escapeHtml(data.deadlineStr || 'Không có')}</b>.
+          </div>
+          <button type="button" class="ai-mini-btn-action" onclick="openAppById('ghi-chu')">📝 Xem Sticky Notes</button>
+        </div>
+      `;
+    }
+
+    if (data.type === 'contact') {
+      return `
+        <div class="ai-success-card">
+          <div style="font-size:22px; margin-bottom:4px;">👥</div>
+          <div style="font-size:14px; font-weight:800; color:#34d399; margin-bottom:2px;">ĐÃ LƯU VÀO DANH BẠ THÀNH CÔNG!</div>
+          <div style="font-size:12px; color:#cbd5e1; line-height:1.5; margin-bottom:8px;">
+            Thành viên: <b>${escapeHtml(data.fullName)}</b> (${escapeHtml(data.nickname || '')}).<br>
+            ${data.phone ? 'SĐT: <b style="color:#38bdf8;">' + escapeHtml(data.phone) + '</b>' : ''}
+            ${data.bankId ? ' • ' + escapeHtml(data.bankId) + ': <b>' + escapeHtml(data.accountNo) + '</b>' : ''}
+          </div>
+          <button type="button" class="ai-mini-btn-action" onclick="openAppById('danh-ba')">👥 Mở Danh Bạ</button>
+        </div>
+      `;
+    }
+
     return `
       <div class="ai-success-card">
         <div style="font-size:22px; margin-bottom:4px;">🎉</div>
@@ -576,7 +858,10 @@
 
   window.aiDismissConfirmCard = function (msgId) {
     delete activeConfirmationData[msgId];
-    const cardEl = document.getElementById(`mealConfirmCard_${msgId}`);
+    const cardEl = document.getElementById(`mealConfirmCard_${msgId}`) ||
+                   document.getElementById(`billConfirmCard_${msgId}`) ||
+                   document.getElementById(`noteConfirmCard_${msgId}`) ||
+                   document.getElementById(`contactConfirmCard_${msgId}`);
     if (cardEl) {
       cardEl.innerHTML = `
         <div style="text-align:center; color:#94a3b8; font-size:12.5px; padding:10px;">
@@ -715,6 +1000,446 @@
     } catch (err) {
       console.error('[AI Assistant] Lỗi lưu tiền cơm:', err);
       alert('Đã xảy ra lỗi khi lưu vào cơ sở dữ liệu: ' + err.message);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // 3.1 CHIA BILL & QUỸ NHÓM TƯƠNG TÁC (CHIA-BILL)
+  // --------------------------------------------------------------------------
+  window.aiUpdateBillTitle = function (msgId, val) {
+    if (activeConfirmationData[msgId]) activeConfirmationData[msgId].title = val;
+  };
+
+  window.aiUpdateBillPayer = function (msgId, val) {
+    if (activeConfirmationData[msgId]) activeConfirmationData[msgId].payerName = val;
+  };
+
+  window.aiUpdateBillTotal = function (msgId, val) {
+    if (!activeConfirmationData[msgId]) return;
+    activeConfirmationData[msgId].totalAmount = parseFloat(val) || 0;
+    updateBillTotalDisplay(msgId);
+  };
+
+  window.aiUpdateBillDate = function (msgId, val) {
+    if (activeConfirmationData[msgId]) activeConfirmationData[msgId].date = val;
+  };
+
+  window.aiToggleBillParticipant = function (msgId, name) {
+    const state = activeConfirmationData[msgId];
+    if (!state) return;
+    const idx = state.participants.findIndex(e => e.toLowerCase() === name.toLowerCase());
+    if (idx !== -1) {
+      if (state.participants.length <= 1) {
+        alert('Phải có ít nhất 1 người tham gia chia bill!');
+        return;
+      }
+      state.participants.splice(idx, 1);
+    } else {
+      state.participants.push(name);
+    }
+    updateBillChipsUI(msgId);
+    updateBillTotalDisplay(msgId);
+  };
+
+  window.aiToggleAllBillParticipants = function (msgId) {
+    const state = activeConfirmationData[msgId];
+    if (!state) return;
+    const all = getSystemMembers().map(m => m.nickname || m.name);
+    if (state.participants.length === all.length) {
+      state.participants = [state.payerName || all[0]];
+    } else {
+      state.participants = [...all];
+    }
+    updateBillChipsUI(msgId);
+    updateBillTotalDisplay(msgId);
+  };
+
+  function updateBillChipsUI(msgId) {
+    const state = activeConfirmationData[msgId];
+    const container = document.getElementById(`aiBillPartChips_${msgId}`);
+    const countEl = document.getElementById(`aiBillPartCount_${msgId}`);
+    if (!container || !state) return;
+
+    if (countEl) countEl.innerText = state.participants.length;
+    const allMembers = getSystemMembers();
+    container.innerHTML = allMembers.map(m => {
+      const name = m.nickname || m.name;
+      const isChecked = state.participants.some(e => e.toLowerCase() === name.toLowerCase());
+      return `
+        <button type="button" class="ai-member-chip ${isChecked ? 'selected' : ''}" onclick="aiToggleBillParticipant('${msgId}', '${escapeHtml(name)}')">
+          <span class="chip-check">${isChecked ? '✓' : '+'}</span>
+          <span>${escapeHtml(name)}</span>
+        </button>
+      `;
+    }).join('');
+  }
+
+  function updateBillTotalDisplay(msgId) {
+    const state = activeConfirmationData[msgId];
+    const perPersonEl = document.getElementById(`aiBillPerPerson_${msgId}`);
+    if (perPersonEl && state) {
+      const count = Math.max(1, state.participants.length);
+      const perPerson = Math.round(state.totalAmount / count);
+      perPersonEl.innerText = `${formatMoney(perPerson)}/người`;
+    }
+  }
+
+  window.aiExecuteAddBill = function (msgId) {
+    const data = activeConfirmationData[msgId];
+    if (!data) return;
+
+    try {
+      let members = [];
+      try {
+        const rawM = localStorage.getItem('nhau_members');
+        if (rawM) members = JSON.parse(rawM);
+      } catch (e) {}
+
+      if (!Array.isArray(members) || !members.length) {
+        members = getSystemMembers();
+      }
+
+      const participantNames = data.participants && data.participants.length > 0 ? data.participants : [data.payerName];
+      const costPerPerson = Math.round(data.totalAmount / participantNames.length);
+
+      let payerMember = members.find(m =>
+        (m.nickname && m.nickname.toLowerCase() === data.payerName.toLowerCase()) ||
+        (m.name && m.name.toLowerCase() === data.payerName.toLowerCase()) ||
+        (m.fullName && m.fullName.toLowerCase().includes(data.payerName.toLowerCase()))
+      );
+
+      if (!payerMember) {
+        payerMember = {
+          id: Date.now(),
+          name: data.payerName,
+          nickname: data.payerName,
+          fullName: data.payerName,
+          balance: 0
+        };
+        members.push(payerMember);
+      }
+
+      const participantsData = [];
+      participantNames.forEach(pName => {
+        let mem = members.find(m =>
+          (m.nickname && m.nickname.toLowerCase() === pName.toLowerCase()) ||
+          (m.name && m.name.toLowerCase() === pName.toLowerCase()) ||
+          (m.fullName && m.fullName.toLowerCase().includes(pName.toLowerCase()))
+        );
+
+        if (!mem) {
+          mem = {
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            name: pName,
+            nickname: pName,
+            fullName: pName,
+            balance: 0
+          };
+          members.push(mem);
+        }
+
+        const isPayer = (mem.id === payerMember.id) || (pName.toLowerCase() === data.payerName.toLowerCase());
+        const paid = isPayer ? data.totalAmount : 0;
+        const cost = costPerPerson;
+
+        mem.balance = (typeof mem.balance === 'number' ? mem.balance : 0) + (paid - cost);
+
+        participantsData.push({
+          id: mem.id,
+          name: mem.nickname || mem.name,
+          paid: paid,
+          cost: cost
+        });
+      });
+
+      safeDbSet('nhau_members', JSON.stringify(members));
+
+      let meals = [];
+      try {
+        const rawMeals = localStorage.getItem('nhau_meals');
+        if (rawMeals) meals = JSON.parse(rawMeals);
+      } catch (e) {}
+
+      const newMeal = {
+        id: Date.now(),
+        title: data.title || 'Khoản chi chia tiền',
+        date: data.date,
+        totalCost: data.totalAmount,
+        costPerPerson: costPerPerson,
+        expenseItems: [{ name: data.title || 'Khoản chi chia tiền', cost: data.totalAmount }],
+        participants: participantsData
+      };
+      meals.push(newMeal);
+      safeDbSet('nhau_meals', JSON.stringify(meals));
+
+      let moneyLogs = [];
+      try {
+        const rawLogs = localStorage.getItem('nhau_money_logs');
+        if (rawLogs) moneyLogs = JSON.parse(rawLogs);
+      } catch (e) {}
+
+      moneyLogs.push({
+        id: Date.now(),
+        date: data.date,
+        description: `Tạo bill: ${data.title} (${formatMoney(data.totalAmount)})`,
+        amount: -data.totalAmount
+      });
+      safeDbSet('nhau_money_logs', JSON.stringify(moneyLogs));
+
+      window.dispatchEvent(new StorageEvent('storage', { key: 'nhau_meals', newValue: JSON.stringify(meals) }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'nhau_members', newValue: JSON.stringify(members) }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'nhau_money_logs', newValue: JSON.stringify(moneyLogs) }));
+
+      document.querySelectorAll('iframe').forEach(ifr => {
+        try {
+          ifr.contentWindow.postMessage({ type: 'NHAU_DATA_UPDATED', newMeal }, '*');
+          ifr.contentWindow.postMessage({ type: 'APP_DATA_UPDATED' }, '*');
+        } catch (e) {}
+      });
+
+      const targetMsg = chatHistory.find(m => m.id === msgId);
+      if (targetMsg) {
+        targetMsg.card = {
+          type: 'SUCCESS',
+          data: {
+            type: 'bill',
+            title: data.title,
+            totalAmount: data.totalAmount,
+            date: data.date,
+            payerName: payerMember.nickname || payerMember.name,
+            participantsCount: participantsData.length,
+            costPerPerson: costPerPerson
+          }
+        };
+        saveChatHistory();
+      }
+
+      delete activeConfirmationData[msgId];
+      renderChatThread();
+
+      if (typeof window.showToast === 'function') {
+        window.showToast(`✅ Đã tạo bill chia tiền ${formatMoney(data.totalAmount)} thành công!`);
+      }
+
+      if (typeof window.pushSystemNotification === 'function') {
+        window.pushSystemNotification({
+          title: '🍻 Chia Bill Đã Tạo',
+          message: `${data.title}: ${formatMoney(data.totalAmount)} do ${payerMember.nickname || payerMember.name} thanh toán.`,
+          icon: '🍻',
+          tag: 'Chia Bill',
+          appUrl: 'apps/chia-bill/index.html'
+        });
+      }
+    } catch (err) {
+      console.error('[AI Assistant] Lỗi lưu chia bill:', err);
+      alert('Đã xảy ra lỗi khi lưu vào cơ sở dữ liệu: ' + err.message);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // 3.2 GHI CHÚ & CÔNG VIỆC TƯƠNG TÁC (GHI-CHU)
+  // --------------------------------------------------------------------------
+  window.aiUpdateNoteText = function (msgId, val) {
+    if (activeConfirmationData[msgId]) activeConfirmationData[msgId].text = val;
+  };
+
+  window.aiUpdateNoteDeadline = function (msgId, val) {
+    if (activeConfirmationData[msgId]) activeConfirmationData[msgId].deadline = val;
+  };
+
+  window.aiUpdateNoteType = function (msgId, val) {
+    if (activeConfirmationData[msgId]) activeConfirmationData[msgId].noteType = val;
+  };
+
+  window.aiExecuteAddNote = function (msgId) {
+    const data = activeConfirmationData[msgId];
+    if (!data) return;
+
+    try {
+      const deadlineDate = data.deadline ? new Date(data.deadline) : new Date(Date.now() + 24 * 3600 * 1000);
+      const deadlineMs = deadlineDate.getTime();
+      const deadlineFormatted = `${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')} ngày ${deadlineDate.getDate()}/${deadlineDate.getMonth() + 1}/${deadlineDate.getFullYear()}`;
+
+      let notes = [];
+      try {
+        const rawNotes = localStorage.getItem('sticky_notes_data');
+        if (rawNotes) notes = JSON.parse(rawNotes);
+      } catch (e) {}
+
+      const newStickyNote = {
+        id: Date.now().toString(),
+        text: data.text,
+        deadline: deadlineMs,
+        status: 'todo',
+        type: data.noteType || 'todo',
+        completedAt: null
+      };
+      notes.push(newStickyNote);
+      safeDbSet('sticky_notes_data', JSON.stringify(notes));
+
+      const timeStr = `${String(deadlineDate.getHours()).padStart(2, '0')}:${String(deadlineDate.getMinutes()).padStart(2, '0')}`;
+      const dateStr = `${deadlineDate.getFullYear()}-${String(deadlineDate.getMonth() + 1).padStart(2, '0')}-${String(deadlineDate.getDate()).padStart(2, '0')}`;
+      saveReminderToSystem(data.text, timeStr, dateStr, deadlineFormatted);
+
+      window.dispatchEvent(new StorageEvent('storage', { key: 'sticky_notes_data', newValue: JSON.stringify(notes) }));
+
+      document.querySelectorAll('iframe').forEach(ifr => {
+        try {
+          ifr.contentWindow.postMessage({ type: 'NOTES_UPDATED', newNote: newStickyNote }, '*');
+          ifr.contentWindow.postMessage({ type: 'APP_DATA_UPDATED' }, '*');
+        } catch (e) {}
+      });
+
+      const targetMsg = chatHistory.find(m => m.id === msgId);
+      if (targetMsg) {
+        targetMsg.card = {
+          type: 'SUCCESS',
+          data: {
+            type: 'note',
+            text: data.text,
+            deadlineStr: deadlineFormatted
+          }
+        };
+        saveChatHistory();
+      }
+
+      delete activeConfirmationData[msgId];
+      renderChatThread();
+
+      if (typeof window.showToast === 'function') {
+        window.showToast(`✅ Đã lưu ghi chú "${data.text.slice(0, 25)}..."!`);
+      }
+
+      if (typeof window.pushSystemNotification === 'function') {
+        window.pushSystemNotification({
+          title: '📝 Ghi Chú Đã Lưu',
+          message: `${data.text} (Hạn: ${deadlineFormatted})`,
+          icon: '📝',
+          tag: 'Ghi Chú',
+          appUrl: 'apps/ghi-chu/index.html'
+        });
+      }
+    } catch (err) {
+      console.error('[AI Assistant] Lỗi lưu ghi chú:', err);
+      alert('Đã xảy ra lỗi khi lưu ghi chú: ' + err.message);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // 3.3 DANH BẠ THÀNH VIÊN TƯƠNG TÁC (DANH-BA)
+  // --------------------------------------------------------------------------
+  window.aiUpdateContactField = function (msgId, field, val) {
+    if (activeConfirmationData[msgId]) activeConfirmationData[msgId][field] = val;
+  };
+
+  window.aiExecuteAddContact = function (msgId) {
+    const data = activeConfirmationData[msgId];
+    if (!data) return;
+
+    try {
+      let members = [];
+      try {
+        const rawM = localStorage.getItem('sys_global_members');
+        if (rawM) members = JSON.parse(rawM);
+      } catch (e) {}
+
+      if (!Array.isArray(members) || !members.length) {
+        members = getSystemMembers();
+      }
+
+      const fullName = (data.fullName || '').trim();
+      const nickname = (data.nickname || '').trim() || fullName;
+      const phone = (data.phone || '').trim();
+      const dob = data.dob || '';
+      const bankId = data.bankId || '';
+      const accountNo = (data.accountNo || '').trim();
+      const note = (data.role || '').trim();
+
+      const existingIdx = members.findIndex(m =>
+        (phone && m.phone === phone) ||
+        (fullName && m.fullName && m.fullName.toLowerCase() === fullName.toLowerCase()) ||
+        (nickname && m.nickname && m.nickname.toLowerCase() === nickname.toLowerCase())
+      );
+
+      const memberObj = {
+        id: existingIdx !== -1 ? members[existingIdx].id : Date.now(),
+        fullName,
+        nickname,
+        name: nickname,
+        dob,
+        phone,
+        bankId,
+        accountNo,
+        accountName: fullName.toUpperCase(),
+        note
+      };
+
+      if (existingIdx !== -1) {
+        members[existingIdx] = { ...members[existingIdx], ...memberObj };
+      } else {
+        members.push(memberObj);
+      }
+
+      safeDbSet('sys_global_members', JSON.stringify(members));
+
+      try {
+        safeDbSet('p2p_members', JSON.stringify(members));
+        let nhauM = JSON.parse(localStorage.getItem('nhau_members')) || [];
+        if (nhauM.length && !nhauM.find(m => m.id === memberObj.id)) {
+          nhauM.push({ ...memberObj, balance: 0 });
+          safeDbSet('nhau_members', JSON.stringify(nhauM));
+        }
+      } catch (e) {}
+
+      try {
+        const bc = new BroadcastChannel('system_member_sync');
+        bc.postMessage({ type: 'MEMBERS_UPDATED', members: members, globalMembers: members });
+      } catch (e) {}
+
+      window.dispatchEvent(new StorageEvent('storage', { key: 'sys_global_members', newValue: JSON.stringify(members) }));
+
+      document.querySelectorAll('iframe').forEach(ifr => {
+        try {
+          ifr.contentWindow.postMessage({ type: 'MEMBERS_UPDATED', members }, '*');
+          ifr.contentWindow.postMessage({ type: 'APP_DATA_UPDATED' }, '*');
+        } catch (e) {}
+      });
+
+      const targetMsg = chatHistory.find(m => m.id === msgId);
+      if (targetMsg) {
+        targetMsg.card = {
+          type: 'SUCCESS',
+          data: {
+            type: 'contact',
+            fullName,
+            nickname,
+            phone,
+            bankId,
+            accountNo
+          }
+        };
+        saveChatHistory();
+      }
+
+      delete activeConfirmationData[msgId];
+      renderChatThread();
+
+      if (typeof window.showToast === 'function') {
+        window.showToast(`✅ Đã lưu thành viên "${fullName}" vào danh bạ!`);
+      }
+
+      if (typeof window.pushSystemNotification === 'function') {
+        window.pushSystemNotification({
+          title: '👥 Danh Bạ Đã Thêm',
+          message: `${fullName} (${nickname})${phone ? ' • ' + phone : ''}`,
+          icon: '👥',
+          tag: 'Danh Bạ',
+          appUrl: 'apps/danh-ba/index.html'
+        });
+      }
+    } catch (err) {
+      console.error('[AI Assistant] Lỗi lưu danh bạ:', err);
+      alert('Đã xảy ra lỗi khi lưu danh bạ: ' + err.message);
     }
   };
 
@@ -904,6 +1629,146 @@
       };
     }
 
+    // 1. Chia Bill / Tiền ăn nhậu / Liên hoan / Tiệc tùng
+    const isBillRelated = norm.includes('chia bill') || norm.includes('tien nhau') || norm.includes('an nhau') || norm.includes('tien bia') || norm.includes('tien karaoke') || norm.includes('di nhau') || norm.includes('bill nhau');
+    if (isBillRelated) {
+      let matchedPayer = null;
+      for (const m of members) {
+        const mNickNorm = normalizeVietnamese(m.nickname || m.name);
+        const mNameNorm = normalizeVietnamese(m.name);
+        const mFullNorm = normalizeVietnamese(m.fullName || '');
+
+        if (norm.includes(mNickNorm) || norm.includes(mNameNorm) || (mFullNorm && norm.includes(mFullNorm))) {
+          matchedPayer = m;
+          break;
+        }
+      }
+
+      let totalAmount = 0;
+      const matchK = raw.match(/(\d+[\.,]?\d*)\s*(k|nghìn|ngàn|triệu|tr|đ|vnd)/i);
+      const matchPlainNumber = raw.match(/(\d{3,9})/);
+
+      if (matchK) {
+        let num = parseFloat(matchK[1].replace(',', '.'));
+        const unit = matchK[2].toLowerCase();
+        if (unit === 'k' || unit === 'nghìn' || unit === 'ngàn') {
+          totalAmount = num * 1000;
+        } else if (unit === 'triệu' || unit === 'tr') {
+          totalAmount = num * 1000000;
+        } else {
+          totalAmount = num;
+        }
+      } else if (matchPlainNumber) {
+        let num = parseFloat(matchPlainNumber[1]);
+        if (num < 1000) totalAmount = num * 1000;
+        else totalAmount = num;
+      } else {
+        totalAmount = 600000;
+      }
+
+      let participants = [];
+      members.forEach(m => {
+        const mNickNorm = normalizeVietnamese(m.nickname || m.name);
+        const mNameNorm = normalizeVietnamese(m.name);
+        if (norm.includes(mNickNorm) || norm.includes(mNameNorm)) {
+          participants.push(m.nickname || m.name);
+        }
+      });
+      if (participants.length === 0) {
+        participants = members.map(m => m.nickname || m.name);
+      }
+
+      const payerName = matchedPayer ? (matchedPayer.nickname || matchedPayer.name) : (participants[0] || 'Công');
+      if (!participants.includes(payerName)) {
+        participants.unshift(payerName);
+      }
+
+      let title = 'Tiền ăn nhậu / liên hoan';
+      if (norm.includes('karaoke')) title = 'Hát Karaoke';
+      else if (norm.includes('an trua')) title = 'Ăn trưa liên hoan';
+      else if (norm.includes('uong bia') || norm.includes('tien bia')) title = 'Uống bia / nhậu';
+
+      return {
+        replyText: `Tôi đã soạn phiếu **Chia Bill** cho bữa **"${title}"** tổng cộng **${formatMoney(totalAmount)}** do **${payerName}** thanh toán.\nBạn vui lòng kiểm tra lại danh sách thành viên chia bên dưới và bấm nút **Xác nhận & Nhập ngay** nhé!`,
+        card: {
+          type: 'BILL_CONFIRM',
+          data: {
+            title,
+            payerName,
+            totalAmount,
+            participants,
+            date: today,
+            note: `${payerName} thanh toán`
+          }
+        }
+      };
+    }
+
+    // 2. Ghi Chú / Sticky Notes / Danh sách việc cần làm (Todo)
+    const isNoteRelated = (norm.includes('ghi chu') || norm.includes('note') || norm.includes('sticky') || norm.includes('viec can lam') || norm.includes('tao todo') || norm.includes('nhac viec')) && !norm.includes('nhac toi') && !norm.includes('hen gio');
+    if (isNoteRelated) {
+      let noteText = raw
+        .replace(/^(hãy |vui lòng |ai |trợ lý )?(ghi chú|tạo ghi chú|thêm ghi chú|note lại|lưu ghi chú|việc cần làm|sticky note)\s*:?\s*/i, '')
+        .trim();
+
+      if (!noteText) noteText = raw;
+
+      let deadline = '';
+      if (norm.includes('ngay mai') || norm.includes('mai')) {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        deadline = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T17:00`;
+      } else if (norm.includes('hom nay') || norm.includes('nay')) {
+        deadline = `${today}T17:00`;
+      }
+
+      return {
+        replyText: `Tôi đã soạn xong mẫu ghi chú: 📝 **"${noteText}"**.\nBạn vui lòng kiểm tra thông tin và bấm nút **Lưu Ghi Chú** để tự động cập nhật vào ứng dụng Sticky Notes nhé!`,
+        card: {
+          type: 'NOTE_CONFIRM',
+          data: {
+            text: noteText,
+            deadline: deadline,
+            noteType: 'todo'
+          }
+        }
+      };
+    }
+
+    // 3. Danh Bạ / Thêm liên hệ / Số điện thoại / STK Ngân Hàng
+    const isContactRelated = norm.includes('them vao danh ba') || norm.includes('them danh ba') || norm.includes('them lien he') || norm.includes('them thanh vien') || norm.includes('tao danh ba') || (norm.includes('danh ba') && (norm.includes('sdt') || norm.includes('so dien thoai') || norm.includes('stk')));
+    if (isContactRelated) {
+      let phoneMatch = raw.match(/(?:0\d{9,10}|\+84\d{9,10})/);
+      let phone = phoneMatch ? phoneMatch[0] : '';
+
+      let stkMatch = raw.match(/(?:stk|so tai khoan|tai khoan|tk|stk:?)\s*([0-9A-Z]{6,19})/i);
+      let accountNo = stkMatch ? stkMatch[1] : (phone.length >= 9 ? phone : '');
+
+      let bankMatch = raw.match(/(vcb|vietcombank|mbbank|mb|techcombank|tcb|vpbank|bidv|acb|tpbank|vietinbank|vpb)/i);
+      let bankId = bankMatch ? bankMatch[0].toUpperCase() : 'MBBank';
+
+      let nameMatch = raw.match(/(?:cho|bạn|anh|chị|em|thành viên|tên là|tên)\s+([A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴÝỶỸa-zàáâãèéêìíòóôõùúăđĩũơưăạảấầẩẫậắằẳẵặẹẻẽềềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵýỷỹ\s]{2,20})/i);
+      let fullName = nameMatch ? nameMatch[1].trim() : 'Thành viên mới';
+      fullName = fullName.replace(/\b(sđt|sdt|số|stk|ngân hàng|mb|vcb)\b.*/i, '').trim();
+
+      return {
+        replyText: `Tôi đã lập thông tin liên hệ mới cho **${fullName}**.\nBạn vui lòng kiểm tra lại thông tin bên dưới và bấm nút **Thêm Vào Danh Bạ** nhé!`,
+        card: {
+          type: 'CONTACT_CONFIRM',
+          data: {
+            fullName,
+            nickname: fullName.split(' ').pop() || fullName,
+            phone,
+            bankId,
+            accountNo,
+            accountName: fullName.toUpperCase(),
+            dob: '',
+            role: 'Thêm qua Trợ lý AI'
+          }
+        }
+      };
+    }
+
     // Công nợ
     if (norm.includes('no tien') || norm.includes('no com') || norm.includes('ai no') || norm.includes('du tien') || norm.includes('am tien')) {
       return {
@@ -951,7 +1816,7 @@
     // Chào hỏi xã giao
     if (norm.includes('chao') || norm.includes('hello') || norm.includes('hi') || norm.includes('alo')) {
       return {
-        replyText: `Xin chào! Chúc bạn một ngày làm việc thật nhiều năng lượng và hiệu quả! 🌟\nTôi có thể giúp bạn ghi chép tiền cơm, lên lịch nhắc việc hay hỗ trợ điều gì không?`
+        replyText: `Xin chào! Chúc bạn một ngày làm việc thật nhiều năng lượng và hiệu quả! 🌟\nTôi có thể giúp bạn ghi chép tiền cơm, chia bill ăn nhậu, tạo ghi chú việc làm hay thêm danh bạ không?`
       };
     }
 
@@ -975,26 +1840,42 @@
 Thời gian hiện tại: ${dayOfWeek}, ngày ${today} lúc ${timeNow}.
 Danh sách thành viên công ty: [${membersSummary}].
 
-Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng Việt. Phân tích ngữ cảnh người dùng:
-1. Nếu người dùng muốn ĐẶT LỊCH NHẮC NHỞ / HẸN GIỜ (ví dụ: "nhắc tôi mua cơm ngày mai 9h", "hẹn giờ 14h chiều mai họp"):
-   - Hãy trả lời ân cần, tự nhiên.
-   - BẮT BUỘC chèn thẻ hành động sau vào cuối câu trả lời:
-   <ACTION_REMINDER>{"task":"Mua cơm","timeStr":"09:00","dateStr":"2026-10-03","displayFormatted":"09:00 ngày 03/10/2026"}</ACTION_REMINDER>
-   (Lưu ý: "ngày mai" tính từ ${today} là ngày tiếp theo).
+Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng Việt. Phân tích ngữ cảnh người dùng và chèn thẻ hành động tương ứng:
 
-2. Nếu người dùng muốn GHI TIỀN CƠM (ví dụ: "hôm nay Công trả tiền cơm mỗi người 40k", "Đô bao 35k tiền cơm hôm qua"):
-   - Trả lời xác nhận lịch sự, tự nhiên.
-   - BẮT BUỘC chèn thẻ hành động sau vào cuối câu trả lời:
+1. ĐẶT LỊCH NHẮC NHỞ / HẸN GIỜ:
+   Chèn thẻ cuối câu:
+   <ACTION_REMINDER>{"task":"Mua cơm","timeStr":"09:00","dateStr":"2026-10-03","displayFormatted":"09:00 ngày 03/10/2026"}</ACTION_REMINDER>
+
+2. GHI TIỀN CƠM (ứng dụng Tiền Cơm):
+   Ví dụ: "hôm nay Công trả tiền cơm mỗi người 40k", "Đô bao cơm trưa 35k".
+   Chèn thẻ cuối câu:
    <ACTION_MEAL_LOG>{"payerName":"Công","amountPerPerson":40000,"eaters":["Đô","Đạt Còi","Công","Hạnh","Quyền","Duy"],"date":"${today}","note":"Công trả tiền cơm"}</ACTION_MEAL_LOG>
 
-3. Nếu người dùng muốn MỞ ỨNG DỤNG (ví dụ: "mở tiền cơm", "mở danh bạ", "mở ghi chú", "mở chia bill"):
-   - Chèn: <ACTION_OPEN_APP>{"appId":"tien-com"}</ACTION_OPEN_APP>
+3. CHIA BILL / ĂN NHẬU / KARAOKE / TIỀN TIỆC (ứng dụng Chia Bill):
+   Ví dụ: "chia bill tiền nhậu hôm qua 600k gồm Công, Đô, Đạt, Quyền do Công trả", "Công trả tiền ăn lẩu 1200k chia đều cho cả phòng".
+   Chèn thẻ cuối câu:
+   <ACTION_BILL_LOG>{"title":"Tiền ăn nhậu liên hoan","payerName":"Công","totalAmount":600000,"participants":["Công","Đô","Đạt Còi","Quyền"],"date":"${today}","note":"Chia bill ăn uống"}</ACTION_BILL_LOG>
 
-4. Với tất cả các câu hỏi khác (viết văn, tính toán, tra cứu, trò chuyện, lời khuyên, giải thích khoa học): Trả lời chi tiết, sắc sảo, tự nhiên, mang phong cách trợ lý thông minh cao cấp.`;
+4. TẠO GHI CHÚ / VIỆC CẦN LÀM / STICKY NOTES (ứng dụng Ghi Chú):
+   Ví dụ: "tạo ghi chú nộp báo cáo quý vào thứ hai lúc 15h", "note việc gửi hợp đồng cho khách chiều nay".
+   Chèn thẻ cuối câu:
+   <ACTION_NOTE_CREATE>{"text":"Nộp báo cáo quý cho phòng kế toán","deadline":"${today}T15:00","noteType":"todo"}</ACTION_NOTE_CREATE>
+
+5. THÊM LIÊN HỆ / THÀNH VIÊN / ĐỐI TÁC (ứng dụng Danh Bạ):
+   Ví dụ: "thêm vào danh bạ bạn Nam sđt 0988123456 STK MB 0988123456", "lưu số anh Tuấn 0912345678 vào danh bạ".
+   Chèn thẻ cuối câu:
+   <ACTION_CONTACT_ADD>{"fullName":"Nguyễn Văn Nam","nickname":"Nam","phone":"0988123456","bankId":"MBBank","accountNo":"0988123456","accountName":"NGUYEN VAN NAM","role":"Đối tác mới"}</ACTION_CONTACT_ADD>
+
+6. MỞ ỨNG DỤNG:
+   Ví dụ: "mở tiền cơm", "mở danh bạ", "mở ghi chú", "mở chia bill", "mở lịch vạn niên".
+   Chèn thẻ cuối câu:
+   <ACTION_OPEN_APP>{"appId":"tien-com"}</ACTION_OPEN_APP>
+
+7. Với tất cả các câu hỏi khác (viết văn, tính toán, tra cứu, đối soát công nợ, trò chuyện): Trả lời chi tiết, sắc sảo, tự nhiên, mang phong cách trợ lý thông minh cao cấp và không chèn action tag khi không yêu cầu nhập liệu.`;
 
     const contents = [
       { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'model', parts: [{ text: 'Dạ vâng! Tôi đã hiểu rõ ngữ cảnh văn phòng và nhiệm vụ phân tích ngữ nghĩa thông minh của mình. Tôi sẵn sàng phục vụ!' }] }
+      { role: 'model', parts: [{ text: 'Dạ vâng! Tôi đã hiểu rõ ngữ cảnh văn phòng và nhiệm vụ phân tích ngữ nghĩa thông minh của mình cho tất cả các app (Tiền Cơm, Chia Bill, Ghi Chú, Danh Bạ). Tôi sẵn sàng phục vụ!' }] }
     ];
 
     // Gửi kèm tối đa 6 lượt chat gần nhất để hiểu ngữ cảnh liên tục
@@ -1094,6 +1975,36 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
           } catch (e) {}
         }
 
+        // Bóc tách thẻ Action Chia Bill
+        const billMatch = geminiRaw.match(/<ACTION_BILL_LOG>([\s\S]*?)<\/ACTION_BILL_LOG>/i);
+        if (billMatch) {
+          try {
+            const parsed = JSON.parse(billMatch[1]);
+            card = { type: 'BILL_CONFIRM', data: parsed };
+            cleanedText = cleanedText.replace(billMatch[0], '').trim();
+          } catch (e) {}
+        }
+
+        // Bóc tách thẻ Action Ghi Chú
+        const noteMatch = geminiRaw.match(/<ACTION_NOTE_CREATE>([\s\S]*?)<\/ACTION_NOTE_CREATE>/i);
+        if (noteMatch) {
+          try {
+            const parsed = JSON.parse(noteMatch[1]);
+            card = { type: 'NOTE_CONFIRM', data: parsed };
+            cleanedText = cleanedText.replace(noteMatch[0], '').trim();
+          } catch (e) {}
+        }
+
+        // Bóc tách thẻ Action Danh Bạ
+        const contactMatch = geminiRaw.match(/<ACTION_CONTACT_ADD>([\s\S]*?)<\/ACTION_CONTACT_ADD>/i);
+        if (contactMatch) {
+          try {
+            const parsed = JSON.parse(contactMatch[1]);
+            card = { type: 'CONTACT_CONFIRM', data: parsed };
+            cleanedText = cleanedText.replace(contactMatch[0], '').trim();
+          } catch (e) {}
+        }
+
         // Bóc tách thẻ Mở App
         const openAppMatch = geminiRaw.match(/<ACTION_OPEN_APP>([\s\S]*?)<\/ACTION_OPEN_APP>/i);
         if (openAppMatch) {
@@ -1112,9 +2023,16 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
         card = null;
       }
     } else {
-      // Chưa cấu hình API Key -> Thông báo cần nhập key để gọi mô hình cố định
-      replyText = `⚠️ **Chưa cấu hình Google Gemini API Key**\n\nHệ thống đã được thiết lập gọi cố định mô hình **${DEFAULT_GEMINI_MODEL}**. Vui lòng bấm vào **⚙️ Cài đặt AI** ở thanh tiêu đề để nhập API Key của bạn.`;
-      modelUsed = `Chưa có API Key (${DEFAULT_GEMINI_MODEL})`;
+      // Chưa cấu hình API Key -> Thử phân tích lệnh nội bộ (Offline Fallback)
+      const offlineRes = processOfflineConversation(query);
+      if (offlineRes && offlineRes.card) {
+        replyText = offlineRes.replyText;
+        card = offlineRes.card;
+        modelUsed = 'Ngoại tuyến (Offline)';
+      } else {
+        replyText = `⚠️ **Chưa cấu hình Google Gemini API Key**\n\nHệ thống đã được thiết lập gọi cố định mô hình **${DEFAULT_GEMINI_MODEL}**. Vui lòng bấm vào **⚙️ Cài đặt AI** ở thanh tiêu đề để nhập API Key của bạn.\n\n*Gợi ý: Bạn vẫn có thể dùng các câu lệnh nhanh như "Công trả cơm 40k", "Chia bill 600k", "Ghi chú việc..." ngay lập tức!*`;
+        modelUsed = `Chưa có API Key (${DEFAULT_GEMINI_MODEL})`;
+      }
     }
 
     // 2. Thêm phản hồi của Assistant vào luồng hội thoại
@@ -1372,12 +2290,123 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
   }
 
   // --------------------------------------------------------------------------
-  // 10. HIỂN THỊ, ĐÓNG MỞ & TIỆN ÍCH MODAL
+  // 10. HIỂN THỊ, ĐÓNG MỞ, KÉO THẢ CỬA SỔ & TIỆN ÍCH MODAL
   // --------------------------------------------------------------------------
+  let isAiWindowDragging = false;
+  let aiDragStartX = 0;
+  let aiDragStartY = 0;
+  let aiBoxInitialLeft = 0;
+  let aiBoxInitialTop = 0;
+
+  function setupAiWindowDrag() {
+    const header = document.getElementById('aiBoxHeader');
+    const box = document.getElementById('aiAssistantBox');
+    if (!header || !box || header.dataset.dragInitialized) return;
+    header.dataset.dragInitialized = 'true';
+
+    function onStartDrag(clientX, clientY, target) {
+      if (box.classList.contains('is-maximized')) return;
+      if (target.closest('button') || target.closest('input') || target.closest('a') || target.closest('select')) {
+        return;
+      }
+
+      isAiWindowDragging = true;
+      aiDragStartX = clientX;
+      aiDragStartY = clientY;
+
+      const rect = box.getBoundingClientRect();
+      aiBoxInitialLeft = rect.left;
+      aiBoxInitialTop = rect.top;
+
+      box.style.left = rect.left + 'px';
+      box.style.top = rect.top + 'px';
+      box.style.right = 'auto';
+      box.style.bottom = 'auto';
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onEndDrag);
+      document.addEventListener('touchmove', onTouchMove, { passive: false });
+      document.addEventListener('touchend', onEndDrag);
+    }
+
+    function onMouseMove(e) {
+      if (!isAiWindowDragging) return;
+      doDrag(e.clientX, e.clientY);
+    }
+
+    function onTouchMove(e) {
+      if (!isAiWindowDragging || !e.touches || !e.touches[0]) return;
+      e.preventDefault();
+      doDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }
+
+    function doDrag(currentX, currentY) {
+      const deltaX = currentX - aiDragStartX;
+      const deltaY = currentY - aiDragStartY;
+
+      let newLeft = aiBoxInitialLeft + deltaX;
+      let newTop = aiBoxInitialTop + deltaY;
+
+      const minLeft = 10;
+      const maxLeft = Math.max(minLeft, window.innerWidth - box.offsetWidth - 10);
+      const minTop = 32; // thanh Topbar macOS
+      const maxTop = Math.max(minTop, window.innerHeight - 60);
+
+      newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
+      newTop = Math.max(minTop, Math.min(newTop, maxTop));
+
+      box.style.left = newLeft + 'px';
+      box.style.top = newTop + 'px';
+    }
+
+    function onEndDrag() {
+      isAiWindowDragging = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onEndDrag);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onEndDrag);
+    }
+
+    header.addEventListener('mousedown', (e) => {
+      onStartDrag(e.clientX, e.clientY, e.target);
+    });
+
+    header.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        onStartDrag(e.touches[0].clientX, e.touches[0].clientY, e.target);
+      }
+    }, { passive: true });
+  }
+
+  function minimizeAiAssistant() {
+    const box = document.getElementById('aiAssistantBox');
+    if (box) {
+      if (box.classList.contains('is-maximized')) {
+        box.classList.remove('is-maximized');
+      }
+      box.classList.toggle('is-minimized');
+    }
+  }
+
+  function toggleMaximizeAiAssistant() {
+    const box = document.getElementById('aiAssistantBox');
+    if (box) {
+      if (box.classList.contains('is-minimized')) {
+        box.classList.remove('is-minimized');
+      }
+      box.classList.toggle('is-maximized');
+    }
+  }
+
   function showAiAssistantModal() {
     const modal = document.getElementById('aiAssistantModal');
+    const box = document.getElementById('aiAssistantBox');
     if (modal) {
       modal.classList.add('show');
+      if (box && box.classList.contains('is-minimized')) {
+        box.classList.remove('is-minimized');
+      }
+      setupAiWindowDrag();
       if (!chatHistory || !chatHistory.length) {
         loadChatHistory();
       }
@@ -1418,7 +2447,7 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
   }
 
   function openAppById(appId) {
-    closeAiAssistant();
+    // Để AI Assistant hoạt động đồng thời dạng cửa sổ song song với các app khác
     if (typeof window.openApp === 'function') {
       const targetApp = (window.appsList || []).find(a => a.id === appId || (a.url && a.url.includes(appId))) || {
         id: appId,
@@ -1457,6 +2486,7 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
   document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
     updateAiStatusIndicator();
+    setupAiWindowDrag();
   });
 
   // Export ra toàn cục window
@@ -1468,6 +2498,9 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
     toggleAiAssistant,
     showAiAssistantModal,
     closeAiAssistant,
+    minimizeAiAssistant,
+    toggleMaximizeAiAssistant,
+    setupAiWindowDrag,
     submitAiPrompt,
     clearAiChat,
     toggleAiSettingsDrawer,
@@ -1477,6 +2510,9 @@ Nhiệm vụ: Trò chuyện tự nhiên, tinh tế, thông minh bằng Tiếng V
 
   window.toggleAiAssistant = toggleAiAssistant;
   window.closeAiAssistant = closeAiAssistant;
+  window.minimizeAiAssistant = minimizeAiAssistant;
+  window.toggleMaximizeAiAssistant = toggleMaximizeAiAssistant;
+  window.setupAiWindowDrag = setupAiWindowDrag;
   window.toggleVoiceListening = toggleVoiceListening;
   window.submitAiPrompt = submitAiPrompt;
   window.clearAiChat = clearAiChat;
