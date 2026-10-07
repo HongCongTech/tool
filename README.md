@@ -22,8 +22,25 @@ website/
 │   │   └── index.html
 │   ├── lai-suat/               # 💵 Tiện ích Tính lãi suất ngân hàng & Lịch trả nợ vay (Chart.js)
 │   │   └── index.html
-│   └── ghi-chu/                # 📝 Bảng Ghi chú & Đếm ngược (Tìm kiếm tức thì + Bộ lọc danh mục)
+│   ├── ghi-chu/                # 📝 Bảng Ghi chú & Đếm ngược (Tìm kiếm tức thì + Bộ lọc danh mục)
+│   │   └── index.html
+│   ├── danh-ba/                # 👥 Danh bạ & Nhắc việc, sinh nhật đồng nghiệp
+│   │   └── index.html
+│   ├── music/                  # 🎵 Trình nghe nhạc Apple Music (Google Drive & Synology Audio Streamer)
+│   │   └── index.html
+│   └── ai-assistant/           # 🧠 Trợ Lý AI Cá Nhân Hóa & Bộ Nhớ Dài Hạn (Memory Vault)
 │       └── index.html
+│
+├── data/                       # 🗄️ Trung tâm dữ liệu hệ thống
+│   └── ai_memory/              # 🧠 Dữ liệu train AI & Bộ nhớ cá nhân hóa lâu dài (JSONL, JSON)
+│       ├── personal_profile.json
+│       ├── memory_train_dataset.jsonl
+│       ├── chat_history.json
+│       └── knowledge_base.json
+│
+├── .agents/                    # 🤖 Quy tắc và kỹ năng AI dành cho Antigravity IDE
+│   ├── rules/personal_memory.md
+│   └── skills/personal_memory/SKILL.md
 │
 ├── legacy/                     # Kho lưu trữ các phiên bản cũ (Archive)
 │   └── tiencom-v1.html         # Bản tiền cơm v1 cũ (giữ an toàn dữ liệu lịch sử)

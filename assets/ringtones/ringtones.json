@@ -1,0 +1,42 @@
+[
+  {
+    "id": "rt-opening",
+    "name": "Apple Opening (Classic)",
+    "category": "Apple Ringtone",
+    "type": "synth",
+    "soundId": "macos_chime",
+    "desc": "Chuông hòa âm thanh lịch nguyên bản của Apple"
+  },
+  {
+    "id": "rt-radar",
+    "name": "Radar Alarm Pulse",
+    "category": "Alarm",
+    "type": "synth",
+    "soundId": "radar_alarm",
+    "desc": "Tần số quét dồn dập đánh thức mạnh mẽ"
+  },
+  {
+    "id": "rt-crystal",
+    "name": "Crystal Chime Bell",
+    "category": "Notification",
+    "type": "synth",
+    "soundId": "crystal_bell",
+    "desc": "Chuông pha lê ngân vang cao vút huyền ảo"
+  },
+  {
+    "id": "rt-zen",
+    "name": "Zen Meditation Bowl",
+    "category": "Relax",
+    "type": "synth",
+    "soundId": "zen_bowl",
+    "desc": "Chuông thiền 432Hz trầm ấm sâu lắng"
+  },
+  {
+    "id": "rt-fanfare",
+    "name": "Victory Fanfare",
+    "category": "Alert",
+    "type": "synth",
+    "soundId": "fanfare",
+    "desc": "Hợp âm khải hoàn rộn rã đầy năng lượng"
+  }
+]

@@ -1,0 +1,256 @@
+{
+  "user_profile": {
+    "name": "Hong Cong Tech",
+    "role": "Chá»§ sá»Ÿ há»¯u & Quáº£n trá»‹ viÃªn Há»‡ thá»‘ng macOS Web Tool Hub",
+    "language": "Tiáº¿ng Viá»‡t",
+    "tone_preference": "ChuyÃªn nghiá»‡p, chÃ­nh xÃ¡c, xÃºc tÃ­ch, tÃ´n trá»ng, hÆ°á»›ng dáº«n cá»¥ thá»ƒ",
+    "work_context": "PhÃ¡t triá»ƒn vÃ  váº­n hÃ nh há»‡ thá»‘ng macOS Web Dashboard (bao gá»“m cÃ¡c app: Chia Bill, TÃ­nh Tiá»n CÆ¡m VietQR, LÃ£i Suáº¥t, Ghi ChÃº, Danh Báº¡ vÃ  Trá»£ LÃ½ AI). YÃªu cáº§u code sáº¡ch, tá»‘i Æ°u hiá»‡u nÄƒng, cháº¡y tá»‘t trÃªn cáº£ mÃ¡y tÃ­nh vÃ  Ä‘iá»‡n thoáº¡i, Ä‘á»“ng bá»™ Supabase vÃ  offline cache."
+  },
+  "core_instructions": [
+    "LuÃ´n ghi nhá»› vÃ  báº£o lÆ°u ngá»¯ cáº£nh cÃ´ng viá»‡c vÃ  lá»‹ch sá»­ trÃ² chuyá»‡n cá»§a ngÆ°á»i dÃ¹ng.",
+    "Má»i Ä‘á» xuáº¥t giáº£i phÃ¡p Ä‘á»u pháº£i tÆ°Æ¡ng thÃ­ch vá»›i kiáº¿n trÃºc web hiá»‡n táº¡i cá»§a x:/tool (HTML/CSS/JS thuáº§n, Supabase REST, khÃ´ng báº¯t buá»™c server backend phá»©c táº¡p).",
+    "Khi ngÆ°á»i dÃ¹ng yÃªu cáº§u chá»‰nh sá»­a hoáº·c thÃªm tÃ­nh nÄƒng, pháº£i thá»±c hiá»‡n toÃ n diá»‡n, hoÃ n chá»‰nh, khÃ´ng lÃ m ná»­a vá»i hoáº·c bá» dá»Ÿ.",
+    "Tá»± Ä‘á»™ng há»c vÃ  lÆ°u cÃ¡c thÃ´ng tin cÃ´ng viá»‡c quan trá»ng má»›i vÃ o kho kÃ½ á»©c dÃ i háº¡n (Memory Vault)."
+  ],
+  "long_term_memories": [
+    {
+      "id": "mem_001",
+      "category": "user_preference",
+      "content": "NgÆ°á»i dÃ¹ng muá»‘n AI cÃ³ bá»™ nhá»› dÃ i háº¡n, lÆ°u trá»¯ toÃ n bá»™ lá»‹ch sá»­ chat vÃ  dá»¯ liá»‡u train cÃ¡ nhÃ¢n hÃ³a ngay trong thÆ° má»¥c web cá»§a dá»± Ã¡n x:/tool.",
+      "importance": "high",
+      "created_at": "2026-10-03T01:00:00Z"
+    },
+    {
+      "id": "mem_002",
+      "category": "system_architecture",
+      "content": "Há»‡ thá»‘ng web x:/tool sá»­ dá»¥ng kiáº¿n trÃºc macOS Web Dashboard, Ä‘á»“ng bá»™ hÃ³a qua db-storage.js vá»›i Supabase REST vÃ  localStorage cache, há»— trá»£ cáº£ giao diá»‡n Desktop macOS vÃ  iPhone iOS mode.",
+      "importance": "high",
+      "created_at": "2026-10-03T01:00:00Z"
+    },
+    {
+      "id": "mem_003",
+      "category": "workflow_rules",
+      "content": "Æ¯u tiÃªn thiáº¿t káº¿ UI Ä‘áº¹p, tháº©m má»¹ cao (Glassmorphism, Dark Mode, font Plus Jakarta Sans, animations mÆ°á»£t mÃ ). KhÃ´ng sá»­ dá»¥ng placeholder trá»‘ng.",
+      "importance": "high",
+      "created_at": "2026-10-03T01:00:00Z"
+    },
+    {
+      "id": "mem_004",
+      "category": "user_preference",
+      "content": "TÃ­nh nÄƒng xá»­ lÃ½ hÃ¬nh áº£nh trong Chatbot AI khÃ´ng tá»± Ä‘á»™ng nháº­p prompt máº·c Ä‘á»‹nh, mÃ  Ä‘á»ƒ ngÆ°á»i dÃ¹ng nháº­p prompt thá»§ cÃ´ng. Náº¿u gá»­i áº£nh mÃ  chÆ°a cÃ³ prompt thÃ¬ cáº£nh bÃ¡o ngÆ°á»i dÃ¹ng nháº­p yÃªu cáº§u.",
+      "importance": "high",
+      "created_at": "2026-10-03T17:00:00Z"
+    },
+    {
+      "id": "mem_005",
+      "category": "system_architecture",
+      "content": "Trang Quáº£n Trá»‹ DB Táº­p Trung (/admin/database & Admin Database Dashboard): Giao diá»‡n Table xem/thÃªm/sá»­a/xÃ³a báº£ng members, bills, meal_logs, notes, contacts, system_store; SQL Runner mini; Backup/Restore JSON/SQL; Offline-First Queue Sync vÃ  Realtime Subscriptions qua Supabase.",
+      "importance": "high",
+      "created_at": "2026-10-03T17:00:00Z"
+    },
+    {
+      "id": "mem_006",
+      "category": "business_logic",
+      "content": "Danh báº¡ há»‡ thá»‘ng (sys_global_members) lÃ  thÆ° viá»‡n trung tÃ¢m Ä‘á»™c láº­p. CÃ¡c app con nhÆ° Tiá»n CÆ¡m (p2p_members) vÃ  Chia Bill (nhau_members) chá»‰ chá»n thÃ nh viÃªn tham gia tá»« Danh Báº¡. XÃ³a á»Ÿ app con chá»‰ lÃ  gá»¡ khá»i nhÃ³m tham gia cá»§a app Ä‘Ã³, tuyá»‡t Ä‘á»‘i KHÃ”NG xÃ³a trong Danh Báº¡ vÃ  khi reload khÃ´ng Ä‘Æ°á»£c tá»± Ã½ kÃ©o láº¡i ngÆ°á»i Ä‘Ã£ xÃ³a.",
+      "importance": "critical",
+      "created_at": "2026-10-03T17:40:00Z"
+    },
+    {
+      "id": "mem_007",
+      "category": "business_logic",
+      "content": "Trong TÃ­nh Tiá»n CÆ¡m: Khi báº¥m 'Tráº£' trÃªn card cá»§a má»™t thÃ nh viÃªn, máº·c Ä‘á»‹nh thÃ nh viÃªn Ä‘Ã³ lÃ  NGÆ¯á»œI NHáº¬N TIá»€N, cÃ²n NGÆ¯á»œI TRáº¢ TIá»€N lÃ  ngÆ°á»i trong danh sÃ¡ch Ä‘ang ná»£ thÃ nh viÃªn Ä‘Ã³ (tá»± Ä‘á»™ng chá»n ngÆ°á»i ná»£ nhiá»u nháº¥t, tá»± Ä‘iá»n sá»‘ tiá»n ná»£ vÃ  VietQR theo tÃ i khoáº£n ngÃ¢n hÃ ng cá»§a ngÆ°á»i nháº­n tiá»n).",
+      "importance": "high",
+      "created_at": "2026-10-03T17:40:00Z"
+    },
+    {
+      "id": "mem_008",
+      "category": "system_architecture",
+      "content": "Äá»“ng bá»™ Danh Báº¡ & Database Táº­p Trung: TÃ­ch há»£p hai chiá»u Ä‘á»“ng nháº¥t giá»¯a báº£ng relational 'members' vÃ  key 'sys_global_members' trong Supabase system_store. CÆ¡ cháº¿ Intelligent Two-Way Merge Ä‘áº£m báº£o khi Cloud Ä‘á»“ng bá»™ vá», cÃ¡c thÃ nh viÃªn má»›i táº¡o trÃªn má»i thiáº¿t bá»‹ tuyá»‡t Ä‘á»‘i khÃ´ng bá»‹ ghi Ä‘Ã¨ hay xÃ³a máº¥t.",
+      "importance": "critical",
+      "created_at": "2026-10-04T04:50:00Z"
+    },
+    {
+      "id": "mem_009",
+      "category": "user_preference",
+      "content": "Báº£o máº­t & Quyá»n kiá»ƒm soÃ¡t dá»¯ liá»‡u tuyá»‡t Ä‘á»‘i: Dá»¯ liá»‡u khÃ´ng Ä‘Æ°á»£c phÃ©p tá»± Ä‘á»™ng thay Ä‘á»•i khi chÆ°a cÃ³ sá»± cho phÃ©p cá»§a ngÆ°á»i dÃ¹ng. Tháº­m chÃ­ AI Chatbot (Kira) muá»‘n thay Ä‘á»•i báº¥t ká»³ Ä‘iá»u gÃ¬ (ghi tiá»n cÆ¡m, chia bill, thanh toÃ¡n ná»£, xÃ³a, reset, táº¡o/hoÃ n thÃ nh ghi chÃº, Ä‘áº·t nháº¯c nhá»Ÿ, lÆ°u kÃ½ á»©c) Ä‘á»u Báº®T BUá»˜C pháº£i há»i vÃ  xuáº¥t tháº» xÃ¡c nháº­n Ä‘á»ƒ ngÆ°á»i dÃ¹ng duyá»‡t trÆ°á»›c khi thá»±c thi.",
+      "importance": "critical",
+      "created_at": "2026-10-04T04:50:00Z"
+    },
+    {
+      "id": "mem_010",
+      "category": "system_architecture",
+      "content": "Äá»“ng bá»™ Form Nháº­p Liá»‡u Giá»¯a AI vÃ  CÃ¡c á»¨ng Dá»¥ng (Form Sync Protocol): Táº¥t cáº£ cÃ¡c á»©ng dá»¥ng trÃªn há»‡ thá»‘ng (Tiá»n CÆ¡m, Chia Bill, Ghi ChÃº, Danh Báº¡) Ä‘á»u há»— trá»£ giao thá»©c nháº­n message AI_FILL_... tá»« AI Assistant Ä‘á»ƒ tá»± Ä‘á»™ng má»Ÿ form/modal vÃ  Ä‘iá»n trÆ°á»›c (pre-fill) Ä‘áº§y Ä‘á»§ cÃ¡c trÆ°á»ng (mÃ³n Äƒn, danh sÃ¡ch khoáº£n chi, ngÆ°á»i tham gia, thá»i háº¡n, tÃªn chá»§ tÃ i khoáº£n in hoa) kÃ¨m hiá»‡u á»©ng phÃ¡t sÃ¡ng ai-form-highlight trá»±c quan. AI Assistant cung cáº¥p 2 lá»±a chá»n: [XÃ¡c nháº­n lÆ°u ngay] hoáº·c [Äiá»n vÃ o Form App] Ä‘á»ƒ ngÆ°á»i dÃ¹ng Ä‘á»‘i soÃ¡t chÃ­nh xÃ¡c trÆ°á»›c khi báº¥m lÆ°u.",
+      "importance": "critical",
+      "created_at": "2026-10-04T06:40:00Z"
+    },
+    {
+      "id": "mem_011",
+      "category": "user_preference",
+      "content": "Quy táº¯c xÆ°ng hÃ´ & tráº£i nghiá»‡m Kira: TÃªn cá»§a trá»£ lÃ½ AI lÃ  Kira. LuÃ´n xÆ°ng lÃ  'em' vÃ  gá»i ngÆ°á»i dÃ¹ng lÃ  'anh CÃ´ng'. Lá»i chÃ o ban Ä‘áº§u pháº£i tá»± nhiÃªn, ngáº¯n gá»n, sÃºc tÃ­ch (vÃ­ dá»¥: 'Em chÃ o anh CÃ´ng, hÃ´m nay anh cáº§n em há»— trá»£ gÃ¬ áº¡? ðŸ˜Š'), tuyá»‡t Ä‘á»‘i khÃ´ng chÃ o dÃ i dÃ²ng rÆ°á»m rÃ  hay mÃ¡y mÃ³c. Menu trong chat chá»‰ chá»©a cÃ¡c tÃ¹y chá»n chá»©c nÄƒng há»‡ thá»‘ng (Quáº£n lÃ½ thÃ nh viÃªn, KÃ½ á»©c, LÃ m má»›i chat, Cáº¥u hÃ¬nh), khÃ´ng Ä‘Æ°a cÃ¡c cÃ¢u chat nhanh/prompt máº«u vÃ o menu. ToÃ n bá»™ ná»™i dung tin nháº¯n chat trong AI pháº£i cho phÃ©p bÃ´i Ä‘en vÃ  sao chÃ©p dá»… dÃ ng.",
+      "importance": "high",
+      "created_at": "2026-10-04T16:25:00Z"
+    },
+    {
+      "id": "mem_012",
+      "category": "system_architecture",
+      "content": "á»¨ng dá»¥ng Nháº¯c Viá»‡c, Ghi ChÃº & Äáº¿m NgÆ°á»£c (Reminders, Notes & Countdowns - apps/ghi-chu/): Thiáº¿t káº¿ chuyÃªn nghiá»‡p chuáº©n macOS Sequoia, há»— trá»£ 4 phÃ¢n loáº¡i (Viá»‡c cáº§n lÃ m, Háº¹n giá» nháº¯c viá»‡c, Äáº¿m ngÆ°á»£c sá»± kiá»‡n thá»i gian thá»±c, Ghi chÃº tá»± do), 3 má»©c Æ°u tiÃªn (Cao/Vá»«a/Tháº¥p), Tháº» nhÃ£n tags, Ã‚m thanh chuÃ´ng Ding macOS (Web Audio API), vÃ  LiÃªn káº¿t Ä‘iá»u khiá»ƒn hai chiá»u toÃ n diá»‡n vá»›i CÃ´ng AI (AI cÃ³ thá»ƒ táº¡o, Ä‘Ã¡nh dáº¥u hoÃ n thÃ nh, xÃ³a, sá»­a gia háº¡n vÃ  tra cá»©u bÃ¡o cÃ¡o danh sÃ¡ch viá»‡c thá»i gian thá»±c trá»±c tiáº¿p trÃªn chatbot).",
+      "importance": "critical",
+      "created_at": "2026-10-04T16:50:00Z"
+    },
+    {
+      "id": "mem_013",
+      "category": "user_preference",
+      "content": "Chuáº©n hÃ³a giao diá»‡n Mobile Web Dashboard & CÃ´ng AI: TrÃªn Ä‘iá»‡n thoáº¡i (mÃ n hÃ¬nh <= 768px), thanh Top Bar lÆ°á»£c bá» cÃ¡c chá»¯ cÃ¡i miÃªu táº£ chá»©c nÄƒng (chá»‰ giá»¯ icon DB, icon quyá»n Admin, Ä‘á»“ng há»“ sá»‘ HH:mm ngáº¯n gá»n). Táº­n dá»¥ng safe-area-inset-top vÃ  safe-area-inset-bottom Ä‘á»ƒ thanh trÃªn cÃ¹ng vÃ  Dock Ä‘Ã¡y tuyá»‡t Ä‘á»‘i khÃ´ng bá»‹ che bá»Ÿi thanh tráº¡ng thÃ¡i, notch hay phÃ­m Ä‘iá»u hÆ°á»›ng Android. Cá»­a sá»• CÃ´ng AI trÃªn mobile hiá»ƒn thá»‹ dáº¡ng Native Phone Screen toÃ n mÃ n hÃ¬nh (100dvh), áº©n nÃºt Ä‘Ã¨n giao thÃ´ng Ä‘á»ƒ trÃ¡nh chÃ¨n Ã©p tiÃªu Ä‘á», phÃ­m quay láº¡i < tinh táº¿, thanh nháº­p liá»‡u ná»•i cÃ¡ch Ä‘Ã¡y an toÃ n, ná»™i dung tin nháº¯n vÃ  tháº» xÃ¡c nháº­n cÄƒn chá»‰nh chuáº©n xÃ¡c khÃ´ng bá»‹ trÃ n viá»n hay lem chá»¯.",
+      "importance": "critical",
+      "created_at": "2026-10-04T18:34:00Z"
+    },
+    {
+      "id": "mem_014",
+      "category": "user_preference",
+      "content": "Tá»‘i Æ°u hÃ³a toÃ n diá»‡n giao diá»‡n Mobile Web Hub & TÆ°Æ¡ng tÃ¡c PhÃ­m Back Android: TrÃªn giao diá»‡n Ä‘iá»‡n thoáº¡i (<= 768px vÃ  mobile mode), loáº¡i bá» hoÃ n toÃ n header phÃ­a trÃªn (top-bar vÃ  ios-status-bar) cÃ¹ng thanh nav trong cá»­a sá»• á»©ng dá»¥ng Ä‘á»ƒ trÃ¡nh chá»“ng láº¥n vÃ  tá»‘i Æ°u 100% diá»‡n tÃ­ch hiá»ƒn thá»‹ (iframe chiáº¿m trá»n 100dvh). CÃ¡c thÃ´ng tin tráº¡ng thÃ¡i cáº§n thiáº¿t (Postgres DB, Admin Mode, Giá»/Lá»‹ch) Ä‘Æ°á»£c tÃ­ch há»£p tinh táº¿ vÃ o SpringBoard summary card trÃªn mÃ n hÃ¬nh chÃ­nh. TÃ­ch há»£p bá»™ Ä‘iá»u khiá»ƒn HTML5 History API Ä‘á»ƒ phÃ­m Ä‘iá»u hÆ°á»›ng Android (phÃ­m Back váº­t lÃ½ / cá»­ chá»‰ vuá»‘t mÃ©p quay láº¡i) khi Ä‘ang á»Ÿ báº¥t ká»³ app, modal hay CÃ´ng AI nÃ o sáº½ tá»± Ä‘á»™ng Ä‘Ã³ng á»©ng dá»¥ng Ä‘Ã³ vÃ  quay vá» mÃ n hÃ¬nh chÃ­nh Desktop thay vÃ¬ thoÃ¡t khá»i trang web.",
+      "importance": "critical",
+      "created_at": "2026-10-04T21:26:00Z"
+    },
+    {
+      "id": "mem_015",
+      "category": "user_preference",
+      "content": "Tá»‘i Æ°u hÃ³a báº£ng Log Giao Dá»‹ch Tiá»n CÆ¡m trÃªn Mobile (apps/tien-com/): Loáº¡i bá» hoÃ n toÃ n Ä‘á»‹nh dáº¡ng báº£ng HTML Table 4 cá»™t dá»c cháº­t chá»™i gÃ¢y trÃ n lá», cáº¯t chá»¯ vÃ  vá»¡ giao diá»‡n trÃªn Ä‘iá»‡n thoáº¡i. Thay tháº¿ báº±ng kiáº¿n trÃºc Tháº» Giao Dá»‹ch PhÃ¢n Táº§ng Theo Chiá»u Ngang (.tx-card) chuáº©n phong cÃ¡ch macOS/iOS hiá»‡n Ä‘áº¡i: Táº§ng 1 gá»“m Badge loáº¡i giao dá»‹ch (Bá»¯a Ä‚n / Tráº£ Tiá»n) + NgÃ y Ä‘á»‹nh dáº¡ng DD/MM/YYYY + Cá»¥m nÃºt Thao tÃ¡c Quáº£n trá»‹ (Sá»­a, XÃ³a) 30x30px khÃ´ng trÃ n viá»n; Táº§ng 2 hiá»ƒn thá»‹ rÃµ ngÆ°á»i chi tiá»n hoáº·c luá»“ng tiá»n (NgÆ°á»i tráº£ âž” NgÆ°á»i nháº­n) cÃ¹ng Tá»•ng sá»‘ tiá»n giao dá»‹ch ná»•i báº­t; Táº§ng 3 Æ¯U TIÃŠN Ná»˜I DUNG LOG CHI TIáº¾T (tÃ¡ch rÃµ rÃ ng tá»«ng thÃ nh viÃªn, badge tÃªn mÃ³n Äƒn vÃ  sá»‘ tiá»n riÃªng tá»«ng ngÆ°á»i theo tá»«ng hÃ ng ngang Ä‘á»‘i xá»©ng, cÃ³ parser thÃ´ng minh trÃ­ch xuáº¥t dá»¯ liá»‡u ká»ƒ cáº£ vá»›i log cÅ©).",
+      "importance": "critical",
+      "created_at": "2026-10-04T21:43:00Z"
+    },
+    {
+      "id": "mem_016",
+      "category": "user_preference",
+      "content": "Chuáº©n hÃ³a & Tá»‘i Æ°u hÃ³a toÃ n diá»‡n giao diá»‡n Mobile trÃªn toÃ n bá»™ 6 á»©ng dá»¥ng con (Tiá»n CÆ¡m, Chia Bill, Nháº¯c Viá»‡c/Ghi ChÃº, Danh Báº¡, LÃ£i Suáº¥t, Control Panel): Æ¯u tiÃªn hiá»ƒn thá»‹ ná»™i dung cá»‘t lÃµi, khÃ´ng Ä‘á»ƒ header/tháº» phá»¥ quÃ¡ to che láº¥p mÃ n hÃ¬nh. (1) Header thu gá»n: logo 34px, áº©n tagline rÆ°á»m rÃ , nÃºt báº¥m hÃ nh Ä‘á»™ng tá»± Ä‘á»™ng thu gá»n chá»¯ hoáº·c chá»‰ hiá»ƒn thá»‹ icon/chá»¯ ngáº¯n (BÃ¡o CÃ¡o, VietQR, Táº¡o Bill, v.v.). (2) Chuyá»ƒn Ä‘á»•i khá»‘i thá»‘ng kÃª/KPI tá»« dáº¡ng dá»c cá»“ng ká»nh sang dáº¡ng lÆ°á»›i ngang gá»n gÃ ng (3 cá»™t hoáº·c 2x2), tiáº¿t kiá»‡m tá»« 150px - 250px chiá»u cao mÃ n hÃ¬nh. (3) Chuyá»ƒn toÃ n bá»™ thanh Ä‘iá»u hÆ°á»›ng, tab danh má»¥c vÃ  filter (trong Ghi ChÃº, LÃ£i Suáº¥t, Chia Bill, Danh Báº¡) tá»« dáº¡ng xáº¿p chá»“ng dá»c sang thanh trÆ°á»£t ngang bo trÃ²n kiá»ƒu iOS Segmented Controls. (4) Tá»‘i Æ°u hÃ³a padding, border-radius vÃ  tháº» ná»™i dung hiá»ƒn thá»‹ vá»«a váº·n, khÃ´ng bá»‹ trÃ n ngang hay Ä‘Ã¨ láº¥p trÃªn má»i mÃ n hÃ¬nh Ä‘iá»‡n thoáº¡i.",
+      "importance": "critical",
+      "created_at": "2026-10-04T22:12:00Z"
+    },
+    {
+      "id": "mem_017",
+      "category": "user_preference",
+      "content": "NÃ¢ng cáº¥p Kira vá»›i PhÃ­m Táº¯t PhÃ­m CÃ¡ch ThÃ´ng Minh & VÃ²ng Láº·p Äá»‘i Thoáº¡i Giá»ng NÃ³i LiÃªn Tá»¥c (Hands-Free Voice Dialogue): (1) PhÃ­m cÃ¡ch 3 láº§n nhanh (Triple Space): Nháº¥n phÃ­m cÃ¡ch 3 láº§n liÃªn tiáº¿p trong vÃ²ng 650ms Ä‘á»ƒ gá»i Kira hiá»ƒn thá»‹ lÃªn náº¿u Ä‘ang Ä‘Ã³ng/thu nhá», hoáº·c thu nhá» thÃ nh quáº£ cáº§u AI lÆ¡ lá»­ng náº¿u Ä‘ang má»Ÿ (tá»± Ä‘á»™ng dá»n dáº¹p khoáº£ng tráº¯ng thá»«a, hoáº¡t Ä‘á»™ng xuyÃªn suá»‘t tá»« Desktop cho tá»›i bÃªn trong táº¥t cáº£ iframe á»©ng dá»¥ng con). (2) Giá»¯ phÃ­m cÃ¡ch 2 giÃ¢y: Khi cá»­a sá»• Kira Ä‘ang má»Ÿ, Ä‘Ã¨ giá»¯ phÃ­m cÃ¡ch 2 giÃ¢y sáº½ hiá»ƒn thá»‹ vÃ²ng sáº¡c náº¡p nÄƒng lÆ°á»£ng trá»±c quan trÃªn nÃºt Mic vÃ  tá»± Ä‘á»™ng báº­t hoáº·c táº¯t nháº­n diá»‡n giá»ng nÃ³i (kÃ¨m thÃ´ng bÃ¡o Toast macOS vÃ  Ã¢m thanh pop/chime). (3) Cháº¿ Ä‘á»™ Äá»‘i thoáº¡i Giá»ng nÃ³i LiÃªn tá»¥c (Hands-Free): Khi lÃ m viá»‡c báº±ng giá»ng nÃ³i, ngay sau khi Kira hoÃ n táº¥t tráº£ lá»i (vÃ  hoÃ n táº¥t Ä‘á»c cÃ¢u tráº£ lá»i báº±ng giá»ng nÃ³i Text-To-Speech náº¿u báº­t), há»‡ thá»‘ng NGAY Láº¬P Tá»¨C tá»± Ä‘á»™ng kÃ­ch hoáº¡t láº¡i nháº­n diá»‡n giá»ng nÃ³i Ä‘á»ƒ ngÆ°á»i dÃ¹ng tiáº¿p tá»¥c giao tiáº¿p liá»n máº¡ch khÃ´ng cáº§n báº¥m mic thá»§ cÃ´ng; há»— trá»£ nÃ³i lá»‡nh táº¯t tá»± nhiÃªn nhÆ° 'dá»«ng láº¡i', 'táº¯t mic', 'thÃ´i em' Ä‘á»ƒ táº¡m ngÆ°ng.",
+      "importance": "critical",
+      "created_at": "2026-10-04T23:12:00Z"
+    },
+    {
+      "id": "mem_018",
+      "category": "user_preference",
+      "content": "NÃ¢ng cáº¥p ToÃ n Diá»‡n Giá»ng Äá»c Kira - Voice Studio Tinh Gá»n & Dual-Engine TTS Ná»¯ Tiáº¿ng Viá»‡t Tá»± NhiÃªn: (1) Äá»•i tÃªn Trá»£ lÃ½ AI thÃ nh Kira, luÃ´n xÆ°ng lÃ  'em' vÃ  gá»i ngÆ°á»i dÃ¹ng lÃ  'anh CÃ´ng'. (2) Menu Voice Studio Ä‘Æ°á»£c tinh gá»n tá»‘i Ä‘a: loáº¡i bá» cÃ¡c tÃ¹y chá»n NgÆ°á»i Äá»c vÃ  Kiá»ƒu Äá»c rÆ°á»m rÃ , táº­p trung vÃ o VÃ¹ng Miá»n (Báº¯c, Nam, Trung), Tá»‘c Ä‘á»™ nÃ³i (Speed 0.8x-1.4x), TÃ´ng giá»ng (Pitch) vÃ  Nguá»“n phÃ¡t Ã¢m (Engine) giÃºp giao diá»‡n gá»n nháº¹, trá»±c quan. (3) Kháº¯c phá»¥c triá»‡t Ä‘á»ƒ lá»—i Ä‘á»c vÄƒn báº£n dÃ i bá»‹ ngáº¯t giá»¯a chá»«ng rá»“i tá»± báº­t mic: XÃ³a bá» giá»›i háº¡n cáº¯t cá»¥t vÄƒn báº£n 320 kÃ½ tá»±, nÃ¢ng cáº¥p bá»™ phÃ¡t Cloud Stream dáº¡ng hÃ ng Ä‘á»£i tuáº§n tá»± (Sequential Audio Queue with Preloading) Ä‘á»c trá»n váº¹n vÄƒn báº£n dÃ i mÃ  khÃ´ng bá»‹ Ä‘á»©t Ä‘oáº¡n, báº£o Ä‘áº£m hoÃ n táº¥t Ä‘á»c 100% cÃ¢u chá»¯ trÆ°á»›c khi kÃ­ch hoáº¡t mic.",
+      "importance": "critical",
+      "created_at": "2026-10-05T00:18:00Z"
+    },
+    {
+      "id": "mem_019",
+      "category": "technical_learning",
+      "content": "Kháº¯c Phá»¥c Lá»—i Ã‚m Thanh Giá»ng NÃ³i AI (TTS Audio Playback Fix): (1) Tuyá»‡t Ä‘á»‘i KHÃ”NG gÃ¡n audio.crossOrigin = 'anonymous' trÃªn pháº§n tá»­ Audio cá»§a Google TTS vÃ¬ Google Translate TTS khÃ´ng tráº£ vá» header Access-Control-Allow-Origin, khiáº¿n trÃ¬nh duyá»‡t láº­p tá»©c cháº·n luá»“ng Ã¢m thanh do vi pháº¡m CORS. (2) Thiáº¿t láº­p <meta name=\"referrer\" content=\"no-referrer\"> trong index.html vÃ  gáº¯n tháº» audio vÃ o DOM vá»›i referrerpolicy='no-referrer' Ä‘á»ƒ triá»‡t tiÃªu header Referer, ngÄƒn cháº·n lá»—i HTTP 404 tá»« endpoint Google TTS. (3) CÆ¡ cháº¿ Multi-Client Retry: Tá»± Ä‘á»™ng Ä‘áº£o qua cÃ¡c client tw-ob, gtx, dict-chrome-ex Ä‘áº£m báº£o luá»“ng Ã¢m thanh Cloud ná»¯ tiáº¿ng Viá»‡t chuáº©n xÃ¡c 100%. (4) Tuyá»‡t Ä‘á»‘i ngÄƒn cháº·n WebSpeech phÃ¡t giá»ng tiáº¿ng Anh (Microsoft David) khi Windows chÆ°a cÃ i gÃ³i tiáº¿ng Viá»‡t: Chá»‰ kÃ­ch hoáº¡t WebSpeech khi tÃ¬m tháº¥y giá»ng tiáº¿ng Viá»‡t tháº­t (Edge HoaiMy Natural, Google tiáº¿ng Viá»‡t, Siri), náº¿u khÃ´ng cÃ³ pháº£i tiáº¿p tá»¥c dÃ¹ng Cloud Stream Ä‘á»ƒ báº£o Ä‘áº£m luÃ´n lÃ  giá»ng ná»¯ tiáº¿ng Viá»‡t trong tráº»o.",
+      "importance": "critical",
+      "created_at": "2026-10-04T23:51:00Z"
+    },
+    {
+      "id": "mem_020",
+      "category": "user_preference",
+      "content": "Chuáº©n hÃ³a Giao diá»‡n Mobile Web Hub, Dock AI TÃ¡ch Rá»i & CÃ i Äáº·t Há»‡ Thá»‘ng iOS Settings (v2.5.0): (1) Header trÃªn Mobile: áº¨n hoÃ n toÃ n header giáº£ láº­p vÃ  Dynamic Island (cáº£ .top-bar láº«n .ios-status-bar) Ä‘á»ƒ triá»‡t tiÃªu tÃ¬nh tráº¡ng che khuáº¥t ngÃ y thÃ¡ng, Ä‘á»“ng há»“, vÃ  xung Ä‘á»™t vá»›i thanh tráº¡ng thÃ¡i tháº­t cá»§a Ä‘iá»‡n thoáº¡i; padding-top tinh giáº£n 14px Ä‘á»ƒ ná»™i dung SpringBoard hiá»ƒn thá»‹ tá»± nhiÃªn. (2) NÃºt Trá»£ LÃ½ AI Kira trÃªn Dock: TÃ¡ch hoÃ n toÃ n nÃºt Trá»£ lÃ½ AI (.dock-standalone-ai-btn) ra khá»i khá»‘i á»©ng dá»¥ng .mac-dock, Ä‘áº·t cá»‘ Ä‘á»‹nh bÃªn pháº£i Dock thÃ nh nÃºt trÃ²n phÃ¡t sÃ¡ng riÃªng biá»‡t, khÃ´ng bá»‹ láº«n lá»™n vÃ o cÃ¡c app ghim. NÃºt chuyá»ƒn Ä‘á»•i [ ðŸ’» Vá» macOS ] Ä‘Æ°á»£c Ä‘Æ°a lÃªn vá»‹ trÃ­ an toÃ n phÃ­a trÃªn Dock Ä‘á»ƒ khÃ´ng Ä‘Ã¨ vÃ o Dock hay nÃºt AI. (3) á»¨ng dá»¥ng CÃ i Äáº·t Há»‡ Thá»‘ng (Control Panel - apps/control-panel/): Äáº¡i tu giao diá»‡n chuáº©n iOS Settings phÃ¢n cáº¥p (drill-down): mÃ n hÃ¬nh ban Ä‘áº§u hiá»ƒn thá»‹ danh má»¥c nhÃ³m tháº» Inset Grouped cards kÃ¨m mÅ©i tÃªn >, báº¥m vÃ o má»¥c báº¥t ká»³ sáº½ má»Ÿ toÃ n mÃ n hÃ¬nh giao diá»‡n chi tiáº¿t kÃ¨m nÃºt < CÃ i Äáº·t quay láº¡i vÃ  thanh pill trÆ°á»£t ngang chuyá»ƒn nhanh; há»— trá»£ nÃºt Ä‘Ã³ng app, tá»‘i Æ°u hoÃ¡ form/card/báº£ng trÃªn mobile vÃ  tÃ­ch há»£p hoÃ n chá»‰nh module Trá»£ LÃ½ AI & Gemini.",
+      "importance": "critical",
+      "created_at": "2026-10-06T12:30:00Z"
+    },
+    {
+      "id": "mem_021",
+      "category": "technical_learning",
+      "content": "Giáº£i PhÃ¡p Triá»‡t Äá»ƒ Xá»­ LÃ½ Lá»—i Version Gatekeeper BÃ¡o PhiÃªn Báº£n CÅ© DÃ¹ Cháº¡y Trá»±c Tiáº¿p File Má»›i (HTTP Cache Busting & Iframe Architecture): (1) NguyÃªn nhÃ¢n gá»‘c: TrÃ¬nh duyá»‡t lÆ°u Disk Cache script theo tham sá»‘ tÄ©nh (?v=2.4.0) khiáº¿n app con khÃ´ng gá»­i HTTP request lÃªn server; Ä‘á»“ng thá»i trong mÃ´ hÃ¬nh Web Hub Desktop, cáº£ trang máº¹ láº«n cÃ¡c iframe app con Ä‘á»u cháº¡y Gatekeeper Ä‘á»™c láº­p, dáº«n Ä‘áº¿n viá»‡c Hub máº¹ Ä‘Ã£ Ä‘áº©y v2.5.0 lÃªn Cloud nhÆ°ng iframe con bá»‹ dÃ­nh cache v2.4.1 tá»± cháº·n chÃ­nh mÃ¬nh; nÃºt Cáº­p Nháº­t Ngay dÃ¹ng location.reload(true) bá»‹ deprecated trÃªn trÃ¬nh duyá»‡t hiá»‡n Ä‘áº¡i nÃªn khÃ´ng xÃ³a Ä‘Æ°á»£c disk cache. (2) Giáº£i phÃ¡p 5 táº§ng triá»‡t Ä‘á»ƒ: [Táº§ng 1] Trong system-version.js, náº¿u isInIframe (window.self !== window.top), á»©ng dá»¥ng con TUYá»†T Äá»I KHÃ”NG hiá»‡n modal cháº·n mÃ  káº¿ thá»«a phiÃªn báº£n tá»« Hub máº¹ (window.parent.SYSTEM_VERSION), quyá»n kiá»ƒm soÃ¡t Gatekeeper chá»‰ thuá»™c vá» trang máº¹; [Táº§ng 2] Trong dashboard.js, hÃ m buildAppUrlWithVersion tá»± Ä‘á»™ng gáº¯n ?sys_v=...&_b=... vÃ o má»i iframe khi má»Ÿ hoáº·c táº£i láº¡i, triá»‡t tiÃªu 100% cache cÅ© cá»§a iframe; [Táº§ng 3] Äá»“ng bá»™ toÃ n bá»™ tháº» script system-version.js trong táº¥t cáº£ sub-apps lÃªn Ä‘Ãºng query string má»›i; [Táº§ng 4] NÃºt 'Cáº­p Nháº­t Ngay' dÃ¹ng URL manipulation (location.replace vá»›i timestamp _force_update) vÃ  dá»n sáº¡ch CacheStorage/ServiceWorker Ä‘á»ƒ Ã©p trÃ¬nh duyá»‡t táº£i má»›i 100%; [Táº§ng 5] Tá»± Ä‘á»™ng kÃ­ch hoáº¡t cÆ¡ cháº¿ silent cache-buster 1 láº§n khi cháº¡y standalone trÆ°á»›c khi hiá»ƒn thá»‹ cáº£nh bÃ¡o lá»—i thá»i.",
+      "importance": "critical",
+      "created_at": "2026-10-06T13:02:00Z"
+    },
+    {
+      "id": "mem_022",
+      "category": "user_preference",
+      "content": "Loáº¡i Bá» NÃºt Vá» macOS TrÃªn MÃ n HÃ¬nh ChÃ­nh Mobile & Há»‡ Thá»‘ng TÆ°Æ¡ng Pháº£n Chá»¯ ThÃ´ng Minh (v2.5.1): (1) NÃºt Vá» macOS trÃªn Mobile: XÃ³a bá» hoÃ n toÃ n nÃºt ná»•i [#floatingSwitchToMacBtn] vÃ  CSS [.floating-mac-switch] trÃªn mÃ n hÃ¬nh chÃ­nh di Ä‘á»™ng Ä‘á»ƒ giao diá»‡n SpringBoard gá»n gÃ ng, thoÃ¡ng Ä‘Ã£ng, khÃ´ng bá»‹ chÃ¨n Ã©p vÃ¹ng Dock vÃ  icon AI. (2) Há»‡ Thá»‘ng TÆ°Æ¡ng Pháº£n Chá»¯ ThÃ­ch á»¨ng HÃ¬nh Ná»n (Adaptive Wallpaper Contrast System): [A] Tháº» NgÃ y/TÃ¬m kiáº¿m (.ios-summary-card) chuyá»ƒn sang phong cÃ¡ch macOS Dark Glass (background: rgba(15, 23, 42, 0.72), blur 32px), toÃ n bá»™ chá»¯ bÃªn trong Ä‘áº¡t chuáº©n tÆ°Æ¡ng pháº£n cao (chá»¯ tráº¯ng Ä‘áº­m, subtitle xanh cyan sky-400, Ã´ tÃ¬m kiáº¿m tá»‘i mÃ u rÃµ nÃ©t) kháº¯c phá»¥c triá»‡t Ä‘á»ƒ tÃ¬nh tráº¡ng tháº» bá»‹ chÃ³i/chÃ¬m khi hÃ¬nh ná»n cÃ³ báº§u trá»i sÃ¡ng hoáº·c mÃ u tráº¯ng/há»“ng; [B] NhÃ£n á»©ng dá»¥ng (.app-label) trÃªn cáº£ Mobile vÃ  Desktop Ä‘Æ°á»£c trang bá»‹ viá»n ná»n má» báº£o vá»‡ (protective frosted pill chip: background rgba(0,0,0,0.46), blur 12px, shadow kÃ©p) giÃºp chá»¯ luÃ´n ná»•i báº­t vÃ  Ä‘á»c rÃµ 100% trÃªn báº¥t ká»³ hÃ¬nh ná»n nÃ o; [C] Tá»± Ä‘á»™ng phÃ¢n tÃ­ch quang Ä‘á»™ (Luminance) cá»§a hÃ¬nh ná»n qua Canvas Ä‘á»ƒ gáº¯n class .wallpaper-is-light khi hÃ¬nh ná»n sÃ¡ng, tá»± Ä‘á»™ng tÄƒng cÆ°á»ng Ä‘á»™ sÃ¢u ná»n vÃ  Ä‘á»™ sáº¯c nÃ©t cá»§a chá»¯.",
+      "importance": "critical",
+      "created_at": "2026-10-06T14:35:00Z"
+    },
+    {
+      "id": "mem_023",
+      "category": "system_architecture",
+      "content": "Bá»™ Quy Táº¯c Thiáº¿t Káº¿ Responsive Äa Thiáº¿t Bá»‹ (Desktop - iPad - Mobile) & Äáº¡i Tu Giao Diá»‡n CÃ i Äáº·t Há»‡ Thá»‘ng (v2.6.0): (1) Kháº¯c phá»¥c triá»‡t Ä‘á»ƒ lá»—i vá»¡ Header Control Panel trÃªn mobile: áº¨n chá»¯ dÃ i ('Quáº£n trá»‹ viÃªn (ToÃ n quyá»n)', 'ÄÄƒng Xuáº¥t') vÃ  thay tháº¿ báº±ng Icon Action Buttons (34px, cÃ³ tooltip), tiÃªu Ä‘á» cÃ³ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; triá»‡t tiÃªu hoÃ n toÃ n lá»—i chá»¯ bá»‹ báº» gÃ£y thÃ nh tá»«ng kÃ½ tá»± 1 dÃ²ng. (2) Kháº¯c phá»¥c dá»©t Ä‘iá»ƒm lá»—i cáº¯t cá»¥t item trong menu CÃ i Äáº·t: Chuyá»ƒn .cp-sidebar trÃªn mobile sang display: block !important, thiáº¿t láº­p flex-shrink: 0; height: auto cho cÃ¡c nhÃ³m .cp-nav-group, loáº¡i bá» tÃ¬nh tráº¡ng browser tá»± Ä‘á»™ng co dáº¹p (shrink) cÃ¡c nhÃ³m lÃ m che khuáº¥t cÃ¡c má»¥c con bÃªn dÆ°á»›i; toÃ n bá»™ item trong nhÃ³m Ä‘áº¡t chuáº©n touch target tá»‘i thiá»ƒu 48px, hiá»ƒn thá»‹ 100% trá»n váº¹n vÃ  cuá»™n mÆ°á»£t mÃ . (3) Bá»‘ cá»¥c chuáº©n 3 cháº¿ Ä‘á»™: [Desktop >= 1025px] macOS Sonoma Ä‘a cá»­a sá»•/multi-column; [Tablet/iPad 768px-1024px] iPadOS Split View 2 cá»™t song song (Sidebar 280px + Content), form 2 cá»™t, khÃ´ng drill-down; [Mobile <= 767px] iOS Inset Grouped cards bo gÃ³c 14-16px, form 1 cá»™t dá»c (100% width), font input >= 16px chá»‘ng tá»± zoom. (4) ToÃ n bá»™ á»©ng dá»¥ng táº¡o má»›i sau nÃ y báº¯t buá»™c pháº£i tuÃ¢n theo x:/documents/RESPONSIVE_UI_DESIGN_SPEC.md vÃ  Má»¥c 6 trong AGENTS.md.",
+      "importance": "critical",
+      "created_at": "2026-10-06T16:20:00Z"
+    },
+    {
+      "id": "mem_024",
+      "category": "user_preference",
+      "content": "Quy Táº¯c Thá»‹ GiÃ¡c Æ¯u TiÃªn Ná»™i Dung (Content-First Visual Hierarchy) & Äáº¡i Tu Giao Diá»‡n Nháº¯c Viá»‡c & Ghi ChÃº (v2.6.2): (1) Chuyá»ƒn toÃ n bá»™ á»©ng dá»¥ng Nháº¯c Viá»‡c & Ghi ChÃº sang Giao Diá»‡n MÃ u SÃ¡ng (Light Theme macOS/iOS) Ä‘á»“ng bá»™ vá»›i Control Panel, Tiá»n CÆ¡m, Chia Bill. Ná»n xÃ¡m nháº¡t #f8fafc, tháº» tráº¯ng #ffffff, viá»n thanh máº£nh #e2e8f0, typography sáº¯c nÃ©t. (2) Khung Soáº¡n Tháº£o / Nháº­p Má»›i (Smart Input Card): ÄÆ°á»£c highlight tinh táº¿ báº±ng viá»n mÃ u Indigo sÃ¡ng (#c7d2fe), dáº£i gradient nháº¥n 3.5px trÃªn nÃ³c vÃ  shadow má»m nháº­n diá»‡n vá»‹ trÃ­ soáº¡n tháº£o láº­p tá»©c mÃ  váº«n cá»±c ká»³ gá»n gÃ ng, khÃ´ng rÆ°á»m rÃ ; trÃªn mobile xáº¿p toolbar thÃ nh lÆ°á»›i 2 cá»™t cÃ¢n Ä‘á»‘i, khÃ´ng trÃ n hay Ã©p chá»¯. (3) TÃ¡i Cáº¥u TrÃºc Trá»ng TÃ¢m Thá»‹ GiÃ¡c Tháº» Ghi ChÃº (Content-First Card Focus): Kháº¯c phá»¥c triá»‡t Ä‘á»ƒ tÃ¬nh tráº¡ng hÃ ng loáº¡t badges neon sáº·c sá»¡ Ä‘Ã¨ lÃªn trÃªn tiÃªu Ä‘á» lÃ m rá»‘i máº¯t; Ä‘Æ°a TiÃªu Äá» (.task-title, font 15.5px Ä‘áº­m nÃ©t 800, #0f172a) vÃ  Ná»™i Dung Chi Tiáº¿t (.task-details, #334155) lÃªn vá»‹ trÃ­ Äáº¦U TIÃŠN cá»§a tháº» lÃ m tÃ¢m Ä‘iá»ƒm; chuyá»ƒn toÃ n bá»™ badges phá»¥ trá»£ (loáº¡i viá»‡c, má»©c Æ°u tiÃªn, láº·p láº¡i, chuÃ´ng bÃ¡o, tags) xuá»‘ng dÆ°á»›i dáº¡ng Muted Pastel nháº¹ nhÃ ng (#f1f5f9, viá»n #e2e8f0, text #64748b) Ä‘á»ƒ lÃ m thÃ´ng tin bá»• trá»£ dá»‹u máº¯t. (4) Kháº¯c Phá»¥c Triá»‡t Äá»ƒ Lá»—i Khuáº¥t MÃ©p Pháº£i TrÃªn Mobile: PhÃ¢n táº§ng thanh tiÃªu Ä‘á» danh sÃ¡ch (.task-container-title) thÃ nh 2 hÃ ng Ä‘á»™c láº­p (hÃ ng 1: tÃªn view + sá»‘ má»¥c, hÃ ng 2: 2 nÃºt dá»n dáº¹p chia Ä‘Ã´i 50%-50%), áº©n nÃºt Ä‘á»•i Grid/List trÃªn mobile, 2 select filter chia Ä‘á»u 50%-50% vá»›i text-overflow: ellipsis; khÃ³a cháº·t html/body/workspace-container vá»›i width 100% max-width 100vw box-sizing border-box vÃ  overflow-x: hidden; báº£o Ä‘áº£m 4 nÃºt hÃ nh Ä‘á»™ng chÃ¢n tháº» (ghim, copy, sá»­a, xÃ³a) vá»›i flex-shrink: 0 luÃ´n hiá»ƒn thá»‹ Ä‘áº§y Ä‘á»§ 100% khÃ´ng bá»‹ che khuáº¥t.",
+      "importance": "critical",
+      "created_at": "2026-10-06T17:35:00Z"
+    },
+    {
+      "id": "mem_025",
+      "category": "technical_learning",
+      "content": "Khac Phuc Triet De Loi Man Hinh Mobile Bi Mo Cam Khi Tai/Reload Trang (v2.6.3): (1) Nguyen nhan goc: Trong assets/css/dashboard.css tai media query mobile (@media (max-width: 600px)), quy tac .mac-context-backdrop { display: block; } bi khai bao vo dieu kien thay vi chi hien thi khi context menu mo; do backdrop nay co position: fixed; inset: 0; backdrop-filter: blur(4px); background: rgba(0, 0, 0, 0.45); nen moi lan tai trang tren dien thoai (<= 600px), backdrop tu dong phu kin va lam mo 100% man hinh; khi nguoi dung cham vao man hinh thi su kien onclick='closeContextMenu()' kich hoat ham closeContextMenu() gan inline display:none thi man hinh moi sang ro tro lai, nhung reload trang thi lai bi mo tiep. (2) Giai phap xu ly triet de: [A] Go bo hoan toan dong .mac-context-backdrop { display: block; } trong @media (max-width: 600px); [B] Them style='display:none;' truc tiep vao the <div class='mac-context-backdrop' id='context-backdrop'> trong index.html; [C] Goi closeContextMenu() ngay trong ham init() cua dashboard.js; [D] Nang version len v2.6.3 va cap nhat query string cache-bust de bao dam trinh duyet tai stylesheet moi ngay lap tuc.",
+      "importance": "critical",
+      "created_at": "2026-10-06T18:10:00Z"
+    },
+    {
+      "id": "mem_026",
+      "category": "technical_learning",
+      "content": "Khac Phuc Triet De Loi Phan Quyen Admin Khong Hoat Dong (Admin App Permissions & Visibility Gatekeeper - v2.6.4): (1) Nguyen nhan goc: [A] Trong assets/js/dashboard.js ham loadAppsFromStorage co doan code cuong buc if (updated.id === \"control-panel\" ...) { if (updated.adminOnly) { updated.adminOnly = false; } } khien moi lan reload hoac load storage la setting \"Chi hien thi o Che do Admin\" cua app Cai Dat bi reset ve false; [B] Ham openApp(app) truoc day chua app.id !== \"control-panel\" nen bat ke nguoi dung set the nao van cho phep mo Cai Dat ma khong doi quyen; [C] apps/control-panel/index.html ham getCpApps lai cuong buc nguoc lai adminOnly: (app.id === \"control-panel\" ...) ? true : ... gay xung dot hai chieu; [D] Khi chuyen Che do xem (logout) hoac login Admin, ham updateAdminUI khong goi re-render app grid va dock; [E] openAdminAuthModal truoc day khong nhan callback nen dang nhap thanh cong reload trang khong mo app duoc yeu cau. (2) Giai phap 5 tang hoan thien: [A] Go bo hoan toan cac logic override cung tren control-panel ca trong dashboard.js lan control-panel/index.html, ton trong 100% lua chon cua nguoi dung (adminOnly: true hoac false); [B] Nang cap updateAdminUI tu dong re-render renderAppGrid, renderDockApps, updateRunningAppIndicators ngay lap tuc khi quyen thay doi; [C] Khi chuyen ve Che do xem, tu dong dong tat ca cua so app chi danh cho Admin dang mo; [D] openAdminAuthModal va submitAdminAuth ho tro message tuy bien va callback de dang nhap thanh cong tu dong mo ngay app ma khong reload giat lag; [E] Chan tuyet doi viec xoa nham app he thong (Cai Dat, Quan Tri DB) va dong bo saveAppsToStorage len ca dbStorage/Supabase.",
+      "importance": "critical",
+      "created_at": "2026-10-06T20:55:00Z"
+    },
+    {
+      "id": "mem_027",
+      "category": "technical_learning",
+      "content": "Khac Phuc Triet De Loi Cai Dat Khong Nhan Quyen Admin Va Khong Hien Huy Hieu Khoa (Control Panel Admin Permissions & Lock Badge Fix - v2.6.5): (1) Nguyen nhan goc: Supabase Cloud truoc do da luu record mac_dashboard_apps_v3 co control-panel dat adminOnly: false do cac build cu override; khi boot synchronous tu db-storage.js lai ghi de gia tri false nay vao localStorage lam Cai Dat khong hien huy hieu khoa 🔒; dong thoi index.html con giu cache buster cu (v57) va saveCpApps trong iframe chua gui postMessage truc tiep cho parent window. (2) Giai phap triet de: [A] Cap nhat truc tiep Cloud Supabase cho ca mac_dashboard_apps_v3 va mac_dashboard_apps_v2 voi control-panel adminOnly: true; [B] assets/js/dashboard.js bo sung bo loc deduplicate de loai bo cac item trung lap cua control-panel va bao ton adminOnly; [C] openControlPanel tu dong chan yeu cau dang nhap Admin khi adminOnly: true va nguoi dung dang o Che do xem; [D] saveCpApps trong control-panel/index.html va listener tren dashboard.js dong bo dong thoi qua ca BroadcastChannel lan postMessage hai chieu, cap nhat ngay lap tuc appsList ma khong can reload; [E] Nang version len 2.6.5 va cache buster v58 tren toan bo he thong.",
+      "importance": "critical",
+      "created_at": "2026-10-06T14:40:04.130Z"
+    },
+    {
+      "id": "mem_028",
+      "category": "system_architecture",
+      "content": "Tùy biến định danh hệ thống & PWA Branding (v2.7.0): Người dùng có thể tùy biến Tên ứng dụng (App Name), Tên rút gọn (Short Name), Tiêu đề Tab và Biểu tượng Logo (Emoji Squircle, Tải file ảnh hoặc URL) trong Cài Đặt (mục Hình Nền & Giao Diện Desktop). Tự động cập nhật menu cài đặt PWA của trình duyệt ('Cài đặt [Tên]...'), favicon, Web App Manifest động và đồng bộ Cloud. Đồng thời loại bỏ hoàn toàn mục Danh bạ thành viên khỏi Cài Đặt (Control Panel) để giao diện tinh gọn, chuyển trọn vẹn sang ứng dụng độc lập apps/danh-ba.",
+      "importance": "high",
+      "created_at": "2026-10-06T15:35:56.694Z"
+    },
+    {
+      "id": "mem_029",
+      "category": "workflow_rules",
+      "content": "Quy chuẩn hiển thị Nhật ký / Log / Bảng dữ liệu toàn hệ thống (v2.8.0): Tất cả các khung hiển thị log/lịch sử giao dịch/bảng dữ liệu (Tiền Cơm, Chia Bill, Control Panel, Admin Database, Lãi Suất...) bắt buộc áp dụng quy tắc 3 nấc: (1) <= 10 log: Hiển thị tự nhiên, không cuộn, ẩn thanh phân trang; (2) 11 đến 30 log: Giới hạn chiều cao hiển thị tối đa 10 log, tự động kích hoạt thanh cuộn nội bộ (overflow-y: auto), không phân trang; (3) > 30 log: Tự động kích hoạt cơ chế Phân Trang (Pagination 10 log/trang), có thanh điều hướng [Trang X/Y] với nút Trước / Sau, triệt tiêu hoàn toàn tình trạng log kéo dài lê thê làm vỡ bố cục giao diện làm việc.",
+      "importance": "critical",
+      "created_at": "2026-10-06T16:04:58.923Z"
+    },
+    {
+      "id": "mem_030",
+      "category": "ui_ux_standard",
+      "content": "Tối ưu giao diện app Tính Tiền Cơm: Thanh trượt ngày chọn ngày hiển thị ngày mới nhất (Hôm nay) ngoài cùng bên trái, tiếp theo sang phải là các ngày cũ hơn (Hôm qua, ...). Gộp khối Log ngày và Lịch sử thành 1 block-card duy nhất dạng Tab như bên app Chia Bill ('Giao Dịch Trong Ngày' & 'Toàn Bộ Lịch Sử'). Log đơn giản hóa thành Feed Item 1 hàng súc tích; khi click vào dòng log thì mở Modal Chi Tiết Giao Dịch đầy đủ (Full Transaction Detail). Áp dụng triệt để quy tắc: <= 10 dòng hiển thị tự nhiên, 11-30 dòng cuộn nội bộ tự động, > 30 dòng phân trang 10 log/trang.",
+      "importance": "high",
+      "created_at": "2026-10-06T16:30:21.338Z"
+    },
+    {
+      "id": "mem_031",
+      "category": "data_synchronization_standard",
+      "content": "Đồng bộ thông tin thành viên đa ứng dụng thời gian thực (Real-time Multi-App Member Sync): Danh Bạ hệ thống (sys_global_members) là nguồn chân lý duy nhất (Single Source of Truth) cho hồ sơ cá nhân. Khi đổi tên, nickname, họ tên, ngày sinh, SĐT, ngân hàng (bankId), số tài khoản (accountNo), chủ tài khoản, ghi chú trong Danh Bạ thì các app con đang sử dụng dữ liệu thành viên (Chia Bill 'nhau_members' và Tiền Cơm 'p2p_members') phải tự động cập nhật ngay lập tức mà không được ghi đè hay làm mất số dư công nợ (balance, debts). Tích hợp cơ chế đồng bộ đa kênh (BroadcastChannel 'system_member_sync' & 'members_sync', StorageEvent, postMessage, Supabase Cloud REST và On-Boot Sync khi khởi động). Mọi vị trí hiển thị thành viên (Dashboard, Dropdown, Feed Log, Modal chi tiết giao dịch biên lai) luôn tra cứu động theo profile mới nhất.",
+      "importance": "critical",
+      "created_at": "2026-10-06T16:53:42.517Z"
+    },
+    {
+      "id": "mem_032",
+      "category": "data_synchronization_standard",
+      "content": "Xử lý triệt để lỗi hồi sinh thành viên khi xóa (Deletion Tombstones & Atomic Cloud Sync): Khi người dùng xóa một thành viên trong Danh Bạ hoặc bất kỳ ứng dụng nào, hệ thống phải thực hiện xóa nguyên tử đồng thời trên 2 bảng Cloud (bảng members và system_store key sys_global_members), dọn sạch hàng đợi ngoại tuyến sys_members_offline_queue, và ghi nhận vào danh sách đen Tombstones (sys_deleted_members). Tất cả các luồng đồng bộ nền (fetchFromSupabase, polling 5s của db-storage, boot sync của Chia Bill và Tiền Cơm) bắt buộc phải lọc qua sys_deleted_members để loại bỏ dữ liệu ma, tuyệt đối không được tự ý hồi sinh thành viên đã bị xóa vĩnh viễn. Cột ID trên bảng members là Postgres INT4, các ID mới sinh bắt buộc phải là số nguyên dương an toàn (maxId + 1), không dùng Date.now() để tránh lỗi tràn số 22003.",
+      "importance": "critical",
+      "created_at": "2026-10-06T17:18:58.330Z"
+    },
+    {
+      "id": "mem_033",
+      "category": "data_integrity_and_rendering",
+      "content": "Bảo toàn toàn vẹn dữ liệu Tiền Cơm & ngăn ngừa lỗi khởi tạo JS (TDZ State Hotfix & Fuzzy Debt Resolver): Dữ liệu giao dịch bữa ăn (p2p_logs) và công nợ (p2p_members) luôn được bảo vệ an toàn trên Supabase Cloud. Khi tải trang, mọi biến trạng thái cốt lõi (members, logs, debts, bankInfo, mealPresets) bắt buộc phải được khai báo và khởi tạo trước bất kỳ hàm đồng bộ hay lưu trữ nào (saveData, recalculateDebts, syncWithGlobalDirectory) để triệt tiêu lỗi Temporal Dead Zone (ReferenceError: Cannot access logs before initialization). Các lệnh gọi renderHistory cần có alias tự động trỏ về renderLogs. Trong quá trình tính nợ (recalculateDebts), hệ thống tích hợp bộ phân giải thông minh ID lịch sử (Fuzzy Historical ID Resolver) nhằm tự động quy đổi các ID tạm hoặc nickname trong quá khứ về ID chuẩn hiện tại của thành viên, đảm bảo mọi khoản nợ lũy kế được cộng trừ chính xác 100% mà không bị phân mảnh hay mất dấu.",
+      "importance": "critical",
+      "created_at": "2026-10-06T17:41:26.612Z"
+    },
+    {
+      "id": "mem_016",
+      "category": "synology_nas_music",
+      "content": "Cấu hình và đồng bộ Synology Audio Station vào app Music: Host https://audio.tech360.io.vn (hoặc app.tech360.io.vn), User: music, Pass: @Aa010001010046. Toàn bộ 640 bài hát, 116 album, các playlist được đồng bộ hai chiều linh hoạt vào app Apple Music (w:/apps/music/index.html). Sau này người dùng thêm/xóa bài hát, album hay playlist trên NAS DSM thì app Web tự động cập nhật tương ứng. Giải quyết triệt để CORS stream audio và tự động phục hồi token SID phiên ngầm khi gặp lỗi. Hệ thống đã nâng lên phiên bản 2.11.0.",
+      "importance": "critical",
+      "created_at": "2026-10-06T18:27:29.022Z"
+    }
+  ],
+  "updated_at": "2026-10-06T17:18:58.331Z"
+}

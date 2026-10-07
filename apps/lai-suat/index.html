@@ -16,6 +16,8 @@
     <!-- Supabase Database Storage Adapter -->
     <script src="../../assets/js/db-config.js"></script>
     <script src="../../assets/js/db-storage.js"></script>
+    <!-- System Version Gatekeeper -->
+    <script src="../../assets/js/system-version.js?v=2.12.0"></script>
 
     <style>
         :root {
@@ -412,11 +414,52 @@
             .table-responsive { max-height: none; overflow: visible; }
         }
 
+        .btn-text-short { display: none; }
         @media (max-width: 640px) {
-            .app-header { padding: 12px 16px; }
-            .main-container { padding: 0 12px; margin: 16px auto; }
-            .calc-card { padding: 16px; }
-            .nav-tab-btn { min-width: 100%; }
+            .app-header { padding: 8px 12px; }
+            .header-container { gap: 8px; }
+            .brand-group { gap: 8px; }
+            .logo-box { width: 34px; height: 34px; font-size: 16px; border-radius: 8px; }
+            .brand-title { font-size: 0.95rem; }
+            .brand-desc { display: none; }
+            .admin-badge { padding: 3px 8px; font-size: 10.5px; }
+
+            .main-container { padding: 0 10px; margin: 10px auto; gap: 10px; }
+
+            /* Horizontal Segmented Tabs */
+            .nav-tabs-wrapper {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                gap: 4px;
+                padding: 4px;
+                border-radius: 10px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav-tab-btn {
+                flex: 1;
+                min-width: auto;
+                white-space: nowrap;
+                padding: 8px 6px;
+                font-size: 11.5px;
+                border-radius: 6px;
+                justify-content: center;
+                gap: 5px;
+            }
+            .btn-text { display: none !important; }
+            .btn-text-short { display: inline !important; }
+
+            .calc-card { padding: 14px 12px; border-radius: 12px; }
+            .calc-header { margin-bottom: 12px; padding-bottom: 8px; }
+            .calc-title { font-size: 0.95rem; }
+            .calc-subtitle { font-size: 0.75rem; }
+
+            .grid-2 { grid-template-columns: 1fr; gap: 10px; }
+            .result-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .result-kpi { padding: 10px; border-radius: 8px; }
+            .result-kpi-val { font-size: 1.15rem; }
+            .result-kpi-title { font-size: 0.68rem; }
         }
     </style>
 </head>
@@ -446,14 +489,14 @@
 
         <!-- NAVIGATION TABS -->
         <div class="nav-tabs-wrapper">
-            <button class="nav-tab-btn active" id="tabDepositBtn" onclick="switchTab('deposit')">
-                <i class="fa-solid fa-piggy-bank"></i> Lãi Tiết Kiệm Thường
+            <button class="nav-tab-btn active" id="tabDepositBtn" onclick="switchTab('deposit')" title="Tính lãi tiết kiệm định kỳ">
+                <i class="fa-solid fa-piggy-bank"></i> <span class="btn-text">Lãi Tiết Kiệm Thường</span><span class="btn-text-short">Tiết Kiệm</span>
             </button>
-            <button class="nav-tab-btn" id="tabCompoundBtn" onclick="switchTab('compound')">
-                <i class="fa-solid fa-seedling"></i> Lãi Suất Kép
+            <button class="nav-tab-btn" id="tabCompoundBtn" onclick="switchTab('compound')" title="Tính lãi suất kép tích lũy">
+                <i class="fa-solid fa-seedling"></i> <span class="btn-text">Lãi Suất Kép</span><span class="btn-text-short">Lãi Kép</span>
             </button>
-            <button class="nav-tab-btn" id="tabLoanBtn" onclick="switchTab('loan')">
-                <i class="fa-solid fa-house-chimney"></i> Lãi Vay Trả Góp
+            <button class="nav-tab-btn" id="tabLoanBtn" onclick="switchTab('loan')" title="Lịch trả nợ vay vốn">
+                <i class="fa-solid fa-house-chimney"></i> <span class="btn-text">Lãi Vay Trả Góp</span><span class="btn-text-short">Vay Trả Góp</span>
             </button>
         </div>
 

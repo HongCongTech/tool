@@ -1,0 +1,20 @@
+[
+  {
+    "id": "session_init_001",
+    "title": "Khởi tạo hệ thống Trợ lý AI và Bộ nhớ dài hạn",
+    "created_at": "2026-10-03T01:00:00Z",
+    "updated_at": "2026-10-03T01:05:00Z",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi muốn nâng cấp toàn diện hệ thống AI, ghi nhớ lịch sử chat cá nhân hóa lâu dài và lưu dữ liệu train vào thư mục nơi chứa hệ thống web để phục vụ công việc của tôi.",
+        "timestamp": "2026-10-03T01:00:10Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Đã tiếp nhận yêu cầu nâng cấp toàn diện! Hệ thống đã triển khai cấu trúc lưu trữ bộ nhớ dài hạn ngay tại thư mục web x:/tool/data/ai_memory/ (bao gồm personal_profile.json, memory_train_dataset.jsonl, chat_history.json và knowledge_base.json), đồng thời tích hợp trực tiếp ứng dụng Trợ Lý AI cao cấp vào macOS Dashboard và cấu hình Agent Rules trong Antigravity IDE. Mọi trao đổi sau này đều được tự động lưu trữ và sử dụng để cá nhân hóa lâu dài cho công việc của bạn.",
+        "timestamp": "2026-10-03T01:00:15Z"
+      }
+    ]
+  }
+]

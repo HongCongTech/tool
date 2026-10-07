@@ -1,0 +1,45 @@
+{
+  "system_info": {
+    "project_name": "macOS Web Dashboard Workspace",
+    "project_root": "x:/tool",
+    "deployment": "GitHub Pages / Localhost Static Web Server",
+    "storage_system": "Supabase REST & Client-side localStorage cache with db-storage.js bridge",
+    "primary_sub_apps": [
+      {
+        "name": "Chia Bill",
+        "path": "apps/chia-bill/index.html",
+        "desc": "Quản lý quỹ nhóm, chia đều hoặc tùy chỉnh chi tiêu, tính toán nợ chéo tối ưu."
+      },
+      {
+        "name": "Tính Tiền Cơm",
+        "path": "apps/tien-com/index.html",
+        "desc": "Theo dõi tiền cơm trưa, tích hợp VietQR động thanh toán chính xác số tiền và cú pháp, xuất báo cáo Zalo nhanh."
+      },
+      {
+        "name": "Lãi Suất",
+        "path": "apps/lai-suat/index.html",
+        "desc": "Tính toán lãi suất vay ngân hàng (dư nợ giảm dần, dư nợ cố định) và lãi kép tiết kiệm, trực quan bằng Chart.js."
+      },
+      {
+        "name": "Ghi Chú",
+        "path": "apps/ghi-chu/index.html",
+        "desc": "Bảng ghi chú, đếm ngược thời gian, chuông báo Web Audio API, phân loại thẻ việc cần làm."
+      },
+      {
+        "name": "Danh Bạ",
+        "path": "apps/danh-ba/index.html",
+        "desc": "Quản lý thành viên, danh sách liên hệ, ngày sinh nhật và thông báo nhắc việc trong tuần."
+      },
+      {
+        "name": "Trợ Lý AI & Trí Nhớ Dài Hạn",
+        "path": "apps/ai-assistant/index.html",
+        "desc": "Trợ lý trí tuệ nhân tạo cá nhân hóa, lưu trữ toàn bộ lịch sử trò chuyện và xuất dữ liệu train, ghi nhớ thói quen và quy tắc làm việc của bạn."
+      }
+    ]
+  },
+  "work_guidelines": [
+    "Mọi mã nguồn giao diện sub-app đều ưu tiên CSS thuần hoặc token giao diện macOS, dùng Google Font Plus Jakarta Sans.",
+    "Giữ an toàn dữ liệu: không bao giờ lưu lộ bí mật Supabase service_role hay mật khẩu raw vào code tĩnh.",
+    "Bảo tồn các chức năng responsive: tương thích chế độ iPhone iOS Mode và Desktop macOS Window Mode."
+  ]
+}

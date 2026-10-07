@@ -12,8 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Supabase Database Storage Adapter -->
-    <script src="../../assets/js/db-config.js"></script>
-    <script src="../../assets/js/db-storage.js"></script>
+    <script src="../../assets/js/db-config.js?v=v49"></script>
+    <script src="../../assets/js/db-storage.js?v=v50"></script>
+    <script src="../../assets/js/member-service.js?v=2.10.1"></script>
+    <!-- System Version Gatekeeper -->
+    <script src="../../assets/js/system-version.js?v=2.12.0"></script>
 
     <style>
         :root {
@@ -233,53 +236,230 @@
             gap: 8px;
         }
 
-        /* DATE FLIGHT SLIDER */
+        /* COMPACT DATE TOOLBAR (TINH GỌN NẰM TRÊN PHẦN LOG) */
+        .compact-date-toolbar {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .date-toolbar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #f1f5f9;
+        }
+        .date-toolbar-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .date-toolbar-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.2px;
+        }
+        .date-toolbar-badge {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--slate-600);
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .date-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .btn-date-nav {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            color: var(--slate-700);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        .btn-date-nav:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-border);
+        }
+        .btn-date-quick {
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            color: var(--slate-700);
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .btn-date-quick:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-border);
+        }
+        .btn-date-quick.is-today {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+        .custom-date-picker-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-date-picker {
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid var(--primary-border);
+            color: var(--primary);
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .btn-date-picker:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .custom-date-native-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .date-range-select-wrap {
+            display: inline-flex;
+            align-items: center;
+        }
+        .date-range-select {
+            height: 28px;
+            padding: 0 8px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            color: var(--slate-700);
+            font-size: 11px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+        .date-range-select:focus {
+            border-color: var(--primary);
+        }
+
+        /* DATE FLIGHT SLIDER (COMPACT CHIPS) */
         .date-slider-wrapper {
             position: relative;
+            width: 100%;
         }
         .date-slider-container {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             overflow-x: auto;
-            padding: 6px 2px;
+            padding: 2px 1px 4px 1px;
             scroll-behavior: smooth;
             scrollbar-width: thin;
         }
-        .date-slider-container::-webkit-scrollbar { height: 6px; }
+        .date-slider-container::-webkit-scrollbar { height: 4px; }
         .date-slider-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .date-slider-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         .date-pill {
-            flex: 0 0 88px;
+            flex: 0 0 56px;
+            min-width: 54px;
+            height: 42px;
             background: #ffffff;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 10px 6px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 4px 6px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
         }
         .date-pill:hover {
             border-color: var(--primary-border);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            background: #fff7ed;
+            transform: translateY(-1px);
         }
         .date-pill.active {
             background: linear-gradient(135deg, #f97316, #ea580c);
-            color: #ffffff;
+            color: #ffffff !important;
             border-color: #f97316;
-            box-shadow: 0 6px 14px rgba(249, 115, 22, 0.35);
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3);
         }
         .date-pill.has-data::after {
             content: '';
             position: absolute;
-            top: 7px;
-            right: 7px;
-            width: 7px;
-            height: 7px;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
             background-color: var(--success);
             border-radius: 50%;
-            box-shadow: 0 0 6px var(--success);
+            box-shadow: 0 0 4px var(--success);
+        }
+        .date-pill.active.has-data::after {
+            background-color: #ffffff;
+            box-shadow: 0 0 4px #ffffff;
+        }
+        .date-pill-day {
+            font-size: 9.5px;
+            font-weight: 700;
+            line-height: 1.1;
+            opacity: 0.85;
+            text-transform: uppercase;
+        }
+        .date-pill.active .date-pill-day {
+            color: #ffffff;
+            opacity: 0.95;
+        }
+        .date-pill-num {
+            font-size: 12.5px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-top: 1px;
+        }
+        .date-pill.active .date-pill-num {
+            color: #ffffff;
         }
 
         /* MEMBER GRID */
@@ -557,6 +737,138 @@
         .badge-debt { color: var(--danger); font-weight: 700; font-size: 13px; }
         .badge-credit { color: var(--success); font-weight: 700; font-size: 13px; }
 
+        /* ==========================================================================
+           TAB CONTROLS & COMPACT FEED (MAC OS STYLE NHƯ CHIA BILL)
+           ========================================================================== */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--slate-500);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .tab-btn.active {
+            background: #fff7ed;
+            color: var(--primary);
+        }
+        .tab-btn:hover:not(.active) {
+            background: var(--slate-100);
+            color: var(--slate-700);
+        }
+
+        /* FEED CONTAINER & COMPACT LOG ITEMS */
+        .feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .feed-item {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .feed-item:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
+            transform: translateY(-1px);
+        }
+        .feed-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #fff7ed;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .feed-content {
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+        .feed-title {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--slate-900);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .feed-sub {
+            font-size: 0.78rem;
+            color: var(--slate-500);
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .feed-tag {
+            background: var(--slate-100);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        .feed-amount {
+            font-weight: 800;
+            font-size: 0.95rem;
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .feed-amount.meal { color: var(--primary); }
+        .feed-amount.pay { color: var(--success); }
+
+        .feed-actions {
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        body.is-admin .feed-actions {
+            display: flex !important;
+        }
+
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            margin-top: 10px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--slate-600);
+        }
+
         /* LOG TABLE */
         .log-table-wrapper {
             border: 1px solid var(--border);
@@ -589,6 +901,317 @@
         }
         .log-badge.meal { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
         .log-badge.pay { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+
+        /* ==========================================================================
+           TRANSACTION LOG CARDS (MODERN MAC OS & MOBILE HORIZONTAL LAYERING)
+           ========================================================================== */
+        .tx-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .tx-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .tx-card:hover {
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+            border-color: #cbd5e1;
+        }
+        .tx-card-meal {
+            border-left: 4px solid var(--primary);
+        }
+        .tx-card-pay {
+            border-left: 4px solid var(--success);
+        }
+
+        /* TẦNG 1: HEADER & ACTIONS */
+        .tx-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .tx-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tx-badge {
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+        .tx-badge.meal {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #fed7aa;
+        }
+        .tx-badge.pay {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+        .tx-date-badge {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--slate-600);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            background: var(--slate-100);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .tx-card-actions {
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        body.is-admin .tx-card-actions {
+            display: flex !important;
+        }
+        .tx-btn-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--slate-600);
+            transition: all 0.15s ease;
+        }
+        .tx-btn-icon:hover {
+            background: var(--slate-100);
+            transform: translateY(-1px);
+        }
+        .tx-btn-icon.edit:hover {
+            color: #0284c7;
+            border-color: #bae6fd;
+            background: #f0f9ff;
+        }
+        .tx-btn-icon.delete:hover {
+            color: var(--danger);
+            border-color: #fecaca;
+            background: var(--danger-light);
+        }
+
+        /* TẦNG 2: THÔNG TIN CHI / LUỒNG TIỀN & TỔNG TIỀN */
+        .tx-card-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #e2e8f0;
+            flex-wrap: wrap;
+        }
+        .tx-summary-payer, .tx-summary-flow {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        .tx-summary-label {
+            color: var(--slate-500);
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tx-summary-name {
+            font-weight: 700;
+            color: var(--slate-900);
+            background: var(--slate-100);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .tx-flow-payer {
+            font-weight: 700;
+            color: var(--slate-800);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tx-flow-arrow {
+            color: var(--success);
+            font-size: 11px;
+        }
+        .tx-flow-receiver {
+            font-weight: 700;
+            color: var(--success);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tx-summary-total {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-left: auto;
+        }
+        .tx-total-label {
+            font-size: 11.5px;
+            color: var(--slate-500);
+        }
+        .tx-total-val {
+            font-size: 15.5px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+        .tx-total-val.meal {
+            color: #ea580c;
+        }
+        .tx-total-val.pay {
+            color: var(--success);
+        }
+
+        /* TẦNG 3: NỘI DUNG LOG CHI TIẾT (ƯU TIÊN HÀNG ĐẦU - PHÂN TẦNG THEO CHIỀU NGANG) */
+        .tx-card-content {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .tx-card-content.pay-content {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        .tx-content-header {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .tx-dishes-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .tx-dish-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px dashed rgba(226, 232, 240, 0.8);
+            font-size: 13px;
+        }
+        .tx-dish-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .tx-dish-row:first-child {
+            padding-top: 0;
+        }
+        .tx-dish-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+        .tx-person-name {
+            font-weight: 600;
+            color: var(--slate-800);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tx-person-name i {
+            color: var(--slate-400);
+            font-size: 11px;
+        }
+        .tx-dish-tag {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .tx-dish-tag i {
+            color: var(--primary);
+            font-size: 10px;
+        }
+        .tx-dish-amount {
+            font-weight: 700;
+            color: var(--slate-800);
+            font-size: 13px;
+            white-space: nowrap;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .tx-pay-note, .tx-fallback-desc {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--slate-700);
+            line-height: 1.5;
+        }
+        .tx-pay-note i {
+            color: var(--success);
+            margin-top: 3px;
+        }
+        .tx-fallback-desc i {
+            color: var(--primary);
+            margin-top: 3px;
+        }
+
+        .empty-log-state {
+            text-align: center;
+            padding: 32px 16px;
+            color: var(--slate-500);
+            font-size: 13.5px;
+            font-style: italic;
+            background: var(--slate-50);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-md);
+        }
+        .empty-log-icon {
+            font-size: 32px;
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
 
         /* MODALS */
         .modal-overlay {
@@ -807,10 +1430,178 @@
         @media (max-width: 680px) {
             .pay-modal-grid { grid-template-columns: 1fr; }
         }
+        .btn-text-short { display: none; }
         @media (max-width: 640px) {
-            .header-container { flex-direction: column; align-items: flex-start; }
-            .header-actions { width: 100%; justify-content: flex-start; }
-            .member-grid { grid-template-columns: 1fr; }
+            .app-header { padding: 8px 12px; }
+            .header-container { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+            .brand-group { gap: 8px; }
+            .logo-box { width: 34px; height: 34px; font-size: 16px; border-radius: 8px; }
+            .brand-title { font-size: 0.95rem; }
+            .brand-desc { display: none; }
+            .admin-badge { padding: 3px 8px; font-size: 10.5px; }
+            .header-actions { width: auto; justify-content: flex-end; gap: 4px; flex-wrap: nowrap; }
+            .header-actions .btn { padding: 6px 9px; font-size: 11.5px; border-radius: 6px; }
+            .btn-text { display: none !important; }
+            .btn-text-short { display: inline !important; }
+
+            .container { padding: 0 10px; margin: 10px auto; gap: 12px; }
+            .block-card { padding: 14px 12px; border-radius: 12px; }
+            .section-header { margin-bottom: 10px; padding-bottom: 8px; gap: 6px; }
+            .section-title { font-size: 0.92rem; }
+
+            /* Compact horizontal 3-column stats */
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+            .metric-card {
+                padding: 8px 6px;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 4px;
+                border-radius: 10px;
+            }
+            .metric-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 13px;
+                border-radius: 6px;
+            }
+            .metric-val {
+                font-size: 0.92rem;
+                font-weight: 800;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+            .metric-label {
+                font-size: 0.64rem;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+
+            .member-grid { grid-template-columns: 1fr; gap: 10px; }
+            .member-card { padding: 12px; }
+
+            /* Mobile Transaction Cards Optimization */
+            .tx-card {
+                padding: 12px;
+                gap: 8px;
+            }
+            .tx-card-header {
+                gap: 6px;
+            }
+            .tx-badge {
+                font-size: 11px;
+                padding: 2px 7px;
+            }
+            .tx-date-badge {
+                font-size: 11px;
+                padding: 2px 6px;
+            }
+            .tx-btn-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
+            }
+            .tx-card-summary {
+                padding-bottom: 6px;
+                gap: 6px;
+            }
+            .tx-summary-label {
+                font-size: 11px;
+            }
+            .tx-summary-name {
+                font-size: 11.5px;
+                padding: 1px 6px;
+            }
+            .tx-total-label {
+                font-size: 10.5px;
+            }
+            .tx-total-val {
+                font-size: 14.5px;
+            }
+            .tx-card-content {
+                padding: 8px 10px;
+                border-radius: 8px;
+            }
+            .tx-dish-row {
+                font-size: 12px;
+                padding: 5px 0;
+            }
+            .tx-person-name {
+                font-size: 12px;
+            }
+            .tx-dish-tag {
+                font-size: 10.5px;
+                padding: 1px 5px;
+            }
+            .tx-dish-amount {
+                font-size: 12px;
+            }
+
+            /* Compact Date Toolbar Mobile */
+            .compact-date-toolbar {
+                padding: 6px 8px;
+                gap: 6px;
+            }
+            .date-toolbar-header {
+                gap: 6px;
+            }
+            .date-toolbar-info {
+                gap: 6px;
+            }
+            .date-toolbar-title {
+                font-size: 12.5px;
+            }
+            .date-toolbar-badge {
+                font-size: 10px;
+                padding: 1px 6px;
+            }
+            .date-toolbar-actions {
+                gap: 4px;
+            }
+            .btn-date-picker span {
+                display: none;
+            }
+            .btn-date-picker {
+                padding: 0 8px;
+            }
+            .date-range-select {
+                padding: 0 4px;
+                font-size: 10.5px;
+                max-width: 110px;
+            }
+            .date-pill {
+                flex: 0 0 50px;
+                min-width: 48px;
+                height: 38px;
+                padding: 2px 4px;
+            }
+            .date-pill-day {
+                font-size: 8.5px;
+            }
+            .date-pill-num {
+                font-size: 11.5px;
+            }
+        }
+        @media (max-width: 420px) {
+            .header-actions .btn-text-short { display: none !important; }
+            .header-actions .btn { padding: 6px 10px; }
+        }
+        @keyframes aiFormPulse {
+            0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(2, 132, 199, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+        }
+        .ai-form-highlight {
+            animation: aiFormPulse 1.5s ease 2 !important;
+            border-color: #0284c7 !important;
         }
     </style>
 </head>
@@ -830,13 +1621,13 @@
 
             <div class="header-actions">
                 <button class="btn btn-secondary" onclick="copyDebtReport()" title="Sao chép báo cáo nợ để gửi nhóm Zalo/Telegram">
-                    <i class="fa-solid fa-clipboard-list"></i> Báo Cáo Zalo
+                    <i class="fa-solid fa-clipboard-list"></i> <span class="btn-text">Báo Cáo Zalo</span><span class="btn-text-short">Báo Cáo</span>
                 </button>
                 <button class="btn btn-secondary" onclick="openBankSettingsModal()" title="Cài đặt tài khoản ngân hàng nhận tiền">
-                    <i class="fa-solid fa-qrcode"></i> Cài VietQR
+                    <i class="fa-solid fa-qrcode"></i> <span class="btn-text">Cài VietQR</span><span class="btn-text-short">VietQR</span>
                 </button>
                 <button class="btn btn-primary admin-only" onclick="openMealModal()">
-                    <i class="fa-solid fa-plus"></i> Thêm Bữa Ăn
+                    <i class="fa-solid fa-plus"></i> <span class="btn-text">Thêm Bữa Ăn</span><span class="btn-text-short">Thêm Bữa</span>
                 </button>
             </div>
         </div>
@@ -868,76 +1659,106 @@
             </div>
         </div>
 
-        <!-- 2. DATE FLIGHT SLIDER -->
-        <section class="block-card">
-            <div class="section-header">
-                <div class="section-title"><i class="fa-regular fa-calendar-days" style="color:var(--primary);"></i> Chọn Ngày Xem Giao Dịch</div>
-                <span id="selectedDateDisplay" style="font-size:13px; font-weight:700; color:var(--primary);"></span>
-            </div>
-            <div class="date-slider-wrapper">
-                <div class="date-slider-container" id="dateSlider"></div>
-            </div>
-        </section>
-
-        <!-- 3. MEMBER & DEBT GRID -->
+        <!-- 2. MEMBER & DEBT GRID -->
         <section class="block-card">
             <div class="section-header">
                 <div class="section-title"><i class="fa-solid fa-users-viewfinder" style="color:var(--primary);"></i> Danh Sách Thành Viên & Số Dư Đối Soát</div>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <button class="btn btn-secondary btn-sm" onclick="openMemberDirectoryModal()" title="Mở danh bạ thông tin chi tiết các thành viên">
-                        <i class="fa-solid fa-address-book"></i> Danh Bạ & Sửa TV
+                        <i class="fa-solid fa-address-book"></i> <span class="btn-text">Danh Bạ & Sửa TV</span><span class="btn-text-short">Danh Bạ</span>
                     </button>
-                    <button class="btn btn-success btn-sm" onclick="openAddMemberModal()" title="Thêm thành viên mới"><i class="fa-solid fa-user-plus"></i> Thêm TV</button>
+                    <button class="btn btn-success btn-sm" onclick="openAddMemberModal()" title="Thêm thành viên mới"><i class="fa-solid fa-user-plus"></i> <span class="btn-text">Thêm TV</span><span class="btn-text-short">Thêm</span></button>
                 </div>
             </div>
             <div class="member-grid" id="memberGrid"></div>
         </section>
 
-        <!-- 4. DAILY LOGS -->
+        <!-- 3. GIAO DỊCH & LỊCH SỬ FEED (GỘP THÀNH TAB-NAV CHUYÊN NGHIỆP NHƯ CHIA BILL) -->
         <section class="block-card">
-            <div class="section-header">
-                <div class="section-title"><i class="fa-solid fa-receipt" style="color:var(--primary);"></i> <span id="logTitle">Giao Dịch Theo Ngày</span></div>
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tabDailyLogsBtn" onclick="switchTienComLogTab('daily')">
+                    <i class="fa-solid fa-receipt"></i> Giao Dịch Trong Ngày ( <span id="dailyLogCountBadge">0</span> )
+                </button>
+                <button class="tab-btn" id="tabFullLogsBtn" onclick="switchTienComLogTab('full')">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Toàn Bộ Lịch Sử ( <span id="fullLogCountBadge">0</span> )
+                </button>
             </div>
-            <div class="log-table-wrapper">
-                <table class="log-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 110px;">Ngày</th>
-                            <th style="width: 100px;">Loại</th>
-                            <th>Nội Dung Chi Tiết</th>
-                            <th class="admin-only" style="width: 90px; text-align:center;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logTableBody"></tbody>
-                </table>
-                <div id="emptyLogState" style="text-align:center; padding:24px; color:var(--slate-500); font-size:13px; font-style:italic; display:none;">Chưa có dữ liệu bữa ăn trong ngày này.</div>
-            </div>
-        </section>
 
-        <!-- 5. ALL LOGS HISTORY -->
-        <section class="block-card">
-            <div class="section-header">
-                <div class="section-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary);"></i> Toàn Bộ Lịch Sử Giao Dịch</div>
+            <!-- TAB 1: DAILY LOGS -->
+            <div id="feedDailyLogsWrapper">
+                <!-- THANH CHỌN NGÀY TINH GỌN (COMPACT DATE TOOLBAR) NẰM TRÊN PHẦN LOG -->
+                <div class="compact-date-toolbar" id="compactDateToolbar">
+                    <div class="date-toolbar-header">
+                        <div class="date-toolbar-info">
+                            <i class="fa-regular fa-calendar-check" style="color:var(--primary); font-size:15px;"></i>
+                            <span class="date-toolbar-title" id="selectedDateDisplay">Ngày ...</span>
+                            <span class="date-toolbar-badge" id="selectedDateLogCountBadge">0 giao dịch</span>
+                        </div>
+                        <div class="date-toolbar-actions">
+                            <button class="btn-date-nav" onclick="navigateDateOffset(-1)" title="Lùi 1 ngày trước">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button class="btn-date-quick" id="btnJumpToday" onclick="jumpToTodayDate()" title="Về ngày hôm nay">
+                                <i class="fa-solid fa-calendar-day"></i> Hôm nay
+                            </button>
+                            <button class="btn-date-nav" onclick="navigateDateOffset(1)" title="Tiến 1 ngày sau">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <div class="custom-date-picker-wrap">
+                                <button class="btn-date-picker" title="Chọn ngày bất kỳ trong lịch sử để xem log" onclick="openNativeDatePicker()">
+                                    <i class="fa-regular fa-calendar-days"></i>
+                                    <span>Chọn ngày khác...</span>
+                                </button>
+                                <input type="date" id="customDatePickerInput" class="custom-date-native-input" onchange="onCustomDatePicked(this.value)">
+                            </div>
+                            <div class="date-range-select-wrap">
+                                <select id="dateRangeSelect" class="date-range-select" onchange="changeDateSliderDays(this.value)" title="Số lượng ngày hiển thị trên thanh trượt">
+                                    <option value="14">14 ngày gần đây</option>
+                                    <option value="30">30 ngày (1 tháng)</option>
+                                    <option value="60">60 ngày (2 tháng)</option>
+                                    <option value="all">Tất cả ngày có log</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="date-slider-wrapper">
+                        <div class="date-slider-container" id="dateSlider"></div>
+                    </div>
+                </div>
+
+                <div class="feed-container" id="logTableBody"></div>
+                <div id="emptyLogState" class="empty-log-state" style="display:none;">
+                    <div class="empty-log-icon">🥣</div>
+                    <div>Chưa có dữ liệu bữa ăn trong ngày đã chọn.</div>
+                </div>
+                <!-- Pagination Bar cho Daily Logs nếu quá 30 dòng -->
+                <div class="pagination-bar" id="dailyPaginationBar" style="display:none;">
+                    <button class="btn btn-secondary btn-sm" id="btnPrevDailyPage" onclick="changeDailyLogPage(-1)">
+                        <i class="fa-solid fa-chevron-left"></i> Trang trước
+                    </button>
+                    <span id="dailyPageInfo">Trang 1 / 1</span>
+                    <button class="btn btn-secondary btn-sm" id="btnNextDailyPage" onclick="changeDailyLogPage(1)">
+                        Trang sau <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
-            <div class="log-table-wrapper">
-                <table class="log-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 110px;">Ngày</th>
-                            <th style="width: 100px;">Loại</th>
-                            <th>Nội Dung Chi Tiết</th>
-                            <th class="admin-only" style="width: 90px; text-align:center;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fullLogTableBody"></tbody>
-                </table>
-                <div id="emptyFullLogState" style="text-align:center; padding:24px; color:var(--slate-500); font-size:13px; font-style:italic; display:none;">Chưa có lịch sử giao dịch nào.</div>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; font-size:13px;" id="paginationBar">
-                <span id="pageInfo">Trang 1 / 1</span>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn btn-secondary btn-sm" id="btnPrevPage" onclick="changeFullLogPage(-1)">◄ Trước</button>
-                    <button class="btn btn-secondary btn-sm" id="btnNextPage" onclick="changeFullLogPage(1)">Sau ►</button>
+
+            <!-- TAB 2: FULL LOGS HISTORY -->
+            <div id="feedFullLogsWrapper" style="display:none;">
+                <div class="feed-container" id="fullLogTableBody"></div>
+                <div id="emptyFullLogState" class="empty-log-state" style="display:none;">
+                    <div class="empty-log-icon">📜</div>
+                    <div>Chưa có lịch sử giao dịch nào.</div>
+                </div>
+                <!-- Pagination Bar cho Full Logs nếu quá 30 dòng -->
+                <div class="pagination-bar" id="paginationBar" style="display:none;">
+                    <button class="btn btn-secondary btn-sm" id="btnPrevPage" onclick="changeFullLogPage(-1)">
+                        <i class="fa-solid fa-chevron-left"></i> Trang trước
+                    </button>
+                    <span id="pageInfo">Trang 1 / 1</span>
+                    <button class="btn btn-secondary btn-sm" id="btnNextPage" onclick="changeFullLogPage(1)">
+                        Trang sau <i class="fa-solid fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </section>
@@ -1048,18 +1869,22 @@
                 <!-- Cột trái: Thông tin thanh toán -->
                 <div>
                     <div class="form-group">
-                        <label class="form-label">Người trả tiền (Thành viên đang nợ):</label>
-                        <select id="payPayerSelect" class="form-input" onchange="handlePayPayerChange()"></select>
-                    </div>
-
-                    <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:12.5px;">
-                        <span style="color:#991b1b;">Tổng số tiền thành viên này đang nợ:</span>
-                        <div id="payCurrentDebtText" style="font-size:16px; font-weight:800; color:var(--danger); margin-top:2px;">0đ</div>
+                        <label class="form-label" style="font-weight:700; color:var(--slate-800);">
+                            <i class="fa-solid fa-hand-holding-dollar" style="color:var(--primary);"></i> Người nhận tiền (Chủ chi / Người được thanh toán):
+                        </label>
+                        <select id="payReceiverSelect" class="form-input" onchange="handlePayReceiverChange()" style="font-weight:600;"></select>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Người nhận tiền (Chủ chi / Admin):</label>
-                        <select id="payReceiverSelect" class="form-input" onchange="updatePayQR()"></select>
+                        <label class="form-label" style="font-weight:700; color:var(--slate-800);">
+                            <i class="fa-solid fa-user-tag" style="color:var(--slate-600);"></i> Người trả tiền (Thành viên trả nợ):
+                        </label>
+                        <select id="payPayerSelect" class="form-input" onchange="handlePayPayerChange()" style="font-weight:600;"></select>
+                    </div>
+
+                    <div id="payDebtInfoBox" style="background:#fef2f2; border:1px solid #fecaca; padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:12.5px;">
+                        <div id="payDebtInfoLabel" style="color:#991b1b; font-weight:700;">Khoản nợ giữa 2 thành viên:</div>
+                        <div id="payCurrentDebtText" style="font-size:17px; font-weight:800; color:var(--danger); margin-top:2px;">0đ</div>
                     </div>
 
                     <div class="form-group">
@@ -1082,13 +1907,13 @@
                     </div>
                 </div>
 
-                <!-- Cột phải: Live Dynamic VietQR chuyển về số TK của tôi -->
+                <!-- Cột phải: Live Dynamic VietQR chuyển về tài khoản người nhận tiền -->
                 <div class="pay-qr-box">
                     <div style="font-weight:800; font-size:13px; color:var(--slate-800);">
                         <i class="fa-solid fa-qrcode" style="color:var(--primary);"></i> Mã QR Chuyển Khoản Trực Tiếp
                     </div>
-                    <div style="font-size:11px; color:var(--slate-500); margin-top:-4px;">
-                        Tiền sẽ chuyển về <b>Số TK của tôi (Chủ chi)</b>
+                    <div id="payQrSubNotice" style="font-size:11.5px; color:var(--slate-500); margin-top:-4px;">
+                        Quét mã để chuyển tiền về tài khoản người nhận
                     </div>
 
                     <img id="payQrImage" class="pay-qr-img" src="" alt="Mã VietQR Chuyển Khoản">
@@ -1504,6 +2329,22 @@
         </div>
     </div>
 
+    <!-- MODAL: CHI TIẾT GIAO DỊCH & BIÊN LAI (FULL TRANSACTION DETAIL) -->
+    <div class="modal-overlay" id="logDetailModal">
+        <div class="modal-card" style="max-width:540px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="logDetailModalTitle"><i class="fa-solid fa-receipt" style="color:var(--primary);"></i> Chi Tiết Giao Dịch</h3>
+                <button class="modal-close" onclick="closeModal('logDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="logDetailModalBody" style="padding:14px 0;">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-footer" id="logDetailModalFooter" style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // --------------------------------------------------------------------------
         // --------------------------------------------------------------------------
@@ -1515,24 +2356,61 @@
             { id: '3', name: 'C', fullName: 'Lê Văn C', nickname: 'C', dob: '1996-11-30', phone: '0963456789', bankId: 'TCB', accountNo: '1903456789', accountName: 'LE VAN C', note: 'Kỹ thuật' }
         ];
 
-        let members = JSON.parse(localStorage.getItem('p2p_members')) || DEFAULT_MEMBERS;
-        // Normalize members with default properties if loaded from older structure
-        members = members.map(m => ({
-            id: m.id,
-            name: m.nickname || m.name || m.fullName || '',
-            fullName: m.fullName || m.name || '',
-            nickname: m.nickname || m.name || '',
-            dob: m.dob || '',
-            phone: m.phone || '',
-            bankId: m.bankId || '',
-            accountNo: m.accountNo || '',
-            accountName: m.accountName || '',
-            note: m.note || ''
-        }));
+        function normalizeMembersList(list) {
+            if (!Array.isArray(list)) return [];
+            return list.map(m => {
+                if (!m) return null;
+                const idStr = String(m.id !== undefined && m.id !== null ? m.id : Date.now());
+                const nick = m.nickname || m.name || m.fullName || 'Thành viên';
+                return {
+                    id: idStr,
+                    name: nick,
+                    fullName: m.fullName || m.name || nick,
+                    nickname: nick,
+                    dob: m.dob || '',
+                    phone: m.phone || '',
+                    bankId: m.bankId || '',
+                    accountNo: m.accountNo || '',
+                    accountName: m.accountName || '',
+                    note: m.note || ''
+                };
+            }).filter(Boolean);
+        }
 
-        let logs = JSON.parse(localStorage.getItem('p2p_logs')) || [];
+        function loadInitialMembers() {
+            try {
+                const storedP2pRaw = localStorage.getItem('p2p_members');
+                if (storedP2pRaw !== null) {
+                    const parsed = JSON.parse(storedP2pRaw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return normalizeMembersList(parsed);
+                    }
+                }
+            } catch(e) {}
+            return [];
+        }
 
-        // Meal Presets with Dish Name & Price (Editable)
+        function loadInitialLogs() {
+            try {
+                const raw = localStorage.getItem('p2p_logs');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) return parsed;
+                }
+            } catch(e) {}
+            return [];
+        }
+
+        function getTodayStr() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // =========================================================================
+        // KHAI BÁO TOÀN BỘ BIẾN TRẠNG THÁI (TRÁNH TEMPORAL DEAD ZONE TRUY XUẤT SỚM)
+        // =========================================================================
+        let members = loadInitialMembers();
+        let logs = loadInitialLogs();
+
         const DEFAULT_MEAL_PRESETS = [
             { id: '1', name: 'Cơm văn phòng', price: 30 },
             { id: '2', name: 'Cơm sườn bì chả', price: 35 },
@@ -1568,12 +2446,145 @@
         const SYS_IS_ADMIN_KEY = 'sys_is_admin';
 
         let isAdmin = localStorage.getItem(SYS_IS_ADMIN_KEY) === 'true';
-        let selectedDate = getTodayStr();
         let debts = {};
+
+        function getInitialSelectedDate() {
+            const today = getTodayStr();
+            if (Array.isArray(logs) && logs.length > 0) {
+                const hasToday = logs.some(l => l.dateStr === today);
+                if (hasToday) return today;
+                const latestLogDate = logs[0].dateStr;
+                if (latestLogDate) return latestLogDate;
+            }
+            return today;
+        }
+        let selectedDate = getInitialSelectedDate();
+
+        // =========================================================================
+        // REAL-TIME SYSTEM MEMBER DIRECTORY SYNC (TIEN COM)
+        // =========================================================================
+        let isSyncingGlobalDir = false;
+        function syncWithGlobalDirectory(explicitGlobalList = null) {
+            if (isSyncingGlobalDir) return false;
+            isSyncingGlobalDir = true;
+            try {
+                let globalList = explicitGlobalList;
+                if (!globalList) {
+                    try {
+                        const raw = localStorage.getItem('sys_global_members');
+                        if (raw) globalList = JSON.parse(raw);
+                    } catch(e) {}
+                }
+                if (!Array.isArray(globalList) || globalList.length === 0) return false;
+
+                // Loại bỏ thành viên trong danh sách đen đã xóa vĩnh viễn (Tombstones)
+                let delBlacklist = [];
+                try {
+                    const rawDel = localStorage.getItem('sys_deleted_members');
+                    if (rawDel) delBlacklist = JSON.parse(rawDel) || [];
+                } catch(e) {}
+
+                if (Array.isArray(delBlacklist) && delBlacklist.length > 0) {
+                    members = members.filter(m => {
+                        const sId = String(m.id || '');
+                        const mNick = (m.nickname || m.name || '').trim().toLowerCase();
+                        const mName = (m.name || '').trim().toLowerCase();
+                        return !delBlacklist.some(d => {
+                            const dId = String(d.id || '');
+                            const dNick = (d.nickname || d.name || '').trim().toLowerCase();
+                            const dName = (d.name || '').trim().toLowerCase();
+                            return (dId && sId && dId === sId) || 
+                                   (dNick && mNick && dNick === mNick) || 
+                                   (dName && mName && dName === mName);
+                        });
+                    });
+                }
+
+                let hasDiff = false;
+                members = members.map(m => {
+                    const strId = String(m.id);
+                    const gm = globalList.find(g => 
+                        String(g.id) === strId || 
+                        (g.nickname && m.nickname && g.nickname.trim().toLowerCase() === m.nickname.trim().toLowerCase()) ||
+                        (g.fullName && m.fullName && g.fullName.trim().toLowerCase() === m.fullName.trim().toLowerCase()) ||
+                        (g.name && m.name && g.name.trim().toLowerCase() === m.name.trim().toLowerCase()) ||
+                        (g.phone && m.phone && g.phone.trim() === m.phone.trim())
+                    );
+                    if (!gm) return m;
+
+                    const newNick = gm.nickname || gm.name || gm.fullName || m.nickname || m.name;
+                    const newFull = gm.fullName || gm.name || m.fullName || m.name;
+                    const newBankId = gm.bankId || gm.bank_id || m.bankId || '';
+                    const newAccNo = gm.accountNo || gm.account_no || m.accountNo || '';
+                    const newAccName = (gm.accountName || gm.account_name || m.accountName || '').toUpperCase();
+                    const newDob = gm.dob || m.dob || '';
+                    const newPhone = gm.phone || m.phone || '';
+                    const newNote = (gm.note !== undefined && gm.note !== null) ? gm.note : (m.note || '');
+
+                    const isChanged = (
+                        m.name !== newNick ||
+                        m.nickname !== newNick ||
+                        m.fullName !== newFull ||
+                        (m.dob || '') !== newDob ||
+                        (m.phone || '') !== newPhone ||
+                        (m.bankId || '') !== newBankId ||
+                        (m.accountNo || '') !== newAccNo ||
+                        (m.accountName || '').toUpperCase() !== newAccName ||
+                        (m.note || '') !== newNote
+                    );
+
+                    if (isChanged) {
+                        hasDiff = true;
+                        return {
+                            ...m,
+                            id: (gm.id !== undefined && gm.id !== null) ? gm.id : m.id,
+                            name: newNick,
+                            nickname: newNick,
+                            fullName: newFull,
+                            dob: newDob,
+                            phone: newPhone,
+                            bankId: newBankId,
+                            accountNo: newAccNo,
+                            accountName: newAccName,
+                            note: newNote
+                        };
+                    }
+                    return m;
+                });
+
+                if (hasDiff) {
+                    saveData();
+                    recalculateDebts();
+                    if (document.getElementById('memberDirectoryModal')?.classList.contains('show')) {
+                        renderMemberDirectory();
+                    }
+                    if (document.getElementById('memberPickerModal')?.classList.contains('show')) {
+                        renderDirectoryPickerList();
+                    }
+                }
+                return hasDiff;
+            } finally {
+                isSyncingGlobalDir = false;
+            }
+        }
         let editingLogId = null;
         let currentPayPayerId = null;
+        let currentLogFeedTab = 'daily';
+        let dailyLogCurrentPage = 1;
         let fullLogCurrentPage = 1;
-        const FULL_LOG_PAGE_SIZE = 50;
+        const LOGS_PER_PAGE = 10;
+
+        function switchTienComLogTab(tab) {
+            currentLogFeedTab = tab;
+            const dailyBtn = document.getElementById('tabDailyLogsBtn');
+            const fullBtn = document.getElementById('tabFullLogsBtn');
+            const dailyWrap = document.getElementById('feedDailyLogsWrapper');
+            const fullWrap = document.getElementById('feedFullLogsWrapper');
+            if (dailyBtn) dailyBtn.classList.toggle('active', tab === 'daily');
+            if (fullBtn) fullBtn.classList.toggle('active', tab === 'full');
+            if (dailyWrap) dailyWrap.style.display = (tab === 'daily') ? 'block' : 'none';
+            if (fullWrap) fullWrap.style.display = (tab === 'full') ? 'block' : 'none';
+        }
 
         const CRYPTO_SALT_PEPPER = 'ANTIGRAVITY_SECURE_SALT_VAULT_v3_99482';
 
@@ -1707,6 +2718,20 @@
                 document.body.classList.toggle('admin-edit-mode', !!e.data.adminEditMode);
             } else if (e.data && e.data.type === 'BANK_CONFIG_CHANGED') {
                 bankInfo = e.data.bankConfig;
+            } else if (e.data && e.data.type === 'AI_FILL_MEAL_FORM') {
+                handleAiFillMealForm(e.data.payload);
+            } else if (e.data && (e.data.type === 'P2P_LOGS_UPDATED' || e.data.type === 'RELOAD_DATA' || e.data.type === 'TIEN_COM_UPDATED' || e.data.type === 'MEMBERS_UPDATED' || (e.data.type === 'STORAGE_KEY_CHANGED' && (e.data.key === 'p2p_members' || e.data.key === 'p2p_logs')))) {
+                try {
+                    const storedLogs = localStorage.getItem('p2p_logs');
+                    if (storedLogs !== null) logs = JSON.parse(storedLogs) || [];
+                    else if (e.data.logs) logs = e.data.logs;
+                    const storedMem = localStorage.getItem('p2p_members');
+                    if (storedMem !== null) members = normalizeMembersList(JSON.parse(storedMem) || []);
+                    renderHistory();
+                    recalculateDebts();
+                } catch(err) {
+                    console.warn('[Tiền Cơm] Lỗi cập nhật dữ liệu từ message:', err);
+                }
             }
         });
 
@@ -1716,8 +2741,16 @@
                 updateAdminUI();
             } else if (e.key === 'p2p_members') {
                 try {
-                    members = JSON.parse(e.newValue) || [];
+                    members = normalizeMembersList(JSON.parse(e.newValue) || []);
                     recalculateDebts();
+                    if (document.getElementById('memberDirectoryModal')?.classList.contains('show')) {
+                        renderMemberDirectory();
+                    }
+                } catch(err) {}
+            } else if (e.key === 'sys_global_members') {
+                try {
+                    const gl = JSON.parse(e.newValue);
+                    if (Array.isArray(gl)) syncWithGlobalDirectory(gl);
                 } catch(err) {}
             } else if (e.key === 'p2p_logs') {
                 try {
@@ -1738,18 +2771,22 @@
         window.addEventListener('db-storage-ready', function () {
             try {
                 const storedMem = localStorage.getItem('p2p_members');
-                if (storedMem) members = JSON.parse(storedMem);
+                if (storedMem !== null) members = normalizeMembersList(JSON.parse(storedMem) || []);
                 const storedLogs = localStorage.getItem('p2p_logs');
-                if (storedLogs) logs = JSON.parse(storedLogs);
+                if (storedLogs !== null) logs = JSON.parse(storedLogs) || [];
                 const storedPresets = localStorage.getItem('p2p_meal_presets');
                 if (storedPresets) mealPresets = JSON.parse(storedPresets);
                 bankInfo = loadCurrentBankInfo();
                 isAdmin = localStorage.getItem(SYS_IS_ADMIN_KEY) === 'true';
+                selectedDate = getInitialSelectedDate();
                 updateAdminUI();
+                syncWithGlobalDirectory();
                 recalculateDebts();
-                renderHistory();
+                renderLogs();
                 renderMealPresets();
-            } catch(e) {}
+            } catch(e) {
+                console.error('[Tiền Cơm] Lỗi khi xử lý db-storage-ready:', e);
+            }
         });
 
         if ('BroadcastChannel' in window) {
@@ -1765,36 +2802,18 @@
                 }
             };
 
-            const memberChannel = new BroadcastChannel('system_member_sync');
-            memberChannel.onmessage = function (e) {
-                if (e.data && (e.data.type === 'MEMBERS_UPDATED' || e.data.type === 'SYNC_ALL_MEMBERS' || e.data.type === 'MEMBERS_SYNCED')) {
-                    if (e.data.comMembers && Array.isArray(e.data.comMembers)) {
-                        members = e.data.comMembers;
-                    } else if (e.data.p2pMembers && Array.isArray(e.data.p2pMembers)) {
-                        members = e.data.p2pMembers;
-                    } else if (e.data.globalMembers && Array.isArray(e.data.globalMembers)) {
-                        let hasChanges = false;
-                        e.data.globalMembers.forEach(gm => {
-                            const curIdx = members.findIndex(m => String(m.id) === String(gm.id) || (m.nickname && gm.nickname && m.nickname.toLowerCase() === gm.nickname.toLowerCase()));
-                            if (curIdx !== -1) {
-                                members[curIdx] = {
-                                    ...members[curIdx],
-                                    name: gm.nickname || gm.fullName || members[curIdx].name,
-                                    fullName: gm.fullName || members[curIdx].fullName,
-                                    nickname: gm.nickname || members[curIdx].nickname,
-                                    dob: gm.dob || members[curIdx].dob,
-                                    phone: gm.phone || members[curIdx].phone,
-                                    bankId: gm.bankId || members[curIdx].bankId,
-                                    accountNo: gm.accountNo || members[curIdx].accountNo,
-                                    accountName: gm.accountName || members[curIdx].accountName,
-                                    note: gm.note || members[curIdx].note
-                                };
-                                hasChanges = true;
-                            }
-                        });
-                        if (hasChanges) {
-                            saveData();
-                        }
+            function handleMemberSyncPayload(data) {
+                if (!data) return;
+                if (data.type === 'MEMBERS_UPDATED' || data.type === 'SYNC_ALL_MEMBERS' || data.type === 'MEMBERS_SYNCED' || data.type === 'GLOBAL_MEMBERS_CHANGED') {
+                    const comList = data.comMembers || data.p2pMembers;
+                    if (comList && Array.isArray(comList)) {
+                        members = normalizeMembersList(comList);
+                    }
+                    const globalList = data.globalMembers || data.members;
+                    if (globalList && Array.isArray(globalList)) {
+                        syncWithGlobalDirectory(globalList);
+                    } else {
+                        syncWithGlobalDirectory();
                     }
                     recalculateDebts();
                     if (document.getElementById('memberDirectoryModal')?.classList.contains('show')) {
@@ -1804,12 +2823,39 @@
                         renderDirectoryPickerList();
                     }
                 }
-            };
+            }
+
+            const memberChannel = new BroadcastChannel('system_member_sync');
+            memberChannel.onmessage = function (e) { handleMemberSyncPayload(e.data); };
+
+            const legacySyncChannel = new BroadcastChannel('members_sync');
+            legacySyncChannel.onmessage = function (e) { handleMemberSyncPayload(e.data); };
+
+            window.addEventListener('message', function (e) {
+                if (e.data) handleMemberSyncPayload(e.data);
+            });
+        }
+
+        function renderHistory() {
+            renderLogs();
         }
 
         function saveData() {
-            localStorage.setItem('p2p_members', JSON.stringify(members));
-            localStorage.setItem('p2p_logs', JSON.stringify(logs));
+            if (!Array.isArray(members) || !Array.isArray(logs)) return;
+            const memJson = JSON.stringify(members);
+            const logsJson = JSON.stringify(logs);
+            try {
+                const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                if (db && typeof db.setItem === 'function') {
+                    db.setItem('p2p_members', memJson);
+                    db.setItem('p2p_logs', logsJson);
+                    return;
+                }
+            } catch (e) {}
+            try {
+                localStorage.setItem('p2p_members', memJson);
+                localStorage.setItem('p2p_logs', logsJson);
+            } catch (e) {}
         }
 
         function formatMoney(amount) {
@@ -1820,9 +2866,48 @@
             return new Date().toISOString().split('T')[0];
         }
 
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('show');
+        }
+
         function closeModal(id) {
             const el = document.getElementById(id);
             if (el) el.classList.remove('show');
+        }
+
+        function formatVND(amount) {
+            return formatMoney(amount);
+        }
+
+        function formatLogDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dateStr;
+        }
+
+        function parseLogItems(l) {
+            if (Array.isArray(l.items) && l.items.length > 0) return l.items;
+            if (l.description && l.type === 'Bữa Ăn') {
+                const match = l.description.match(/\((.*?)\)$/);
+                if (match && match[1]) {
+                    const parts = match[1].split(',');
+                    const parsed = [];
+                    parts.forEach(p => {
+                        const itemMatch = p.trim().match(/^([^:\[]+)(?:\[(.*?)\])?:\s*([\d\.,]+)/);
+                        if (itemMatch) {
+                            parsed.push({
+                                colleagueName: itemMatch[1].trim(),
+                                dishName: itemMatch[2] ? itemMatch[2].trim() : '',
+                                amount: parseInt(itemMatch[3].replace(/[^\d]/g, ''), 10) || 0
+                            });
+                        }
+                    });
+                    if (parsed.length > 0) return parsed;
+                }
+            }
+            return [];
         }
 
         function copyText(text, successMsg = 'Đã sao chép vào bộ nhớ tạm') {
@@ -1857,10 +2942,37 @@
 
         function getGlobalDirectoryMembers() {
             let globalMems = [];
+            // 1. Thử lấy từ memberService (RAM của hệ thống hoặc window.parent)
             try {
-                const raw = localStorage.getItem('sys_global_members');
-                if (raw) globalMems = JSON.parse(raw);
+                const s = window.memberService || (window.top && window.top.memberService) || (window.parent && window.parent.memberService);
+                if (s && typeof s.getAllMembers === 'function') {
+                    const list = s.getAllMembers();
+                    if (Array.isArray(list) && list.length > 0) globalMems = list;
+                }
             } catch(e) {}
+
+            // 2. Thử lấy từ localStorage sys_global_members
+            if (!Array.isArray(globalMems) || globalMems.length === 0) {
+                try {
+                    const raw = localStorage.getItem('sys_global_members');
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length > 0) globalMems = parsed;
+                    }
+                } catch(e) {}
+            }
+
+            // 3. Fallback sang nhau_members hoặc danh sách mặc định
+            if (!Array.isArray(globalMems) || globalMems.length === 0) {
+                try {
+                    const rawNhau = localStorage.getItem('nhau_members');
+                    if (rawNhau) {
+                        const parsedNhau = JSON.parse(rawNhau);
+                        if (Array.isArray(parsedNhau) && parsedNhau.length > 0) globalMems = parsedNhau;
+                    }
+                } catch(e) {}
+            }
+
             if (!Array.isArray(globalMems) || globalMems.length === 0) {
                 globalMems = members.length > 0 ? members : DEFAULT_MEMBERS;
             }
@@ -2079,7 +3191,7 @@
                 }
                 return;
             }
-            const m = members.find(mem => mem.id === id);
+            const m = members.find(mem => String(mem.id) === String(id));
             if (!m) return;
 
             document.getElementById('memberModalTitle').innerText = '✏️ Sửa Thông Tin Thành Viên';
@@ -2106,7 +3218,19 @@
                 } else {
                     globalMems.push(memberObj);
                 }
-                localStorage.setItem('sys_global_members', JSON.stringify(globalMems));
+                const serialized = JSON.stringify(globalMems);
+                localStorage.setItem('sys_global_members', serialized);
+                try {
+                    const db = window.dbStorage || (window.top && window.top.dbStorage);
+                    if (db && typeof db.setItem === 'function') db.setItem('sys_global_members', serialized);
+                } catch(e) {}
+                window.dispatchEvent(new StorageEvent('storage', { key: 'sys_global_members', newValue: serialized }));
+                const syncPayload = { type: 'MEMBERS_UPDATED', globalMembers: globalMems, comMembers: members };
+                try { new BroadcastChannel('system_member_sync').postMessage(syncPayload); } catch(e) {}
+                try { new BroadcastChannel('members_sync').postMessage(syncPayload); } catch(e) {}
+                if (window.parent && window.parent !== window) {
+                    try { window.parent.postMessage(syncPayload, '*'); } catch(e) {}
+                }
             } catch(e) {}
         }
 
@@ -2133,7 +3257,7 @@
 
             if (id) {
                 // Update existing
-                const idx = members.findIndex(m => m.id === id);
+                const idx = members.findIndex(m => String(m.id) === String(id));
                 if (idx !== -1) {
                     members[idx] = { ...members[idx], ...memberObj };
                 }
@@ -2160,18 +3284,37 @@
 
         function deleteMember(id) {
             if (!checkAdminPermission()) return;
-            const m = members.find(mem => mem.id === id);
+            const strId = String(id);
+            const m = members.find(mem => String(mem.id) === strId || mem.name === id || mem.nickname === id);
             if (!m) return;
-            if (confirm(`Bạn có chắc muốn xóa thành viên "${m.fullName || m.name}" khỏi danh sách?`)) {
-                members = members.filter(mem => mem.id !== id);
+
+            const memberName = m.fullName || m.name || m.nickname;
+            if (confirm(`Bạn có chắc muốn xóa thành viên "${memberName}" khỏi danh sách tính tiền cơm?\n(Lưu ý: Thao tác này chỉ gỡ khỏi nhóm Tiền Cơm, thông tin trong Danh Bạ vẫn được lưu an toàn)`)) {
+                // 1. Chỉ gỡ khỏi danh sách tham gia của Tiền Cơm (p2p_members)
+                members = members.filter(mem => String(mem.id) !== strId && mem.name !== m.name && mem.nickname !== m.nickname);
                 saveData();
+
+                // 2. Đồng bộ lên dbStorage để lưu p2p_members lên Supabase Cloud REST
+                try {
+                    const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                    if (db && typeof db.setItem === 'function') {
+                        db.setItem('p2p_members', JSON.stringify(members));
+                    }
+                } catch(e) {}
+
                 recalculateDebts();
-                if (document.getElementById('memberDirectoryModal').classList.contains('show')) {
+                if (document.getElementById('memberDirectoryModal')?.classList.contains('show')) {
                     renderMemberDirectory();
                 }
+
+                // 3. Phát thông báo đồng bộ liên ứng dụng (chỉ p2pMembers)
                 try {
                     const bc = new BroadcastChannel('system_member_sync');
-                    bc.postMessage({ type: 'MEMBERS_UPDATED', comMembers: members });
+                    bc.postMessage({
+                        type: 'MEMBERS_UPDATED',
+                        comMembers: members,
+                        p2pMembers: members
+                    });
                 } catch(e) {}
             }
         }
@@ -2497,7 +3640,7 @@
                                 <button class="btn btn-secondary btn-sm" disabled style="opacity:0.4; cursor:not-allowed;" title="Chưa cập nhật số tài khoản"><i class="fa-solid fa-qrcode"></i></button>
                             `}
                             <button class="btn btn-secondary btn-sm admin-edit-btn" onclick="openEditMemberModal('${m.id}')" title="Sửa thông tin thành viên" style="font-weight:600; color:var(--primary);"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
-                            <button class="btn btn-secondary btn-sm admin-only" style="color:var(--danger);" onclick="deleteMember('${m.id}')" title="Xóa thành viên (Admin)"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn btn-secondary btn-sm admin-only" style="color:var(--danger);" onclick="deleteMember('${m.id}')" title="Gỡ khỏi nhóm Tiền Cơm (Admin)"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </td>
                 `;
@@ -2506,7 +3649,7 @@
         }
 
         function openMemberTransferQrModal(memberId) {
-            const m = members.find(mem => mem.id === memberId);
+            const m = members.find(mem => String(mem.id) === String(memberId));
             if (!m) return;
             if (!m.bankId || !m.accountNo) {
                 alert(`Thành viên "${m.fullName || m.name}" chưa có thông tin STK ngân hàng.\nQuản trị viên vui lòng nhấn "Sửa" để bổ sung Ngân hàng và STK.`);
@@ -2528,95 +3671,307 @@
         }
 
         // --------------------------------------------------------------------------
-        // 3. DATE CAROUSEL & FLIGHT PICKER
+        // 3. DATE CAROUSEL & FLIGHT PICKER (TINH GỌN & MỞ RỘNG XEM LỊCH SỬ DÀI HƠN)
         // --------------------------------------------------------------------------
+        let dateSliderRangeMode = '14'; // '14' | '30' | '60' | 'all'
+
         function renderDateSlider() {
             const container = document.getElementById('dateSlider');
             if (!container) return;
             container.innerHTML = '';
             const today = new Date();
-            const daysArr = [];
-            const datesWithData = new Set(logs.map(l => l.dateStr));
+            const datesWithData = new Set(logs.map(l => l.dateStr).filter(Boolean));
+            const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-            for (let i = 13; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(today.getDate() - i);
-                daysArr.push(d);
+            let dateList = [];
+
+            if (dateSliderRangeMode === 'all') {
+                // Thu thập tất cả các ngày từng có log trong toàn bộ lịch sử
+                const allDatesSet = new Set(logs.map(l => l.dateStr).filter(Boolean));
+                allDatesSet.add(getTodayStr());
+                if (selectedDate) allDatesSet.add(selectedDate);
+                // Sắp xếp giảm dần (mới nhất bên trái, cũ dần sang phải)
+                dateList = Array.from(allDatesSet).sort().reverse().map(dStr => {
+                    const [y, m, d] = dStr.split('-').map(Number);
+                    return { date: new Date(y, m - 1, d), dateStr: dStr };
+                });
+            } else {
+                const maxDays = parseInt(dateSliderRangeMode, 10) || 14;
+                const setOfStrs = new Set();
+                for (let i = 0; i < maxDays; i++) {
+                    const d = new Date();
+                    d.setDate(today.getDate() - i);
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const dStr = `${y}-${m}-${day}`;
+                    setOfStrs.add(dStr);
+                    dateList.push({ date: d, dateStr: dStr });
+                }
+                // Nếu selectedDate nằm ngoài dải maxDays (do chọn từ Datepicker), tự động chèn vào danh sách
+                if (selectedDate && !setOfStrs.has(selectedDate)) {
+                    const [y, m, d] = selectedDate.split('-').map(Number);
+                    const customD = new Date(y, m - 1, d);
+                    dateList.push({ date: customD, dateStr: selectedDate, isCustom: true });
+                    dateList.sort((a, b) => b.dateStr.localeCompare(a.dateStr));
+                }
             }
 
-            const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-            daysArr.forEach(d => {
-                const dateStr = d.toISOString().split('T')[0];
+            const todayStr = getTodayStr();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            const yYear = yesterday.getFullYear();
+            const yMonth = String(yesterday.getMonth() + 1).padStart(2, '0');
+            const yDay = String(yesterday.getDate()).padStart(2, '0');
+            const yesterdayStr = `${yYear}-${yMonth}-${yDay}`;
+
+            dateList.forEach(({ date: d, dateStr, isCustom }) => {
                 const hasData = datesWithData.has(dateStr);
+                const isSelected = (dateStr === selectedDate);
                 const pill = document.createElement('div');
-                pill.className = `date-pill ${dateStr === selectedDate ? 'active' : ''} ${hasData ? 'has-data' : ''}`;
+                pill.className = `date-pill ${isSelected ? 'active' : ''} ${hasData ? 'has-data' : ''}`;
+                pill.dataset.date = dateStr;
+                pill.title = `Xem giao dịch ngày ${dateStr}${hasData ? ' (Có dữ liệu bữa ăn)' : ''}`;
                 pill.onclick = () => {
                     selectedDate = dateStr;
                     renderDateSlider();
                     renderDashboard();
                 };
 
+                let dayLabel = dayNames[d.getDay()];
+                if (dateStr === todayStr) {
+                    dayLabel = 'H.nay';
+                } else if (dateStr === yesterdayStr) {
+                    dayLabel = 'H.qua';
+                }
+
+                const dayNum = d.getDate();
+                const monthNum = d.getMonth() + 1;
+                const formattedNum = `${dayNum < 10 ? '0' : ''}${dayNum}/${monthNum < 10 ? '0' : ''}${monthNum}`;
+
                 pill.innerHTML = `
-                    <div style="font-size:11px; font-weight:600; opacity:0.85;">${dayNames[d.getDay()]}</div>
-                    <div style="font-size:18px; font-weight:800; margin:2px 0;">${d.getDate()}</div>
-                    <div style="font-size:11px; opacity:0.85;">Tháng ${d.getMonth() + 1}</div>
+                    <div class="date-pill-day">${dayLabel}</div>
+                    <div class="date-pill-num">${formattedNum}</div>
                 `;
                 container.appendChild(pill);
             });
 
+            // 1. Cập nhật text hiển thị ngày đang chọn
             const selDisplay = document.getElementById('selectedDateDisplay');
-            if (selDisplay) {
+            if (selDisplay && selectedDate) {
                 const parts = selectedDate.split('-');
-                selDisplay.innerText = `Ngày ${parts[2]}/${parts[1]}/${parts[0]}`;
+                if (parts.length === 3) {
+                    selDisplay.innerText = `Ngày ${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
             }
+
+            // 2. Cập nhật badge số lượng giao dịch trong ngày
+            const countBadge = document.getElementById('selectedDateLogCountBadge');
+            if (countBadge) {
+                const count = logs.filter(l => l.dateStr === selectedDate).length;
+                countBadge.innerText = `${count} giao dịch`;
+            }
+
+            // 3. Đồng bộ input date native
+            const dateInput = document.getElementById('customDatePickerInput');
+            if (dateInput) {
+                dateInput.value = selectedDate || todayStr;
+            }
+
+            // 4. Đồng bộ dropdown range select
+            const rangeSelect = document.getElementById('dateRangeSelect');
+            if (rangeSelect) {
+                rangeSelect.value = dateSliderRangeMode;
+            }
+
+            // 5. Đồng bộ trạng thái nút Hôm nay
+            const btnToday = document.getElementById('btnJumpToday');
+            if (btnToday) {
+                btnToday.classList.toggle('is-today', selectedDate === todayStr);
+            }
+
+            // 6. Tự động cuộn đưa pill active vào giữa tầm mắt
+            setTimeout(() => {
+                const activeEl = container.querySelector('.date-pill.active');
+                if (activeEl && typeof activeEl.scrollIntoView === 'function') {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, 60);
+        }
+
+        // Điều hướng ngày: Lùi 1 ngày (-1) hoặc Tiến 1 ngày (+1)
+        function navigateDateOffset(direction) {
+            if (!selectedDate) selectedDate = getTodayStr();
+            const parts = selectedDate.split('-').map(Number);
+            const cur = new Date(parts[0], parts[1] - 1, parts[2]);
+            cur.setDate(cur.getDate() + direction);
+            const y = cur.getFullYear();
+            const m = String(cur.getMonth() + 1).padStart(2, '0');
+            const d = String(cur.getDate()).padStart(2, '0');
+            selectedDate = `${y}-${m}-${d}`;
+            renderDateSlider();
+            renderDashboard();
+        }
+
+        // Nhảy về ngày hôm nay
+        function jumpToTodayDate() {
+            selectedDate = getTodayStr();
+            renderDateSlider();
+            renderDashboard();
+        }
+
+        // Mở bộ chọn lịch Native Date Picker
+        function openNativeDatePicker() {
+            const input = document.getElementById('customDatePickerInput');
+            if (input) {
+                if (typeof input.showPicker === 'function') {
+                    input.showPicker();
+                } else {
+                    input.focus();
+                    input.click();
+                }
+            }
+        }
+
+        // Xử lý khi người dùng chọn ngày từ bộ lịch
+        function onCustomDatePicked(val) {
+            if (!val) return;
+            selectedDate = val;
+            renderDateSlider();
+            renderDashboard();
+        }
+
+        // Đổi dải ngày hiển thị (14 ngày, 30 ngày, 60 ngày hoặc Tất cả)
+        function changeDateSliderDays(val) {
+            dateSliderRangeMode = val || '14';
+            renderDateSlider();
         }
 
         // --------------------------------------------------------------------------
         // 4. DEBT CALCULATION & DASHBOARD
         // --------------------------------------------------------------------------
-        function getDebt(fromId, toId) { return debts[`${fromId}_${toId}`] || 0; }
+        function getDebt(fromId, toId) {
+            if (!fromId || !toId || String(fromId) === String(toId)) return 0;
+            return debts[`${String(fromId)}_${String(toId)}`] || 0;
+        }
+
         function setDebt(fromId, toId, amt) {
-            if (amt <= 0) delete debts[`${fromId}_${toId}`];
-            else debts[`${fromId}_${toId}`] = amt;
+            if (!fromId || !toId || String(fromId) === String(toId)) return;
+            const key = `${String(fromId)}_${String(toId)}`;
+            if (amt <= 0) delete debts[key];
+            else debts[key] = amt;
         }
 
         function adjustDebt(debtorId, creditorId, amount) {
-            if (debtorId === creditorId || amount === 0) return;
-            let rev = getDebt(creditorId, debtorId);
+            if (!debtorId || !creditorId || String(debtorId) === String(creditorId) || amount <= 0) return;
+            const debtorStr = String(debtorId);
+            const creditorStr = String(creditorId);
+
+            let rev = getDebt(creditorStr, debtorStr);
             if (rev > 0) {
-                if (rev >= amount) { setDebt(creditorId, debtorId, rev - amount); return; }
-                else { amount -= rev; setDebt(creditorId, debtorId, 0); }
+                if (rev >= amount) {
+                    setDebt(creditorStr, debtorStr, rev - amount);
+                    return;
+                } else {
+                    amount -= rev;
+                    setDebt(creditorStr, debtorStr, 0);
+                }
             }
-            setDebt(debtorId, creditorId, getDebt(debtorId, creditorId) + amount);
+            setDebt(debtorStr, creditorStr, getDebt(debtorStr, creditorStr) + amount);
         }
 
         function getMemberTotalDebt(memberId) {
             let total = 0;
+            const mIdStr = String(memberId);
             members.forEach(other => {
-                if (other.id !== memberId) {
-                    total += getDebt(memberId, other.id);
+                if (String(other.id) !== mIdStr) {
+                    total += getDebt(mIdStr, other.id);
                 }
             });
             return total;
         }
 
+        function getMemberTotalCredit(memberId) {
+            let total = 0;
+            const mIdStr = String(memberId);
+            members.forEach(other => {
+                if (String(other.id) !== mIdStr) {
+                    total += getDebt(other.id, mIdStr);
+                }
+            });
+            return total;
+        }
+
+        function resolveMemberId(id, name) {
+            const sId = String(id !== undefined && id !== null ? id : '');
+            const sName = (name || '').trim().toLowerCase();
+            
+            // 1. Khớp theo ID trực tiếp trong members
+            if (sId) {
+                const byId = members.find(m => String(m.id) === sId);
+                if (byId) return String(byId.id);
+            }
+
+            // 2. Khớp chính xác theo nickname, name, fullName
+            if (sName) {
+                const byName = members.find(m => 
+                    (m.nickname && m.nickname.trim().toLowerCase() === sName) ||
+                    (m.name && m.name.trim().toLowerCase() === sName) ||
+                    (m.fullName && m.fullName.trim().toLowerCase() === sName)
+                );
+                if (byName) return String(byName.id);
+
+                // 3. Khớp tương đối/tiền tố (ví dụ: 'huy' -> 'Huy gay', 'công' -> 'Công Đẹp Trai')
+                const bySub = members.find(m => {
+                    const n = (m.nickname || m.name || '').trim().toLowerCase();
+                    const f = (m.fullName || '').trim().toLowerCase();
+                    return (n && (n.startsWith(sName) || sName.startsWith(n))) ||
+                           (f && (f.startsWith(sName) || sName.startsWith(f)));
+                });
+                if (bySub) return String(bySub.id);
+            }
+
+            return sId;
+        }
+
         function recalculateDebts() {
             debts = {};
+            // Sắp xếp logs từ cũ nhất đến mới nhất theo thứ tự thời gian để tính nợ lũy kế chuẩn xác
             const sortedLogs = [...logs].reverse();
 
             sortedLogs.forEach(l => {
-                if (l.type === 'Bữa Ăn' && l.items) {
+                if (l.type === 'Bữa Ăn' && Array.isArray(l.items)) {
+                    const payerIdStr = resolveMemberId(l.payerId, l.payerName);
                     l.items.forEach(item => {
-                        if (item.amount > 0 && item.colleagueId !== l.payerId) {
-                            adjustDebt(item.colleagueId, l.payerId, item.amount);
+                        const colleagueIdStr = resolveMemberId(item.colleagueId, item.colleagueName);
+                        const amt = Number(item.amount) || 0;
+                        if (amt > 0 && colleagueIdStr !== payerIdStr) {
+                            adjustDebt(colleagueIdStr, payerIdStr, amt);
                         }
                     });
                 } else if (l.type === 'Trả Tiền') {
-                    let cur = getDebt(l.payerId, l.receiverId);
-                    if (cur >= l.amount) setDebt(l.payerId, l.receiverId, cur - l.amount);
-                    else {
-                        setDebt(l.payerId, l.receiverId, 0);
-                        adjustDebt(l.receiverId, l.payerId, l.amount - cur);
+                    const payerIdStr = resolveMemberId(l.payerId, l.payerName);
+                    let receiverIdStr = resolveMemberId(l.receiverId, l.receiverName);
+
+                    // Khớp ID người nhận tiền nếu log cũ lưu dạng 'admin' hoặc name
+                    if (receiverIdStr === 'admin' || !members.some(m => String(m.id) === receiverIdStr)) {
+                        const matched = members.find(m => m.name === l.receiverName || m.nickname === l.receiverName || m.fullName === l.receiverName);
+                        if (matched) receiverIdStr = String(matched.id);
+                        else if (members[0]) receiverIdStr = String(members[0].id);
+                    }
+
+                    const payAmt = Number(l.amount) || 0;
+                    if (payAmt > 0 && payerIdStr !== receiverIdStr) {
+                        let curDebt = getDebt(payerIdStr, receiverIdStr);
+                        if (curDebt >= payAmt) {
+                            setDebt(payerIdStr, receiverIdStr, curDebt - payAmt);
+                        } else {
+                            setDebt(payerIdStr, receiverIdStr, 0);
+                            const excess = payAmt - curDebt;
+                            if (excess > 0) {
+                                adjustDebt(receiverIdStr, payerIdStr, excess);
+                            }
+                        }
                     }
                 }
             });
@@ -2641,23 +3996,26 @@
                 let debtHtml = '';
                 let hasBalance = false;
                 const memberTotalDebt = getMemberTotalDebt(m.id);
+                const displayNick = m.nickname || m.name || 'Thành viên';
+                const displayFull = m.fullName || (m.nickname !== m.name ? m.name : '');
+                const hasDiffFull = displayFull && displayFull !== displayNick;
 
                 members.forEach(other => {
-                    if (m.id === other.id) return;
+                    if (String(m.id) === String(other.id)) return;
                     let toOther = getDebt(m.id, other.id);
                     let fromOther = getDebt(other.id, m.id);
+                    const oNick = other.nickname || other.name;
 
                     if (toOther > 0) {
                         hasBalance = true;
                         totalPending += toOther;
-                        const oNick = other.nickname || other.name;
                         debtHtml += `
                             <div class="debt-item">
                                 <span>Nợ ${oNick}:</span>
                                 <div style="display:flex; align-items:center; gap:6px;">
                                     <span class="badge-debt">${formatMoney(toOther)}</span>
-                                    <button class="btn btn-secondary btn-sm" onclick="openVietQRModal('${m.nickname || m.name}', '${oNick}', ${toOther})" title="Mở mã QR chuyển khoản về số TK của tôi">
-                                        <i class="fa-solid fa-qrcode"></i> QR
+                                    <button class="btn btn-secondary btn-sm admin-only" onclick="openPayModal('${other.id}', '${m.id}')" title="Mở thanh toán: ${displayNick} trả nợ cho ${oNick}" style="padding:2px 7px; font-size:11px;">
+                                        <i class="fa-solid fa-qrcode"></i> Trả
                                     </button>
                                 </div>
                             </div>
@@ -2665,11 +4023,15 @@
                     }
                     if (fromOther > 0) {
                         hasBalance = true;
-                        const oNick = other.nickname || other.name;
                         debtHtml += `
                             <div class="debt-item">
                                 <span>${oNick} nợ:</span>
-                                <span class="badge-credit">${formatMoney(fromOther)}</span>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span class="badge-credit">${formatMoney(fromOther)}</span>
+                                    <button class="btn btn-secondary btn-sm admin-only" onclick="openPayModal('${m.id}', '${other.id}')" title="Ghi nhận ${oNick} trả tiền cho ${displayNick}" style="padding:2px 7px; font-size:11px;">
+                                        <i class="fa-solid fa-hand-holding-dollar"></i> Thu
+                                    </button>
+                                </div>
                             </div>
                         `;
                     }
@@ -2678,10 +4040,6 @@
                 if (!hasBalance) {
                     debtHtml = '<div style="color:var(--slate-500); font-style:italic; font-size:12px; text-align:center;">🎉 Đã hoàn tất, không có công nợ.</div>';
                 }
-
-                const displayNick = m.nickname || m.name || 'Thành viên';
-                const displayFull = m.fullName || (m.nickname !== m.name ? m.name : '');
-                const hasDiffFull = displayFull && displayFull !== displayNick;
 
                 const card = document.createElement('div');
                 card.className = 'member-card';
@@ -2702,14 +4060,10 @@
                             <div style="display:flex; gap:4px; align-items:center;">
                                 <button class="btn btn-secondary btn-sm admin-edit-btn" onclick="openEditMemberModal('${m.id}')" title="Sửa chi tiết thông tin thành viên" style="font-weight:600; color:var(--primary);"><i class="fa-solid fa-user-pen"></i> Sửa</button>
                                 <div class="admin-only" style="display:inline-flex; gap:4px;">
-                                    ${memberTotalDebt > 0 ? `
-                                        <button class="btn btn-primary btn-sm" onclick="openPayModal('${m.id}')" title="Mở thanh toán QR chuyển khoản số tiền nợ về số TK của tôi">
-                                            <i class="fa-solid fa-qrcode"></i> Trả QR
-                                        </button>
-                                    ` : `
-                                        <button class="btn btn-primary btn-sm" onclick="openPayModal('${m.id}')" title="Ghi nhận trả tiền"><i class="fa-solid fa-money-bill-transfer"></i> Trả</button>
-                                    `}
-                                    <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteMember('${m.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                    <button class="btn btn-primary btn-sm" onclick="openPayModal('${m.id}')" title="Ghi nhận người khác trả tiền cho ${displayNick}">
+                                        <i class="fa-solid fa-money-bill-transfer"></i> Trả
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteMember('${m.id}')" title="Gỡ khỏi nhóm Tiền Cơm"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -2771,7 +4125,7 @@
         }
 
         function applyMealPreset(presetId) {
-            const preset = mealPresets.find(p => p.id === presetId);
+            const preset = mealPresets.find(p => String(p.id) === String(presetId));
             if (!preset) return;
 
             let appliedCount = 0;
@@ -2825,7 +4179,7 @@
         }
 
         function updatePresetName(id, newName) {
-            const p = mealPresets.find(item => item.id === id);
+            const p = mealPresets.find(item => String(item.id) === String(id));
             if (p && newName.trim()) {
                 p.name = newName.trim();
                 localStorage.setItem('p2p_meal_presets', JSON.stringify(mealPresets));
@@ -2834,7 +4188,7 @@
         }
 
         function updatePresetPrice(id, newPrice) {
-            const p = mealPresets.find(item => item.id === id);
+            const p = mealPresets.find(item => String(item.id) === String(id));
             const val = parseFloat(newPrice);
             if (p && !isNaN(val) && val >= 0) {
                 p.price = val;
@@ -2933,16 +4287,16 @@
         function openMealModal(logId = null) {
             if (!checkAdminPermission()) return;
             editingLogId = logId;
-            const log = logId ? logs.find(l => l.id === logId) : null;
+            const log = logId ? logs.find(l => String(l.id) === String(logId)) : null;
 
             document.getElementById('mealModalTitle').innerText = log ? '✏️ Sửa Bữa Ăn' : '🍚 Nhập Chi Phí Bữa Ăn';
-            document.getElementById('mealDateInput').value = log ? log.dateStr : selectedDate;
+            document.getElementById('mealDateInput').value = log ? log.dateStr : (selectedDate || getTodayStr());
 
             renderMealPresets();
 
             const tbody = document.getElementById('mealInputBody');
             tbody.innerHTML = '';
-            const selectedPayer = log ? log.payerId : (members[0] ? members[0].id : '');
+            const selectedPayer = log ? String(log.payerId) : (members[0] ? String(members[0].id) : '');
 
             members.forEach(m => {
                 let dishName = '';
@@ -2950,7 +4304,7 @@
                 let isChecked = true;
 
                 if (log && log.items) {
-                    const found = log.items.find(i => i.colleagueId === m.id);
+                    const found = log.items.find(i => String(i.colleagueId) === String(m.id));
                     if (found) {
                         dishName = found.dishName || '';
                         amt = found.amount / 1000;
@@ -2988,11 +4342,11 @@
             payerSel.innerHTML = '';
             members.forEach(m => {
                 const opt = document.createElement('option');
-                opt.value = m.id;
+                opt.value = String(m.id);
                 const mNick = m.nickname || m.name;
                 const mFull = m.fullName || (m.nickname !== m.name ? m.name : '');
                 opt.text = (mFull && mFull !== mNick) ? `${mNick} (${mFull})` : mNick;
-                if (m.id === selectedPayer) opt.selected = true;
+                if (String(m.id) === selectedPayer) opt.selected = true;
                 payerSel.appendChild(opt);
             });
 
@@ -3000,12 +4354,140 @@
             document.getElementById('mealModal').classList.add('show');
         }
 
+        function handleAiFillMealForm(payload) {
+            if (!payload) return;
+            openMealModal();
+
+            if (payload.date) {
+                const dateEl = document.getElementById('mealDateInput');
+                if (dateEl) dateEl.value = payload.date;
+            }
+
+            // Chọn người trả tiền
+            if (payload.payerId || payload.payerName) {
+                const payerSel = document.getElementById('mealPayerSelect');
+                if (payerSel) {
+                    const targetPayer = members.find(m => {
+                        if (payload.payerId && String(m.id) === String(payload.payerId)) return true;
+                        if (payload.payerName) {
+                            const pName = payload.payerName.toLowerCase().trim();
+                            return (m.name && m.name.toLowerCase().trim() === pName) ||
+                                   (m.nickname && m.nickname.toLowerCase().trim() === pName) ||
+                                   (m.fullName && m.fullName.toLowerCase().trim() === pName);
+                        }
+                        return false;
+                    });
+                    if (targetPayer) {
+                        payerSel.value = targetPayer.id;
+                    }
+                }
+            }
+
+            // Điền danh sách món và số tiền
+            const items = Array.isArray(payload.items) ? payload.items : null;
+            const participants = Array.isArray(payload.participants) ? payload.participants : null;
+            const fallbackDish = payload.dishName || 'Cơm trưa';
+            const totalAmt = parseFloat(payload.amount) || 0;
+
+            members.forEach(m => {
+                const chk = document.getElementById(`meal_check_${m.id}`);
+                const dishInput = document.getElementById(`dish_${m.id}`);
+                const amtInput = document.getElementById(`meal_amt_${m.id}`);
+                const row = document.getElementById(`meal_row_${m.id}`);
+                if (!chk || !dishInput || !amtInput) return;
+
+                if (items && items.length > 0) {
+                    const matchItem = items.find(it => {
+                        if (it.colleagueId && String(it.colleagueId) === String(m.id)) return true;
+                        const itName = (it.colleagueName || it.name || '').toLowerCase().trim();
+                        return itName && ((m.name && m.name.toLowerCase().trim() === itName) ||
+                                         (m.nickname && m.nickname.toLowerCase().trim() === itName));
+                    });
+
+                    if (matchItem) {
+                        chk.checked = true;
+                        dishInput.disabled = false;
+                        amtInput.disabled = false;
+                        if (row) row.classList.remove('inactive-row');
+                        dishInput.value = matchItem.dishName || fallbackDish;
+                        amtInput.value = matchItem.amount ? Math.round(matchItem.amount / 1000) : '';
+                    } else {
+                        chk.checked = false;
+                        dishInput.disabled = true;
+                        amtInput.disabled = true;
+                        if (row) row.classList.add('inactive-row');
+                        dishInput.value = '';
+                        amtInput.value = '';
+                    }
+                } else if (participants && participants.length > 0) {
+                    const isPart = participants.some(p => {
+                        if (typeof p === 'object' && p !== null) {
+                            return String(p.id) === String(m.id) || (p.name && (m.name === p.name || m.nickname === p.name));
+                        }
+                        const pStr = String(p).toLowerCase().trim();
+                        return String(m.id) === pStr || (m.name && m.name.toLowerCase().trim() === pStr) || (m.nickname && m.nickname.toLowerCase().trim() === pStr);
+                    });
+
+                    if (isPart) {
+                        chk.checked = true;
+                        dishInput.disabled = false;
+                        amtInput.disabled = false;
+                        if (row) row.classList.remove('inactive-row');
+                        dishInput.value = fallbackDish;
+                        const costPer = payload.amountPerPerson ? Math.round(payload.amountPerPerson / 1000) :
+                                        (totalAmt > 0 ? Math.round((totalAmt / participants.length) / 1000) : 35);
+                        amtInput.value = costPer;
+                    } else {
+                        chk.checked = false;
+                        dishInput.disabled = true;
+                        amtInput.disabled = true;
+                        if (row) row.classList.add('inactive-row');
+                        dishInput.value = '';
+                        amtInput.value = '';
+                    }
+                } else {
+                    if (chk.checked) {
+                        dishInput.value = fallbackDish;
+                        if (totalAmt > 0) {
+                            const checkedCount = members.filter(mem => {
+                                const c = document.getElementById(`meal_check_${mem.id}`);
+                                return c && c.checked;
+                            }).length || 1;
+                            amtInput.value = Math.round((totalAmt / checkedCount) / 1000);
+                        }
+                    }
+                }
+            });
+
+            updateMealSummary();
+
+            const modalBox = document.querySelector('#mealModal .modal-content') || document.querySelector('#mealModal .modal') || document.getElementById('mealModal');
+            if (modalBox) {
+                modalBox.classList.add('ai-form-highlight');
+                setTimeout(() => modalBox.classList.remove('ai-form-highlight'), 3500);
+            }
+        }
+
         function saveMeal() {
             if (!checkAdminPermission()) return;
-            const dateStr = document.getElementById('mealDateInput').value;
-            const payerId = document.getElementById('mealPayerSelect').value;
-            const payer = members.find(m => m.id === payerId);
-            if (!dateStr || !payer) return alert('Vui lòng chọn ngày và người trả tiền!');
+            const dateInput = document.getElementById('mealDateInput');
+            const dateStr = (dateInput && dateInput.value) ? dateInput.value.trim() : (selectedDate || getTodayStr());
+            const payerSel = document.getElementById('mealPayerSelect');
+            const payerId = payerSel ? String(payerSel.value).trim() : '';
+
+            // Tìm người trả tiền: so sánh ID chuỗi, fallback tên/nickname, fallback theo option đang chọn
+            let payer = members.find(m => String(m.id).trim() === payerId);
+            if (!payer && payerId) {
+                payer = members.find(m => (m.nickname && m.nickname.trim() === payerId) || 
+                                          (m.name && m.name.trim() === payerId) || 
+                                          (m.fullName && m.fullName.trim() === payerId));
+            }
+            if (!payer && payerSel && payerSel.selectedIndex >= 0 && members[payerSel.selectedIndex]) {
+                payer = members[payerSel.selectedIndex];
+            }
+
+            if (!dateStr) return alert('Vui lòng chọn ngày ăn!');
+            if (!payer) return alert('Vui lòng chọn người trả tiền!');
 
             let items = [];
             let totalAmount = 0;
@@ -3013,11 +4495,11 @@
             members.forEach(m => {
                 const check = document.getElementById(`meal_check_${m.id}`);
                 if (check && check.checked) {
-                    const dish = document.getElementById(`dish_${m.id}`).value.trim();
-                    const amtK = parseFloat(document.getElementById(`meal_amt_${m.id}`).value) || 0;
-                    const amt = amtK * 1000;
+                    const dish = (document.getElementById(`dish_${m.id}`)?.value || '').trim();
+                    const amtK = parseFloat(document.getElementById(`meal_amt_${m.id}`)?.value) || 0;
+                    const amt = Math.round(amtK * 1000);
                     if (amt > 0) {
-                        items.push({ colleagueId: m.id, colleagueName: m.name, dishName: dish, amount: amt });
+                        items.push({ colleagueId: String(m.id), colleagueName: m.nickname || m.name, dishName: dish, amount: amt });
                         totalAmount += amt;
                     }
                 }
@@ -3025,89 +4507,184 @@
 
             if (items.length === 0) return alert('Vui lòng tick chọn ít nhất 1 thành viên có số tiền > 0!');
 
-            let desc = `${payer.name} thanh toán tổng: ${formatMoney(totalAmount)} (` +
+            const payerDisplayName = payer.nickname || payer.name;
+            let desc = `${payerDisplayName} thanh toán tổng: ${formatMoney(totalAmount)} (` +
                 items.map(i => `${i.colleagueName}${i.dishName ? ` [${i.dishName}]` : ''}: ${formatMoney(i.amount)}`).join(', ') + ')';
 
             if (editingLogId) {
-                const idx = logs.findIndex(l => l.id === editingLogId);
+                const idx = logs.findIndex(l => String(l.id) === String(editingLogId));
                 if (idx !== -1) {
-                    logs[idx] = { id: editingLogId, dateStr, type: 'Bữa Ăn', description: desc, payerId: payer.id, payerName: payer.name, amount: totalAmount, items };
+                    logs[idx] = { id: String(editingLogId), dateStr, type: 'Bữa Ăn', description: desc, payerId: String(payer.id), payerName: payerDisplayName, amount: totalAmount, items };
                 }
             } else {
-                logs.unshift({ id: Date.now().toString(), dateStr, type: 'Bữa Ăn', description: desc, payerId: payer.id, payerName: payer.name, amount: totalAmount, items });
+                logs.unshift({ id: Date.now().toString(), dateStr, type: 'Bữa Ăn', description: desc, payerId: String(payer.id), payerName: payerDisplayName, amount: totalAmount, items });
             }
 
             saveData();
             recalculateDebts();
             closeModal('mealModal');
+            alert(`🎉 Đã lưu bữa ăn ngày ${formatLogDate(dateStr)} thành công!\n👉 Người trả: ${payerDisplayName} (${formatMoney(totalAmount)})`);
         }
 
         // --------------------------------------------------------------------------
-        // 6. PAYMENT TRANSACTION WITH DYNAMIC VIETQR SENT TO MY BANK ACCOUNT
+        // 6. PAYMENT TRANSACTION WITH DYNAMIC VIETQR & SMART DEBTOR PRE-SELECTION
         // --------------------------------------------------------------------------
-        function openPayModal(payerId = null) {
+        let currentPayReceiverId = null;
+
+        function openPayModal(receiverId = null, payerId = null) {
             if (!checkAdminPermission()) return;
+            if (members.length < 2) {
+                alert('Cần ít nhất 2 thành viên trong nhóm để thực hiện giao dịch thanh toán!');
+                return;
+            }
 
-            const payerSel = document.getElementById('payPayerSelect');
-            payerSel.innerHTML = '';
-            members.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                const mNick = m.nickname || m.name;
-                const mFull = m.fullName || (m.nickname !== m.name ? m.name : '');
-                opt.text = (mFull && mFull !== mNick) ? `${mNick} (${mFull})` : mNick;
-                payerSel.appendChild(opt);
-            });
+            // 1. Xác định Người Nhận Tiền (Mặc định là người được bấm trên Card)
+            if (receiverId && members.some(m => String(m.id) === String(receiverId))) {
+                currentPayReceiverId = String(receiverId);
+            } else if (members[0]) {
+                currentPayReceiverId = String(members[0].id);
+            }
 
-            currentPayPayerId = payerId || (members[0] ? members[0].id : null);
-            if (currentPayPayerId) payerSel.value = currentPayPayerId;
-
-            // Receiver Select
+            // 2. Render danh sách Người Nhận Tiền
             const recSel = document.getElementById('payReceiverSelect');
-            recSel.innerHTML = '';
-            // My Account is the primary receiver option
-            const myOpt = document.createElement('option');
-            myOpt.value = 'MY_ACCOUNT';
-            myOpt.text = `Tài khoản của tôi (${bankInfo.accountName} - ${bankInfo.bankId})`;
-            recSel.appendChild(myOpt);
-
-            members.forEach(other => {
-                if (other.id !== currentPayPayerId) {
+            if (recSel) {
+                recSel.innerHTML = '';
+                members.forEach(m => {
                     const opt = document.createElement('option');
-                    opt.value = other.id;
-                    const oNick = other.nickname || other.name;
-                    const oFull = other.fullName || (other.nickname !== other.name ? other.name : '');
-                    opt.text = (oFull && oFull !== oNick) ? `${oNick} (${oFull})` : oNick;
+                    opt.value = String(m.id);
+                    const mNick = m.nickname || m.name;
+                    const mFull = m.fullName || (m.nickname !== m.name ? m.name : '');
+                    opt.text = (mFull && mFull !== mNick) ? `${mNick} (${mFull})` : mNick;
+                    if (String(m.id) === currentPayReceiverId) opt.selected = true;
                     recSel.appendChild(opt);
+                });
+            }
+
+            // 3. Render danh sách Người Trả Tiền (Ưu tiên những người đang nợ Người Nhận)
+            updatePayerOptionsForReceiver(currentPayReceiverId, payerId);
+
+            document.getElementById('payModal').classList.add('show');
+        }
+
+        function updatePayerOptionsForReceiver(receiverId, preselectedPayerId = null) {
+            const payerSel = document.getElementById('payPayerSelect');
+            if (!payerSel) return;
+            payerSel.innerHTML = '';
+
+            const receiver = members.find(m => String(m.id) === String(receiverId));
+            const receiverName = receiver ? (receiver.nickname || receiver.name) : 'Người nhận';
+
+            // Phân loại: Ai đang nợ người nhận?
+            const debtors = [];
+            const nonDebtors = [];
+
+            members.forEach(m => {
+                if (String(m.id) !== String(receiverId)) {
+                    const debt = getDebt(m.id, receiverId);
+                    if (debt > 0) {
+                        debtors.push({ member: m, debt });
+                    } else {
+                        nonDebtors.push(m);
+                    }
                 }
             });
 
+            // Sắp xếp người nợ nhiều nhất lên đầu
+            debtors.sort((a, b) => b.debt - a.debt);
+
+            if (debtors.length > 0) {
+                const groupDebtors = document.createElement('optgroup');
+                groupDebtors.label = `👉 Đang nợ ${receiverName} (${debtors.length} người):`;
+                debtors.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = String(d.member.id);
+                    const nick = d.member.nickname || d.member.name;
+                    opt.text = `${nick} (Đang nợ: ${formatMoney(d.debt)})`;
+                    groupDebtors.appendChild(opt);
+                });
+                payerSel.appendChild(groupDebtors);
+            }
+
+            if (nonDebtors.length > 0) {
+                const groupOthers = document.createElement('optgroup');
+                groupOthers.label = debtors.length > 0 ? 'Thành viên khác:' : 'Danh sách thành viên:';
+                nonDebtors.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = String(m.id);
+                    const nick = m.nickname || m.name;
+                    opt.text = `${nick} (Không nợ)`;
+                    groupOthers.appendChild(opt);
+                });
+                payerSel.appendChild(groupOthers);
+            }
+
+            // Chọn người trả tiền mặc định:
+            if (preselectedPayerId && members.some(m => String(m.id) === String(preselectedPayerId) && String(m.id) !== String(receiverId))) {
+                currentPayPayerId = String(preselectedPayerId);
+            } else if (debtors.length > 0) {
+                // Mặc định chọn người trong danh sách đang nợ (nợ nhiều nhất)
+                currentPayPayerId = String(debtors[0].member.id);
+            } else if (nonDebtors.length > 0) {
+                currentPayPayerId = String(nonDebtors[0].id);
+            }
+
+            payerSel.value = currentPayPayerId;
             handlePayPayerChange();
-            document.getElementById('payModal').classList.add('show');
+        }
+
+        function handlePayReceiverChange() {
+            currentPayReceiverId = document.getElementById('payReceiverSelect').value;
+            updatePayerOptionsForReceiver(currentPayReceiverId);
         }
 
         function handlePayPayerChange() {
             currentPayPayerId = document.getElementById('payPayerSelect').value;
-            const payer = members.find(m => m.id === currentPayPayerId);
-            const payerName = payer ? payer.name : 'Dong nghiep';
+            const payer = members.find(m => String(m.id) === String(currentPayPayerId));
+            const receiver = members.find(m => String(m.id) === String(currentPayReceiverId));
 
-            const totalDebt = getMemberTotalDebt(currentPayPayerId);
-            document.getElementById('payCurrentDebtText').innerText = formatMoney(totalDebt);
+            const payerNick = payer ? (payer.nickname || payer.name) : 'Người trả';
+            const receiverNick = receiver ? (receiver.nickname || receiver.name) : 'Người nhận';
 
-            // Pre-fill with outstanding debt if > 0
-            if (totalDebt > 0) {
-                document.getElementById('payAmountInput').value = totalDebt / 1000;
-            } else {
-                document.getElementById('payAmountInput').value = '';
+            const specificDebt = getDebt(currentPayPayerId, currentPayReceiverId);
+            const debtLabel = document.getElementById('payDebtInfoLabel');
+            const debtText = document.getElementById('payCurrentDebtText');
+
+            if (debtText) debtText.innerText = formatMoney(specificDebt);
+
+            if (debtLabel) {
+                if (specificDebt > 0) {
+                    debtLabel.innerHTML = `<span style="color:#b91c1c; font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${payerNick} đang nợ ${receiverNick}:</span>`;
+                } else {
+                    debtLabel.innerHTML = `<span style="color:#15803d; font-weight:600;"><i class="fa-solid fa-circle-check"></i> ${payerNick} hiện không nợ ${receiverNick}</span>`;
+                }
             }
 
-            document.getElementById('payMemoInput').value = `${payerName} tra tien com`;
+            // Điền sẵn số tiền nợ nếu > 0
+            const amtInput = document.getElementById('payAmountInput');
+            if (amtInput) {
+                if (specificDebt > 0) {
+                    amtInput.value = specificDebt / 1000;
+                } else {
+                    amtInput.value = '';
+                }
+            }
+
+            // Điền nội dung chuyển khoản tự động
+            const memoInput = document.getElementById('payMemoInput');
+            if (memoInput) {
+                const cleanPayer = (payerNick || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9 ]/g, '').trim();
+                const cleanReceiver = (receiverNick || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9 ]/g, '').trim();
+                memoInput.value = `${cleanPayer || 'Thanh vien'} tra tien com${cleanReceiver ? ' cho ' + cleanReceiver : ''}`;
+            }
+
             updatePayQR();
         }
 
         function applyPayAllDebt() {
-            const totalDebt = getMemberTotalDebt(currentPayPayerId);
-            document.getElementById('payAmountInput').value = totalDebt / 1000;
+            const specificDebt = getDebt(currentPayPayerId, currentPayReceiverId);
+            if (specificDebt > 0) {
+                document.getElementById('payAmountInput').value = specificDebt / 1000;
+            }
             updatePayQR();
         }
 
@@ -3117,73 +4694,82 @@
         }
 
         function updatePayQR() {
-            const payer = members.find(m => m.id === currentPayPayerId);
-            const payerName = payer ? (payer.nickname || payer.name) : 'Dong nghiep';
+            const payer = members.find(m => String(m.id) === String(currentPayPayerId));
+            const receiver = members.find(m => String(m.id) === String(currentPayReceiverId));
+
+            const payerName = payer ? (payer.nickname || payer.name) : 'Người trả';
+            const receiverName = receiver ? (receiver.nickname || receiver.name) : 'Người nhận';
+
             const amtK = parseFloat(document.getElementById('payAmountInput')?.value) || 0;
             const amount = Math.max(0, amtK * 1000);
-            const memo = document.getElementById('payMemoInput')?.value || `${payerName} tra tien com`;
+            const memo = document.getElementById('payMemoInput')?.value || `${payerName} tra tien com cho ${receiverName}`;
 
-            const receiverVal = document.getElementById('payReceiverSelect')?.value;
+            // Tài khoản nhận tiền: Ưu tiên số TK của NGƯỜI NHẬN TIỀN
             let targetBank = bankInfo;
-            if (receiverVal && receiverVal !== 'MY_ACCOUNT') {
-                const rec = members.find(m => m.id === receiverVal);
-                if (rec && rec.bankId && rec.accountNo) {
-                    targetBank = {
-                        bankId: rec.bankId,
-                        accountNo: rec.accountNo,
-                        accountName: rec.accountName || rec.fullName || rec.name
-                    };
-                }
+            let isCustomBank = false;
+
+            if (receiver && receiver.bankId && receiver.accountNo) {
+                targetBank = {
+                    bankId: receiver.bankId,
+                    accountNo: receiver.accountNo,
+                    accountName: receiver.accountName || receiver.fullName || receiver.name
+                };
+                isCustomBank = true;
             }
 
-            // Display texts
-            document.getElementById('payQrAmountText').innerText = formatMoney(amount);
-            document.getElementById('payQrDescText').innerText = `Nội dung: ${memo}`;
-            document.getElementById('payQrBankText').innerText = targetBank.bankId;
-            document.getElementById('payQrAccNoText').innerText = targetBank.accountNo;
-            document.getElementById('payQrAccNameText').innerText = targetBank.accountName;
+            // Cập nhật text hiển thị
+            const qrAmt = document.getElementById('payQrAmountText');
+            if (qrAmt) qrAmt.innerText = formatMoney(amount);
 
-            // Generate VietQR targeting targetBank Account
+            const qrDesc = document.getElementById('payQrDescText');
+            if (qrDesc) qrDesc.innerText = `Nội dung: ${memo}`;
+
+            const qrBank = document.getElementById('payQrBankText');
+            if (qrBank) qrBank.innerText = targetBank.bankId;
+
+            const qrAccNo = document.getElementById('payQrAccNoText');
+            if (qrAccNo) qrAccNo.innerText = targetBank.accountNo;
+
+            const qrAccName = document.getElementById('payQrAccNameText');
+            if (qrAccName) qrAccName.innerText = targetBank.accountName;
+
+            const subNotice = document.getElementById('payQrSubNotice');
+            if (subNotice) {
+                subNotice.innerHTML = isCustomBank
+                    ? `Tiền sẽ chuyển về tài khoản của <b>${receiverName}</b>`
+                    : `Chuyển về tài khoản Quản trị / Chủ chi (do ${receiverName} chưa cài đặt STK)`;
+            }
+
+            // Tạo VietQR targeting targetBank Account
             const qrUrl = `https://img.vietqr.io/image/${targetBank.bankId}-${targetBank.accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(targetBank.accountName)}`;
-            document.getElementById('payQrImage').src = qrUrl;
+            const qrImg = document.getElementById('payQrImage');
+            if (qrImg) qrImg.src = qrUrl;
         }
 
         function savePayment() {
             if (!checkAdminPermission()) return;
-            const payer = members.find(m => m.id === currentPayPayerId);
-            if (!payer) return alert('Vui lòng chọn người trả tiền!');
+            const payer = members.find(m => String(m.id) === String(currentPayPayerId));
+            const receiver = members.find(m => String(m.id) === String(currentPayReceiverId));
+
+            if (!payer || !receiver) return alert('Vui lòng chọn đầy đủ người trả và người nhận tiền!');
+            if (String(payer.id) === String(receiver.id)) return alert('Người trả tiền và người nhận tiền không được trùng nhau!');
 
             const amtK = parseFloat(document.getElementById('payAmountInput').value) || 0;
-            const amount = amtK * 1000;
+            const amount = Math.round(amtK * 1000);
             if (amount <= 0) return alert('Vui lòng nhập số tiền hợp lệ (> 0)!');
 
-            const receiverVal = document.getElementById('payReceiverSelect').value;
-            let receiverId = null;
-            let receiverName = '';
+            const payerName = payer.nickname || payer.name;
+            const receiverName = receiver.nickname || receiver.name;
+            const desc = `${payerName} đã thanh toán chuyển khoản ${formatMoney(amount)} cho ${receiverName}`;
 
-            if (receiverVal === 'MY_ACCOUNT') {
-                receiverId = 'admin';
-                receiverName = `Tài khoản của tôi (${bankInfo.accountName})`;
-            } else {
-                const rec = members.find(m => m.id === receiverVal);
-                if (rec) {
-                    receiverId = rec.id;
-                    receiverName = rec.name;
-                } else {
-                    receiverId = 'admin';
-                    receiverName = `Tài khoản của tôi (${bankInfo.accountName})`;
-                }
-            }
-
-            const desc = `${payer.name} đã thanh toán chuyển khoản ${formatMoney(amount)} về ${receiverName}`;
             logs.unshift({
                 id: Date.now().toString(),
                 dateStr: selectedDate,
                 type: 'Trả Tiền',
                 description: desc,
                 payerId: payer.id,
-                payerName: payer.name,
-                receiverId: receiverId,
+                payerName: payerName,
+                receiverId: receiver.id,
                 receiverName: receiverName,
                 amount: amount
             });
@@ -3191,72 +4777,355 @@
             saveData();
             recalculateDebts();
             closeModal('payModal');
-            alert(`Đã ghi nhận thanh toán ${formatMoney(amount)} thành công!`);
+            alert(`🎉 Đã ghi nhận thanh toán ${formatMoney(amount)} thành công!\n👉 ${payerName} đã trả cho ${receiverName}`);
         }
 
         function deleteLog(logId) {
             if (!checkAdminPermission()) return;
             if (confirm('Xóa giao dịch này? Các khoản nợ sẽ được tính toán lại tự động.')) {
-                logs = logs.filter(l => l.id !== logId);
+                logs = logs.filter(l => String(l.id) !== String(logId));
                 saveData();
                 recalculateDebts();
             }
         }
 
         // --------------------------------------------------------------------------
-        // 7. LOGS RENDERING (DAILY & FULL)
+        // 7. LOGS RENDERING (DAILY & FULL) - MODERN HORIZONTAL LAYERED CARDS
         // --------------------------------------------------------------------------
+        function formatLogDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+            } catch (e) {}
+            return dateStr;
+        }
+        // (parseLogItems is defined in helper section above)
+
+        // --------------------------------------------------------------------------
+        // 7. COMPACT LOG FEED & TRANSACTION DETAIL MODAL
+        // --------------------------------------------------------------------------
+        function createLogCard(l) {
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+
+            const isMeal = (l.type === 'Bữa Ăn');
+            let totalAmt = l.amount || 0;
+            if (!totalAmt && l.description) {
+                const amtMatch = l.description.match(/(?:tổng|chi|thanh toán|khoản):\s*([\d\.,]+)/i);
+                if (amtMatch) totalAmt = parseInt(amtMatch[1].replace(/[^\d]/g, ''), 10) || 0;
+            }
+
+            let payer = l.payerName;
+            if (l.payerId) {
+                const mem = members.find(m => String(m.id) === String(l.payerId));
+                if (mem) payer = mem.nickname || mem.name || mem.fullName || payer;
+            } else if (l.payerName) {
+                const mem = members.find(m => (m.nickname && m.nickname.toLowerCase() === l.payerName.toLowerCase()) || (m.name && m.name.toLowerCase() === l.payerName.toLowerCase()) || (m.fullName && m.fullName.toLowerCase() === l.payerName.toLowerCase()));
+                if (mem) payer = mem.nickname || mem.name || mem.fullName || payer;
+            }
+            if (!payer && l.description) {
+                const m = l.description.match(/^([^]+?)\s+(?:thanh\s+toán|đã\s+thanh\s+toán)/i);
+                if (m) payer = m[1].trim();
+            }
+            if (!payer) payer = 'Người chi';
+
+            const items = isMeal ? parseLogItems(l) : null;
+            const participantCount = items ? items.length : 0;
+
+            // Icon xác định theo loại
+            let iconClass = 'fa-utensils';
+            let iconBg = '#fff7ed';
+            let iconColor = '#ea580c';
+            if (!isMeal) {
+                iconClass = 'fa-money-bill-transfer';
+                iconBg = '#ecfdf5';
+                iconColor = '#059669';
+            } else {
+                const descLower = (l.description || '').toLowerCase();
+                if (descLower.includes('phở') || descLower.includes('bún') || descLower.includes('mì')) iconClass = 'fa-bowl-food';
+                else if (descLower.includes('cà phê') || descLower.includes('cafe') || descLower.includes('trà')) iconClass = 'fa-mug-hot';
+                else if (descLower.includes('lẩu') || descLower.includes('buffet')) iconClass = 'fa-fire-burner';
+                else if (descLower.includes('gà') || descLower.includes('sườn')) iconClass = 'fa-drumstick-bite';
+            }
+
+            let titleText = '';
+            let subHtml = '';
+            const formattedDate = formatLogDate(l.dateStr);
+
+            if (isMeal) {
+                let dishSummary = '';
+                if (items && items.length > 0) {
+                    const dishes = [...new Set(items.map(it => it.dishName).filter(Boolean))];
+                    if (dishes.length > 0) dishSummary = dishes.slice(0, 2).join(', ');
+                }
+                titleText = dishSummary ? `Bữa ăn: ${dishSummary}` : `Bữa cơm ngày ${formattedDate}`;
+                subHtml = `
+                    <span><i class="fa-regular fa-calendar"></i> ${formattedDate}</span>
+                    <span class="feed-tag"><i class="fa-solid fa-wallet"></i> Chi bởi: <b>${payer}</b></span>
+                    <span class="feed-tag"><i class="fa-solid fa-users"></i> ${participantCount} người</span>
+                    ${participantCount > 0 ? `<span class="feed-tag">~${formatMoney(Math.round(totalAmt / participantCount))}/người</span>` : ''}
+                `;
+            } else {
+                let receiver = l.receiverName || 'Người nhận';
+                if (l.receiverId) {
+                    const mem = members.find(m => String(m.id) === String(l.receiverId));
+                    if (mem) receiver = mem.nickname || mem.name || mem.fullName || receiver;
+                } else if (l.receiverName) {
+                    const mem = members.find(m => (m.nickname && m.nickname.toLowerCase() === l.receiverName.toLowerCase()) || (m.name && m.name.toLowerCase() === l.receiverName.toLowerCase()) || (m.fullName && m.fullName.toLowerCase() === l.receiverName.toLowerCase()));
+                    if (mem) receiver = mem.nickname || mem.name || mem.fullName || receiver;
+                }
+                titleText = `${payer} ➔ ${receiver} (Trả tiền cơm)`;
+                subHtml = `
+                    <span><i class="fa-regular fa-calendar"></i> ${formattedDate}</span>
+                    <span class="feed-tag" style="background:#ecfdf5; color:#047857;"><i class="fa-solid fa-circle-check"></i> Đã thanh toán</span>
+                `;
+            }
+
+            const amtClass = isMeal ? 'meal' : 'pay';
+
+            item.innerHTML = `
+                <div class="feed-icon" style="background:${iconBg}; color:${iconColor};">
+                    <i class="fa-solid ${iconClass}"></i>
+                </div>
+                <div class="feed-content" onclick="showLogDetailModal('${l.id}')">
+                    <div class="feed-title">${titleText}</div>
+                    <div class="feed-sub">${subHtml}</div>
+                </div>
+                <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+                    <div class="feed-amount ${amtClass}" onclick="showLogDetailModal('${l.id}')" style="cursor:pointer;" title="Bấm xem chi tiết đầy đủ">
+                        ${formatMoney(totalAmt)}
+                    </div>
+                    <div class="feed-actions admin-only">
+                        ${isMeal ? `
+                            <button class="tx-btn-icon edit" onclick="event.stopPropagation(); openMealModal('${l.id}')" title="Sửa bữa ăn">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        ` : ''}
+                        <button class="tx-btn-icon delete" onclick="event.stopPropagation(); deleteLog('${l.id}')" title="Xóa giao dịch">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return item;
+        }
+
+        function showLogDetailModal(logId) {
+            const log = logs.find(l => String(l.id) === String(logId));
+            if (!log) return;
+
+            const modalTitle = document.getElementById('logDetailModalTitle');
+            const modalBody = document.getElementById('logDetailModalBody');
+            const modalFooter = document.getElementById('logDetailModalFooter');
+
+            const isMeal = (log.type === 'Bữa Ăn');
+            const formattedDate = formatLogDate(log.dateStr);
+
+            modalTitle.innerHTML = `<i class="fa-solid ${isMeal ? 'fa-receipt' : 'fa-money-bill-transfer'}" style="color:var(--primary);"></i> Chi Tiết ${isMeal ? 'Bữa Ăn' : 'Thanh Toán Nợ'}`;
+
+            let totalAmt = log.amount || 0;
+            if (!totalAmt && log.description) {
+                const amtMatch = log.description.match(/(?:tổng|chi|thanh toán|khoản):\s*([\d\.,]+)/i);
+                if (amtMatch) totalAmt = parseInt(amtMatch[1].replace(/[^\d]/g, ''), 10) || 0;
+            }
+
+            let payer = log.payerName;
+            if (log.payerId) {
+                const mem = members.find(m => String(m.id) === String(log.payerId));
+                if (mem) payer = mem.nickname || mem.name || mem.fullName || payer;
+            } else if (log.payerName) {
+                const mem = members.find(m => (m.nickname && m.nickname.toLowerCase() === log.payerName.toLowerCase()) || (m.name && m.name.toLowerCase() === log.payerName.toLowerCase()) || (m.fullName && m.fullName.toLowerCase() === log.payerName.toLowerCase()));
+                if (mem) payer = mem.nickname || mem.name || mem.fullName || payer;
+            }
+            if (!payer && log.description) {
+                const m = log.description.match(/^([^]+?)\s+(?:thanh\s+toán|đã\s+thanh\s+toán)/i);
+                if (m) payer = m[1].trim();
+            }
+            if (!payer) payer = 'Người chi';
+
+            let bodyHtml = `
+                <div style="background:var(--slate-50); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:12px; color:var(--slate-500); font-weight:600;"><i class="fa-regular fa-calendar"></i> Ngày ghi nhận:</span>
+                        <span style="font-weight:700; font-size:13px; color:var(--slate-800);">${formattedDate}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:12px; color:var(--slate-500); font-weight:600;"><i class="fa-solid fa-wallet"></i> Người thanh toán chi:</span>
+                        <span style="font-weight:700; font-size:13px; color:var(--slate-900); background:#e2e8f0; padding:2px 8px; border-radius:6px;">${payer}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:8px; border-top:1px dashed var(--border);">
+                        <span style="font-size:13px; font-weight:700; color:var(--slate-700);">Tổng số tiền:</span>
+                        <span style="font-size:17px; font-weight:800; color:${isMeal ? 'var(--primary)' : 'var(--success)'};">${formatMoney(totalAmt)} (${formatVND(totalAmt)})</span>
+                    </div>
+                </div>
+            `;
+
+            if (isMeal) {
+                const items = parseLogItems(log) || [];
+                const count = items.length;
+                const avg = count > 0 ? Math.round(totalAmt / count) : 0;
+
+                bodyHtml += `
+                    <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:13px; font-weight:700; color:var(--slate-800);">
+                            <i class="fa-solid fa-users" style="color:var(--primary);"></i> Chi tiết suất ăn từng người (${count} người):
+                        </span>
+                        <span style="font-size:12px; font-weight:600; color:var(--slate-500);">Bình quân: ~${formatMoney(avg)}/người</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:4px;">
+                `;
+
+                if (items.length === 0) {
+                    bodyHtml += `<div style="text-align:center; color:var(--slate-400); font-size:13px; padding:16px;">Không có chi tiết từng người.</div>`;
+                } else {
+                    items.forEach(it => {
+                        let cName = it.colleagueName || 'Thành viên';
+                        if (it.colleagueId) {
+                            const mem = members.find(m => String(m.id) === String(it.colleagueId));
+                            if (mem) cName = mem.nickname || mem.name || mem.fullName || cName;
+                        } else if (it.colleagueName) {
+                            const mem = members.find(m => (m.nickname && m.nickname.toLowerCase() === it.colleagueName.toLowerCase()) || (m.name && m.name.toLowerCase() === it.colleagueName.toLowerCase()) || (m.fullName && m.fullName.toLowerCase() === it.colleagueName.toLowerCase()));
+                            if (mem) cName = mem.nickname || mem.name || mem.fullName || cName;
+                        }
+                        const initial = cName.charAt(0).toUpperCase();
+                        const avatarBg = getAvatarBg(cName);
+                        bodyHtml += `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:#ffffff; border:1px solid var(--border); border-radius:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:32px; height:32px; border-radius:50%; background:${avatarBg}; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">
+                                        ${initial}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:700; font-size:13px; color:var(--slate-800);">${cName}</div>
+                                        ${it.dishName ? `<div style="font-size:11.5px; color:var(--slate-500);"><i class="fa-solid fa-utensils" style="font-size:10px; color:var(--primary);"></i> ${it.dishName}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div style="font-weight:700; font-size:13.5px; color:var(--slate-900); font-variant-numeric:tabular-nums;">
+                                    ${formatMoney(it.amount)}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                bodyHtml += `</div>`;
+            } else {
+                let receiver = log.receiverName || 'Người nhận';
+                if (log.receiverId) {
+                    const mem = members.find(m => String(m.id) === String(log.receiverId));
+                    if (mem) receiver = mem.nickname || mem.name || mem.fullName || receiver;
+                } else if (log.receiverName) {
+                    const mem = members.find(m => (m.nickname && m.nickname.toLowerCase() === log.receiverName.toLowerCase()) || (m.name && m.name.toLowerCase() === log.receiverName.toLowerCase()) || (m.fullName && m.fullName.toLowerCase() === log.receiverName.toLowerCase()));
+                    if (mem) receiver = mem.nickname || mem.name || mem.fullName || receiver;
+                }
+                bodyHtml += `
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px; margin-bottom:12px;">
+                        <div style="font-weight:700; font-size:13px; color:#166534; margin-bottom:6px;">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i> Luồng giao dịch thanh toán:
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--slate-800);">
+                            <span style="color:#1e293b;">${payer}</span>
+                            <i class="fa-solid fa-arrow-right" style="color:#16a34a;"></i>
+                            <span style="color:#15803d;">${receiver}</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#475569; margin-top:8px;">
+                            <b>Ghi chú:</b> ${log.description || 'Thanh toán tiền cơm'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = bodyHtml;
+
+            modalFooter.innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal('logDetailModal')">Đóng</button>
+                ${isMeal ? `
+                    <button class="btn btn-primary admin-only" onclick="closeModal('logDetailModal'); openMealModal('${log.id}')">
+                        <i class="fa-solid fa-pen-to-square"></i> Sửa Bữa Ăn
+                    </button>
+                ` : ''}
+                <button class="btn btn-danger admin-only" onclick="closeModal('logDetailModal'); deleteLog('${log.id}')">
+                    <i class="fa-solid fa-trash-can"></i> Xóa Giao Dịch
+                </button>
+            `;
+
+            openModal('logDetailModal');
+        }
+
         function renderLogs() {
-            const dailyTbody = document.getElementById('logTableBody');
-            dailyTbody.innerHTML = '';
+            // 1. DAILY LOGS TAB
+            const dailyContainer = document.getElementById('logTableBody');
+            const dailyBadge = document.getElementById('dailyLogCountBadge');
             const dayLogs = logs.filter(l => l.dateStr === selectedDate);
-            document.getElementById('emptyLogState').style.display = dayLogs.length === 0 ? 'block' : 'none';
 
-            dayLogs.forEach(l => {
-                const tr = document.createElement('tr');
-                const badgeClass = l.type === 'Bữa Ăn' ? 'meal' : 'pay';
-                tr.innerHTML = `
-                    <td style="font-weight:700;">${l.dateStr}</td>
-                    <td><span class="log-badge ${badgeClass}">${l.type}</span></td>
-                    <td style="line-height:1.5;">${l.description}</td>
-                    <td class="admin-only" style="text-align:center; gap:6px;">
-                        ${l.type === 'Bữa Ăn' ? `<button class="btn btn-secondary btn-sm" onclick="openMealModal('${l.id}')"><i class="fa-solid fa-pen"></i></button>` : ''}
-                        <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteLog('${l.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-                dailyTbody.appendChild(tr);
-            });
+            if (dailyBadge) dailyBadge.innerText = dayLogs.length;
 
-            // Full Logs Pagination
-            const fullTbody = document.getElementById('fullLogTableBody');
-            fullTbody.innerHTML = '';
-            document.getElementById('emptyFullLogState').style.display = logs.length === 0 ? 'block' : 'none';
+            if (dailyContainer) {
+                dailyContainer.innerHTML = '';
+                const emptyDaily = document.getElementById('emptyLogState');
+                if (emptyDaily) emptyDaily.style.display = dayLogs.length === 0 ? 'block' : 'none';
 
-            const totalPages = Math.ceil(logs.length / FULL_LOG_PAGE_SIZE) || 1;
-            if (fullLogCurrentPage > totalPages) fullLogCurrentPage = totalPages;
-            if (fullLogCurrentPage < 1) fullLogCurrentPage = 1;
+                const dailyPaginationBar = document.getElementById('dailyPaginationBar');
+                if (dayLogs.length > 30) {
+                    const totalPages = Math.ceil(dayLogs.length / LOGS_PER_PAGE);
+                    if (dailyLogCurrentPage > totalPages) dailyLogCurrentPage = totalPages;
+                    if (dailyLogCurrentPage < 1) dailyLogCurrentPage = 1;
 
-            const startIdx = (fullLogCurrentPage - 1) * FULL_LOG_PAGE_SIZE;
-            const pagedLogs = logs.slice(startIdx, startIdx + FULL_LOG_PAGE_SIZE);
+                    const start = (dailyLogCurrentPage - 1) * LOGS_PER_PAGE;
+                    const paged = dayLogs.slice(start, start + LOGS_PER_PAGE);
+                    paged.forEach(l => dailyContainer.appendChild(createLogCard(l)));
 
-            pagedLogs.forEach(l => {
-                const tr = document.createElement('tr');
-                const badgeClass = l.type === 'Bữa Ăn' ? 'meal' : 'pay';
-                tr.innerHTML = `
-                    <td style="font-weight:700;">${l.dateStr}</td>
-                    <td><span class="log-badge ${badgeClass}">${l.type}</span></td>
-                    <td style="line-height:1.5;">${l.description}</td>
-                    <td class="admin-only" style="text-align:center; gap:6px;">
-                        ${l.type === 'Bữa Ăn' ? `<button class="btn btn-secondary btn-sm" onclick="openMealModal('${l.id}')"><i class="fa-solid fa-pen"></i></button>` : ''}
-                        <button class="btn btn-secondary btn-sm" style="color:var(--danger);" onclick="deleteLog('${l.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-                fullTbody.appendChild(tr);
-            });
+                    if (dailyPaginationBar) {
+                        dailyPaginationBar.style.display = 'flex';
+                        document.getElementById('dailyPageInfo').innerText = `Trang ${dailyLogCurrentPage} / ${totalPages}`;
+                        document.getElementById('btnPrevDailyPage').disabled = (dailyLogCurrentPage <= 1);
+                        document.getElementById('btnNextDailyPage').disabled = (dailyLogCurrentPage >= totalPages);
+                    }
+                } else {
+                    if (dailyPaginationBar) dailyPaginationBar.style.display = 'none';
+                    dayLogs.forEach(l => dailyContainer.appendChild(createLogCard(l)));
+                }
+            }
 
-            document.getElementById('pageInfo').innerText = `Trang ${fullLogCurrentPage} / ${totalPages}`;
-            document.getElementById('btnPrevPage').disabled = (fullLogCurrentPage <= 1);
-            document.getElementById('btnNextPage').disabled = (fullLogCurrentPage >= totalPages);
+            // 2. FULL LOGS TAB
+            const fullContainer = document.getElementById('fullLogTableBody');
+            const fullBadge = document.getElementById('fullLogCountBadge');
+            if (fullBadge) fullBadge.innerText = logs.length;
+
+            if (fullContainer) {
+                fullContainer.innerHTML = '';
+                const emptyFull = document.getElementById('emptyFullLogState');
+                if (emptyFull) emptyFull.style.display = logs.length === 0 ? 'block' : 'none';
+
+                const paginationBar = document.getElementById('paginationBar');
+                if (logs.length > 30) {
+                    const totalPages = Math.ceil(logs.length / LOGS_PER_PAGE);
+                    if (fullLogCurrentPage > totalPages) fullLogCurrentPage = totalPages;
+                    if (fullLogCurrentPage < 1) fullLogCurrentPage = 1;
+
+                    const start = (fullLogCurrentPage - 1) * LOGS_PER_PAGE;
+                    const paged = logs.slice(start, start + LOGS_PER_PAGE);
+                    paged.forEach(l => fullContainer.appendChild(createLogCard(l)));
+
+                    if (paginationBar) {
+                        paginationBar.style.display = 'flex';
+                        document.getElementById('pageInfo').innerText = `Trang ${fullLogCurrentPage} / ${totalPages}`;
+                        document.getElementById('btnPrevPage').disabled = (fullLogCurrentPage <= 1);
+                        document.getElementById('btnNextPage').disabled = (fullLogCurrentPage >= totalPages);
+                    }
+                } else {
+                    if (paginationBar) paginationBar.style.display = 'none';
+                    logs.forEach(l => fullContainer.appendChild(createLogCard(l)));
+                }
+            }
+        }
+
+        function changeDailyLogPage(delta) {
+            dailyLogCurrentPage += delta;
+            renderLogs();
         }
 
         function changeFullLogPage(delta) {
@@ -3388,8 +5257,10 @@
         // 9. INITIALIZE
         // --------------------------------------------------------------------------
         updateAdminUI();
+        syncWithGlobalDirectory();
         recalculateDebts();
         renderMealPresets();
+        renderLogs();
     </script>
 </body>
 </html>

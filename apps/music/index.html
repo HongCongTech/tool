@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Apple Music - Streamer Google Drive & Synology NAS</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Supabase Database Storage Adapter -->
+    <script src="../../assets/js/db-config.js"></script>
+    <script src="../../assets/js/db-storage.js"></script>
+    <!-- System Version Gatekeeper -->
+    <script src="../../assets/js/system-version.js?v=2.12.0"></script>
+
+    <style>
+        :root {
+            --primary: #fa2d48; /* Apple Music Red */
+            --primary-hover: #e0243d;
+            --primary-light: #fff1f2;
+            --primary-border: #fecdd3;
+            --accent: #fc3c44;
+            --bg-dark: #0f1117;
+            --sidebar-bg: rgba(22, 25, 35, 0.95);
+            --content-bg: #12141d;
+            --player-bg: rgba(18, 20, 29, 0.92);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border: #232738;
+            --radius-xl: 18px;
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #fa2d48 0%, #ec4899 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(250, 45, 72, 0.35);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(250, 45, 72, 0.5);
+        }
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.78rem;
+            border-radius: 16px;
+        }
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        /* HEADER */
+        .music-header {
+            height: 48px;
+            background: rgba(18, 20, 29, 0.95);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            backdrop-filter: blur(20px);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .music-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .music-logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #fa2d48, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(250, 45, 72, 0.4);
+        }
+        .music-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+            color: white;
+        }
+        .music-search-bar {
+            position: relative;
+            width: 280px;
+        }
+        .music-search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 6px 12px 6px 32px;
+            color: white;
+            font-size: 0.8rem;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .music-search-input:focus {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(250, 45, 72, 0.2);
+        }
+        .music-search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        /* LAYOUT MAIN */
+        .music-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* SIDEBAR */
+        .music-sidebar {
+            width: 230px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 10px;
+            gap: 4px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .sidebar-heading {
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            padding: 10px 10px 4px 10px;
+        }
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            color: var(--text-sub);
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: left;
+            width: 100%;
+        }
+        .sidebar-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+        }
+        .sidebar-btn.active {
+            background: rgba(250, 45, 72, 0.15);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .sidebar-btn i {
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+
+        /* CONTENT VIEW */
+        .music-content {
+            flex: 1;
+            background: var(--content-bg);
+            overflow-y: auto;
+            padding: 22px 26px 110px 26px;
+            position: relative;
+        }
+
+        /* HERO BANNER */
+        .music-hero {
+            background: linear-gradient(135deg, rgba(250, 45, 72, 0.25) 0%, rgba(99, 102, 241, 0.2) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+        .music-hero-bg {
+            position: absolute;
+            right: -20px;
+            bottom: -30px;
+            font-size: 160px;
+            color: rgba(255, 255, 255, 0.03);
+            pointer-events: none;
+        }
+        .hero-info {
+            position: relative;
+            z-index: 2;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            font-size: 11px;
+            font-weight: 700;
+            color: #fca5a5;
+            margin-bottom: 8px;
+        }
+        .hero-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: white;
+            margin-bottom: 6px;
+        }
+        .hero-desc {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            max-width: 480px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* TABS NAV */
+        .view-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        .view-tab {
+            padding: 6px 14px;
+            border-radius: 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-sub);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .view-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .view-tab.active {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+        }
+
+        /* TRACK TABLE */
+        .track-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86rem;
+        }
+        .track-table th {
+            text-align: left;
+            padding: 8px 12px;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+        .track-row {
+            transition: all 0.15s;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .track-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .track-row.active {
+            background: rgba(250, 45, 72, 0.12);
+        }
+        .track-row td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            vertical-align: middle;
+        }
+        .track-index {
+            width: 36px;
+            color: #64748b;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        .track-row:hover .track-index-num { display: none; }
+        .track-row:hover .track-index-play { display: inline-block !important; }
+        .track-row.active .track-index-num { display: none; }
+        .track-row.active .track-index-play { display: inline-block !important; color: var(--primary); }
+
+        .track-info-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .track-cover {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .track-name {
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 320px;
+        }
+        .track-row.active .track-name {
+            color: var(--primary);
+        }
+        .track-artist {
+            font-size: 0.76rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+        .source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        .source-gdrive { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.3); }
+        .source-synology { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .source-local { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        /* ALBUM GRID */
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 18px;
+        }
+        .album-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .album-card:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .album-art-wrap {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+        .album-art {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.3s;
+        }
+        .album-card:hover .album-art {
+            transform: scale(1.05);
+        }
+        .album-card-play {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            opacity: 0;
+            transform: translateY(6px);
+            transition: all 0.2s ease;
+        }
+        .album-card:hover .album-card-play {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .album-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .album-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 3px;
+        }
+
+        /* BOTTOM PLAYER */
+        .music-player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: var(--player-bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            backdrop-filter: blur(28px);
+            z-index: 999;
+        }
+        .player-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 280px;
+            overflow: hidden;
+        }
+        .vinyl-cover {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .vinyl-record {
+            position: absolute;
+            top: 2px;
+            right: -10px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #333 20%, #111 60%, #000 100%);
+            border: 1px solid #444;
+            z-index: -1;
+            transition: all 0.3s;
+        }
+        .is-playing .vinyl-record {
+            animation: spinRecord 4s linear infinite;
+            right: -16px;
+        }
+        @keyframes spinRecord {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .player-meta {
+            overflow: hidden;
+        }
+        .player-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .player-artist {
+            font-size: 0.76rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            max-width: 580px;
+        }
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .ctrl-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 4px;
+        }
+        .ctrl-btn:hover {
+            color: white;
+        }
+        .ctrl-btn.active {
+            color: var(--primary);
+        }
+        .play-main-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: white;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(255,255,255,0.25);
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .play-main-btn:hover {
+            transform: scale(1.08);
+            background: #f8fafc;
+        }
+
+        /* PROGRESS BAR */
+        .progress-wrap {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .time-text {
+            font-size: 11px;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+            color: var(--text-sub);
+            width: 36px;
+        }
+        .seek-slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .seek-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .progress-wrap:hover .seek-slider::-webkit-slider-thumb {
+            opacity: 1;
+        }
+
+        .player-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 280px;
+            justify-content: flex-end;
+        }
+        .vol-slider {
+            width: 90px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* SYNCED LYRICS FULL VIEW */
+        .lyrics-container {
+            display: none;
+            position: fixed;
+            top: 48px;
+            left: 0;
+            right: 0;
+            bottom: 84px;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f1117 100%);
+            z-index: 100;
+            padding: 40px 20px;
+            overflow-y: auto;
+            text-align: center;
+        }
+        .lyrics-container.show {
+            display: block;
+        }
+        .lyrics-line {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.35);
+            padding: 12px 20px;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .lyrics-line:hover {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .lyrics-line.active {
+            color: #ffffff;
+            font-size: 1.9rem;
+            font-weight: 800;
+            text-shadow: 0 0 24px rgba(250, 45, 72, 0.8);
+            transform: scale(1.05);
+        }
+
+        /* EQUALIZER MODAL */
+        .eq-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .eq-modal-overlay.show { display: flex; }
+        .eq-card {
+            background: #181b26;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            width: 440px;
+            max-width: 92vw;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .eq-sliders-grid {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 180px;
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.25);
+            border-radius: var(--radius-md);
+        }
+        .eq-band {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            height: 100%;
+        }
+        .eq-range {
+            writing-mode: bt-lr;
+            -webkit-appearance: slider-vertical;
+            width: 8px;
+            height: 120px;
+            padding: 0 5px;
+            outline: none;
+        }
+        .eq-freq {
+            font-size: 10px;
+            color: var(--text-sub);
+            font-weight: 700;
+        }
+
+        /* MODAL ADD CLOUD STREAM */
+        .add-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .add-modal-overlay.show { display: flex; }
+        .add-card {
+            background: #181b26;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            width: 520px;
+            max-width: 95vw;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+            font-family: inherit;
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(250, 45, 72, 0.2);
+        }
+        .source-pill-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .source-pill {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-sub);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .source-pill.active {
+            background: rgba(250, 45, 72, 0.15);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* AUDIO VISUALIZER CANVAS */
+        #visualizerCanvas {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            pointer-events: none;
+            opacity: 0.35;
+            z-index: 1;
+        }
+
+        /* MODAL CHI TIẾT ALBUM & PLAYLIST */
+        .album-detail-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1050;
+            padding: 20px;
+        }
+        .album-detail-modal-overlay.show { display: flex; }
+        .album-detail-card {
+            background: #141824;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-xl);
+            width: 760px;
+            max-width: 95vw;
+            max-height: 86vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .album-detail-header {
+            display: flex;
+            gap: 20px;
+            padding: 24px;
+            background: linear-gradient(180deg, rgba(250, 45, 72, 0.18) 0%, rgba(20, 24, 36, 0.9) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            align-items: center;
+            position: relative;
+        }
+        .album-detail-cover {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+            background-color: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .album-detail-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .album-detail-type {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .album-detail-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .album-detail-artist {
+            font-size: 0.88rem;
+            color: var(--text-sub);
+            margin-bottom: 14px;
+        }
+        .album-detail-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .album-detail-tracklist {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 20px;
+        }
+        .album-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .album-detail-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .album-detail-row.active {
+            background: rgba(250, 45, 72, 0.15);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .album-detail-num {
+            font-size: 12px;
+            color: var(--text-sub);
+            width: 26px;
+            text-align: center;
+            font-family: monospace;
+        }
+        .album-detail-tname {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.86rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .album-detail-dur {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-family: monospace;
+        }
+
+        /* TOAST NOTIFICATION */
+        .music-toast {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: rgba(20, 24, 36, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 12px;
+            padding: 12px 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2500;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        .music-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .music-toast i {
+            font-size: 18px;
+        }
+        .music-toast-text {
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: white;
+            line-height: 1.4;
+        }
+
+        .badge-pill {
+            margin-left: auto;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .music-sidebar { display: none; }
+            .music-header { padding: 0 12px; }
+            .music-search-bar { width: 150px; }
+            .music-content { padding: 16px 14px 100px 14px; }
+            .player-right { display: none; }
+            .player-left { width: 180px; }
+            .track-artist { max-width: 120px; }
+            .hero-title { font-size: 1.25rem; }
+            .hide-mobile { display: none !important; }
+            .album-detail-header { flex-direction: column; text-align: center; }
+            .album-detail-cover { width: 100px; height: 100px; }
+            .album-detail-actions { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP HEADER -->
+    <header class="music-header">
+        <div class="music-brand">
+            <div class="music-logo"><i class="fa-solid fa-music"></i></div>
+            <div class="music-title">Apple Music</div>
+        </div>
+
+        <div class="music-search-bar">
+            <i class="fa-solid fa-magnifying-glass music-search-icon"></i>
+            <input type="text" id="searchInput" class="music-search-input" placeholder="Tìm kiếm bài hát, album, ca sĩ..." oninput="filterMusicTracks(this.value)">
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn btn-outline btn-sm" id="btnHeaderNasSync" onclick="triggerSynologyQuickSync()" title="Đồng bộ kho nhạc hai chiều từ Synology NAS">
+                <i class="fa-solid fa-arrows-rotate" id="headerSyncIcon" style="color:#34d399;"></i>
+                <span class="hide-mobile">Đồng Bộ NAS</span>
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="openAddMusicModal()">
+                <i class="fa-solid fa-plus"></i> <span class="hide-mobile">Thêm Nhạc</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="music-main">
+        <!-- SIDEBAR -->
+        <aside class="music-sidebar">
+            <div class="sidebar-heading">Khám Phá</div>
+            <button class="sidebar-btn active" id="sidebarBtnAll" onclick="switchMusicCategory('all')">
+                <i class="fa-solid fa-house" style="color:#fa2d48;"></i>
+                <span>Trang Chủ & Gợi Ý</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnFavorites" onclick="switchMusicCategory('favorites')">
+                <i class="fa-solid fa-heart" style="color:#ec4899;"></i>
+                <span>Yêu Thích</span>
+                <span class="badge-pill" id="sidebarFavoritesBadge" style="background:rgba(236,72,153,0.18); color:#f472b6;">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnAlbums" onclick="switchMusicCategory('albums')">
+                <i class="fa-solid fa-compact-disc" style="color:#8b5cf6;"></i>
+                <span>Album & Tuyển Tập</span>
+                <span class="badge-pill" id="sidebarAlbumsBadge" style="background:rgba(139,92,246,0.18); color:#a78bfa;">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnPlaylists" onclick="switchMusicCategory('playlists')">
+                <i class="fa-solid fa-layer-group" style="color:#06b6d4;"></i>
+                <span>Playlists NAS</span>
+                <span class="badge-pill" id="sidebarPlaylistsBadge" style="background:rgba(6,182,212,0.18); color:#22d3ee;">0</span>
+            </button>
+
+            <div class="sidebar-heading">Nguồn Nhạc Đám Mây</div>
+            <button class="sidebar-btn" id="sidebarBtnSyno" onclick="filterBySource('synology')">
+                <i class="fa-solid fa-server" style="color:#34d399;"></i>
+                <span>Synology Audio NAS</span>
+                <span class="badge-pill" id="sidebarSynoBadge" style="background:rgba(52,211,153,0.18); color:#34d399;">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnGdrive" onclick="filterBySource('gdrive')">
+                <i class="fa-brands fa-google-drive" style="color:#38bdf8;"></i>
+                <span>Google Drive Stream</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnLocal" onclick="filterBySource('local')">
+                <i class="fa-solid fa-hard-drive" style="color:#fbbf24;"></i>
+                <span>Thư Viện Cục Bộ</span>
+            </button>
+
+            <div class="sidebar-heading">Cấu Hình & Hiệu Ứng</div>
+            <button class="sidebar-btn" onclick="openEqualizerModal()">
+                <i class="fa-solid fa-sliders" style="color:#a855f7;"></i>
+                <span>Bộ Chỉnh Âm (EQ)</span>
+            </button>
+            <button class="sidebar-btn" onclick="toggleLyricsView()">
+                <i class="fa-solid fa-microphone-lines" style="color:#f43f5e;"></i>
+                <span>Lời Bài Hát (Karaoke)</span>
+            </button>
+        </aside>
+
+        <!-- CONTENT VIEW -->
+        <main class="music-content" id="musicContentPane">
+            <!-- HERO BANNER -->
+            <div class="music-hero">
+                <i class="fa-solid fa-record-vinyl music-hero-bg"></i>
+                <div class="hero-info">
+                    <span class="hero-badge"><i class="fa-solid fa-sparkles"></i> Apple Music Hi-Res Lossless</span>
+                    <h1 class="hero-title" id="heroTrackTitle">Không Gian Âm Nhạc Cá Nhân</h1>
+                    <p class="hero-desc">Tự động đồng bộ toàn bộ bài hát, album và playlist từ Synology Audio Station cá nhân (<code style="background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px; color:#34d399;">audio.tech360.io.vn</code>). Mọi thay đổi thêm xóa trên NAS đều tự động cập nhật.</p>
+                    <div class="hero-actions">
+                        <button class="btn btn-primary" onclick="playRandomTrack()">
+                            <i class="fa-solid fa-play"></i> Phát Ngẫu Nhiên
+                        </button>
+                        <button class="btn btn-outline" onclick="triggerSynologyQuickSync()">
+                            <i class="fa-solid fa-arrows-rotate"></i> Đồng Bộ NAS Ngay
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW TABS -->
+            <div class="view-tabs">
+                <button class="view-tab active" id="tabBtnTracks" onclick="switchViewMode('tracks')">
+                    <i class="fa-solid fa-list"></i> Bài Hát (<span id="trackCountBadge">0</span>)
+                </button>
+                <button class="view-tab" id="tabBtnAlbums" onclick="switchViewMode('albums')">
+                    <i class="fa-solid fa-compact-disc"></i> Album (<span id="albumCountBadge">0</span>)
+                </button>
+                <button class="view-tab" id="tabBtnPlaylists" onclick="switchViewMode('playlists')">
+                    <i class="fa-solid fa-layer-group"></i> Playlists NAS (<span id="playlistCountBadge">0</span>)
+                </button>
+            </div>
+
+            <!-- VIEW 1: TRACKS TABLE -->
+            <div id="viewTracksContainer">
+                <table class="track-table">
+                    <thead>
+                        <tr>
+                            <th style="width:36px; text-align:center;">#</th>
+                            <th>Bài Hát & Nghệ Sĩ</th>
+                            <th>Album</th>
+                            <th>Nguồn Nhạc</th>
+                            <th style="text-align:right; width:90px;">Thời Lượng</th>
+                            <th style="width:70px; text-align:center;">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trackTableBody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- VIEW 2: ALBUMS GRID -->
+            <div id="viewAlbumsContainer" class="album-grid" style="display:none;">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- VIEW 3: PLAYLISTS GRID -->
+            <div id="viewPlaylistsContainer" class="album-grid" style="display:none;">
+                <!-- Populated dynamically -->
+            </div>
+        </main>
+    </div>
+
+    <!-- FULLSCREEN SYNCED LYRICS (KARAOKE) -->
+    <div class="lyrics-container" id="lyricsContainer" onclick="toggleLyricsView()">
+        <div style="font-size:12px; font-weight:700; color:#fa2d48; margin-bottom:20px; letter-spacing:1px; text-transform:uppercase;">
+            <i class="fa-solid fa-microphone-lines"></i> Synced Lyrics • Chạm vào màn hình để quay lại
+        </div>
+        <div id="lyricsContentArea">
+            <!-- Lyrics lines populated dynamically -->
+        </div>
+    </div>
+
+    <!-- BOTTOM NOW PLAYING BAR -->
+    <footer class="music-player-bar" id="musicPlayerBar">
+        <canvas id="visualizerCanvas"></canvas>
+
+        <!-- Left: Track info -->
+        <div class="player-left">
+            <div class="vinyl-cover" id="playerThumb" style="background-image: url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80');">
+                <div class="vinyl-record"></div>
+            </div>
+            <div class="player-meta">
+                <div class="player-title" id="playerTitle">Chưa phát bài hát nào</div>
+                <div class="player-artist" id="playerArtist">Apple Music & Streamer</div>
+            </div>
+            <button class="ctrl-btn" id="btnFavoriteToggle" onclick="toggleFavoriteCurrentTrack()" title="Yêu thích">
+                <i class="fa-regular fa-heart"></i>
+            </button>
+        </div>
+
+        <!-- Center: Controls & Seek bar -->
+        <div class="player-center">
+            <div class="player-controls">
+                <button class="ctrl-btn" id="btnShuffle" onclick="toggleShuffle()" title="Phát ngẫu nhiên">
+                    <i class="fa-solid fa-shuffle"></i>
+                </button>
+                <button class="ctrl-btn" onclick="playPrevTrack()" title="Bài trước">
+                    <i class="fa-solid fa-backward-step"></i>
+                </button>
+                <button class="play-main-btn" id="btnMainPlay" onclick="togglePlayPause()" title="Phát / Tạm dừng">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+                <button class="ctrl-btn" onclick="playNextTrack()" title="Bài kế tiếp">
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
+                <button class="ctrl-btn" id="btnRepeat" onclick="toggleRepeat()" title="Lặp lại">
+                    <i class="fa-solid fa-repeat"></i>
+                </button>
+            </div>
+
+            <div class="progress-wrap">
+                <span class="time-text" id="curTimeText">0:00</span>
+                <input type="range" class="seek-slider" id="seekSlider" min="0" max="100" value="0" oninput="onSeekChange(this.value)">
+                <span class="time-text" id="durTimeText">0:00</span>
+            </div>
+        </div>
+
+        <!-- Right: Volume, EQ, Lyrics -->
+        <div class="player-right">
+            <button class="ctrl-btn" id="btnLyricsView" onclick="toggleLyricsView()" title="Lời bài hát Karaoke">
+                <i class="fa-solid fa-microphone-lines"></i>
+            </button>
+            <button class="ctrl-btn" onclick="openEqualizerModal()" title="Bộ cân chỉnh Equalizer">
+                <i class="fa-solid fa-sliders"></i>
+            </button>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="ctrl-btn" onclick="toggleMute()" id="btnMute">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="85" oninput="onVolumeChange(this.value)">
+            </div>
+        </div>
+    </footer>
+
+    <!-- EQUALIZER MODAL -->
+    <div class="eq-modal-overlay" id="eqModal" onclick="if(event.target===this) closeEqualizerModal()">
+        <div class="eq-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="font-weight:800; font-size:1.1rem; color:white;"><i class="fa-solid fa-sliders" style="color:var(--primary);"></i> Bộ Cân Chỉnh Âm Thanh (EQ)</div>
+                <button class="btn btn-outline btn-sm" onclick="closeEqualizerModal()">Đóng</button>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.28); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 11.5px; color: #a7f3d0; line-height: 1.4;">
+                <i class="fa-solid fa-circle-check" style="color: #34d399; margin-right: 6px;"></i>
+                <b>Chế Độ Âm Thanh Trực Tiếp (Bit-Perfect Direct Output)</b><br>
+                Đang truyền tải luồng âm thanh nguyên bản 320kbps / Hi-Res Lossless từ Synology NAS ra loa thiết bị với chất lượng cao nhất, độ trễ thấp và không bị can thiệp nén.
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; color:var(--text-sub);">Preset âm thanh:</span>
+                <select id="eqPresetSelect" class="form-input" style="width:160px; padding:4px 8px;" onchange="applyEqPreset(this.value)">
+                    <option value="flat">Cân Bằng (Flat)</option>
+                    <option value="bass">Bass Boost (Tăng Trầm)</option>
+                    <option value="vocal">Vocal Clarity (Lời Trong)</option>
+                    <option value="acoustic">Acoustic & Guitar</option>
+                    <option value="electronic">Electronic / Dance</option>
+                </select>
+            </div>
+
+            <div class="eq-sliders-grid">
+                <div class="eq-band">
+                    <input type="range" class="eq-range" min="-12" max="12" value="0" id="eqBand60" oninput="updateEqGain(0, this.value)">
+                    <span class="eq-freq">60Hz</span>
+                </div>
+                <div class="eq-band">
+                    <input type="range" class="eq-range" min="-12" max="12" value="0" id="eqBand230" oninput="updateEqGain(1, this.value)">
+                    <span class="eq-freq">230Hz</span>
+                </div>
+                <div class="eq-band">
+                    <input type="range" class="eq-range" min="-12" max="12" value="0" id="eqBand910" oninput="updateEqGain(2, this.value)">
+                    <span class="eq-freq">910Hz</span>
+                </div>
+                <div class="eq-band">
+                    <input type="range" class="eq-range" min="-12" max="12" value="0" id="eqBand4k" oninput="updateEqGain(3, this.value)">
+                    <span class="eq-freq">4kHz</span>
+                </div>
+                <div class="eq-band">
+                    <input type="range" class="eq-range" min="-12" max="12" value="0" id="eqBand14k" oninput="updateEqGain(4, this.value)">
+                    <span class="eq-freq">14kHz</span>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <button class="btn btn-outline btn-sm" onclick="resetEq()">Đặt Lại Mặc Định</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM NGUỒN NHẠC (GOOGLE DRIVE / SYNOLOGY / LOCAL) -->
+    <div class="add-modal-overlay" id="addMusicModal" onclick="if(event.target===this) closeAddMusicModal()">
+        <div class="add-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div style="font-weight:800; font-size:1.15rem; color:white;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="color:var(--primary);"></i> Thêm Nguồn Nhạc & Cấu Hình NAS
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="closeAddMusicModal()">Đóng</button>
+            </div>
+
+            <!-- Source selector tabs -->
+            <div class="source-pill-group">
+                <div class="source-pill active" id="pillSynology" onclick="selectSourceTab('synology')">
+                    <i class="fa-solid fa-server"></i> Synology NAS
+                </div>
+                <div class="source-pill" id="pillGdrive" onclick="selectSourceTab('gdrive')">
+                    <i class="fa-brands fa-google-drive"></i> Google Drive
+                </div>
+                <div class="source-pill" id="pillLocal" onclick="selectSourceTab('local')">
+                    <i class="fa-solid fa-file-audio"></i> Tải Lên / URL
+                </div>
+            </div>
+
+            <!-- TAB 1: SYNOLOGY NAS AUDIO STATION FULL REST API SYNC -->
+            <div id="tabContentSynology">
+                <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.28); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #a7f3d0; line-height: 1.5;">
+                    <i class="fa-solid fa-server" style="color: #34d399; margin-right: 6px;"></i>
+                    <b>Đồng Bộ Hai Chiều Với Synology Audio Station Cá Nhân</b><br>
+                    Tự động kết nối tới Synology DSM, kéo toàn bộ danh sách bài hát, album và playlist trong thư viện. Mọi thao tác thêm/xóa bài hát hoặc playlist trên NAS sẽ được tự động phản ánh vào ứng dụng!
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ Synology NAS (Host URL):</label>
+                    <input type="text" id="synoHost" class="form-input" value="https://audio.tech360.io.vn" placeholder="https://audio.tech360.io.vn">
+                    <div style="font-size:11px; color:#94a3b8; margin-top:3px;">
+                        💡 Hỗ trợ kết nối qua Cloudflare SSL hoặc IP cục bộ cổng 5001/5000.
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label class="form-label">Tài khoản DSM (User):</label>
+                        <input type="text" id="synoUser" class="form-input" value="music" placeholder="music" autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu DSM (Password):</label>
+                        <input type="password" id="synoPass" class="form-input" value="@Aa010001010046" placeholder="Mật khẩu DSM" autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#cbd5e1; cursor:pointer;">
+                        <input type="checkbox" id="synoAutoSyncCheck" checked style="accent-color:var(--primary);">
+                        Tự động đồng bộ với NAS mỗi khi mở ứng dụng
+                    </label>
+                </div>
+
+                <!-- Progress status container -->
+                <div id="synoSyncProgress" style="display:none; margin: 14px 0; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px 14px; border: 1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:6px;">
+                        <span id="synoSyncStatusText" style="color:#38bdf8; font-weight:700;"><i class="fa-solid fa-spinner fa-spin"></i> Đang kết nối Synology...</span>
+                        <span id="synoSyncCountText" style="color:var(--text-sub); font-family:monospace;">0%</span>
+                    </div>
+                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+                        <div id="synoSyncProgressBar" style="width:0%; height:100%; background:linear-gradient(90deg, #10b981, #06b6d4); transition:width 0.3s;"></div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:14px;">
+                    <button type="button" class="btn btn-primary" id="btnStartSynoSync" onclick="startSynologyFullSync()" style="flex:1; background:linear-gradient(135deg, #059669, #0284c7);">
+                        <i class="fa-solid fa-rotate"></i> Bắt Đầu Đồng Bộ Toàn Bộ Kho Nhạc
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="testSynologyConnection()" title="Chỉ kiểm tra kết nối tài khoản">
+                        <i class="fa-solid fa-plug"></i> Test Kết Nối
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: GOOGLE DRIVE -->
+            <div id="tabContentGdrive" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">Link Chia Sẻ Google Drive hoặc File ID:</label>
+                    <input type="text" id="gdriveInput" class="form-input" placeholder="https://drive.google.com/file/d/1a2b3c.../view hoặc 1a2b3c...">
+                    <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
+                        💡 Đảm bảo tệp ở chế độ <b>"Bất kỳ ai có đường liên kết đều có thể xem"</b> để có thể stream nhạc.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tên bài hát:</label>
+                    <input type="text" id="gdriveTitle" class="form-input" placeholder="VD: Nàng Thơ, Chung Đôi...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nghệ sĩ trình bày:</label>
+                    <input type="text" id="gdriveArtist" class="form-input" placeholder="VD: Hoàng Dũng, Vũ...">
+                </div>
+            </div>
+
+            <!-- TAB 3: LOCAL UPLOAD / DIRECT URL -->
+            <div id="tabContentLocal" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">Chọn file nhạc từ máy tính (.mp3, .wav, .m4a):</label>
+                    <input type="file" id="localAudioFile" accept="audio/*" class="form-input" onchange="handleLocalAudioPick(this)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hoặc nhập URL trực tiếp:</label>
+                    <input type="text" id="directAudioUrl" class="form-input" placeholder="https://example.com/audio.mp3">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button class="btn btn-outline" onclick="closeAddMusicModal()">Hủy</button>
+                <button class="btn btn-primary" onclick="submitAddNewTrack()">
+                    <i class="fa-solid fa-check"></i> Thêm Vào Thư Viện
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHI TIẾT ALBUM / PLAYLIST -->
+    <div class="album-detail-modal-overlay" id="detailModal" onclick="if(event.target===this) closeDetailModal()">
+        <div class="album-detail-card">
+            <div class="album-detail-header">
+                <div class="album-detail-cover" id="detailCover"></div>
+                <div class="album-detail-info">
+                    <div class="album-detail-type" id="detailType">ALBUM</div>
+                    <h2 class="album-detail-title" id="detailTitle">Tên Album</h2>
+                    <p class="album-detail-artist" id="detailArtist">Nghệ Sĩ • 0 bài hát</p>
+                    <div class="album-detail-actions">
+                        <button class="btn btn-primary btn-sm" id="btnPlayAllDetail" onclick="playAllDetailTracks()">
+                            <i class="fa-solid fa-play"></i> Phát Tất Cả
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="closeDetailModal()">
+                            <i class="fa-solid fa-xmark"></i> Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="album-detail-tracklist" id="detailTracklist">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="music-toast" id="musicToast">
+        <i class="fa-solid fa-circle-check" id="toastIcon" style="color:#10b981;"></i>
+        <div class="music-toast-text" id="toastText">Đồng bộ thành công!</div>
+    </div>
+
+    <!-- AUDIO ELEMENT (No crossorigin attribute to enable opaque media stream without CORS restrictions) -->
+    <audio id="mainAudioPlayer" preload="auto"></audio>
+
+    <script>
+        // =========================================================================
+        // CONSTANTS & SYSTEM DEFAULTS
+        // =========================================================================
+        const STORAGE_KEY_PLAYLIST = 'sys_music_playlist';
+        const STORAGE_KEY_FAVORITES = 'sys_music_favorites';
+        const STORAGE_KEY_ALBUMS = 'sys_synology_albums';
+        const STORAGE_KEY_PLAYLISTS = 'sys_synology_playlists';
+        const STORAGE_KEY_CONFIG = 'sys_synology_config';
+
+        const DEFAULT_SYNO_CONFIG = {
+            host: 'https://audio.tech360.io.vn',
+            user: 'music',
+            pass: '@Aa010001010046',
+            autoSync: true,
+            sid: ''
+        };
+
+        // GLOBAL APPLICATION STATE
+        let musicLibrary = [];
+        let synoAlbums = [];
+        let synoPlaylists = [];
+        let synoConfig = { ...DEFAULT_SYNO_CONFIG };
+
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let isShuffle = false;
+        let repeatMode = 0; // 0: None, 1: All, 2: One
+        let currentFilter = 'all';
+        let currentViewMode = 'tracks'; // 'tracks' | 'albums' | 'playlists'
+        let currentActiveTab = 'synology';
+
+        let activeDetailItems = [];
+        let favorites = JSON.parse(localStorage.getItem(STORAGE_KEY_FAVORITES) || '[]');
+
+        const audio = document.getElementById('mainAudioPlayer');
+
+        // =========================================================================
+        // DIRECT HIGH-FIDELITY AUDIO & DYNAMIC SPECTRUM VISUALIZER
+        // Không sử dụng createMediaElementSource để đảm bảo luồng âm thanh cross-origin
+        // từ Synology NAS / Cloudflare phát trực tiếp ra loa (Direct Output - 100% không bị tắt tiếng do CORS)
+        // =========================================================================
+        let visualizerAnimId = null;
+        const visualizerBars = 36;
+        const barHeights = new Float32Array(visualizerBars);
+
+        function initVisualizer() {
+            const canvas = document.getElementById('visualizerCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            function renderFrame() {
+                visualizerAnimId = requestAnimationFrame(renderFrame);
+
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                if (!width || !height) return;
+
+                if (canvas.width !== width || canvas.height !== height) {
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                ctx.clearRect(0, 0, width, height);
+
+                const now = performance.now() * 0.0035;
+                const totalGaps = (visualizerBars - 1) * 2;
+                const barWidth = Math.max(2, (width - totalGaps) / visualizerBars);
+
+                for (let i = 0; i < visualizerBars; i++) {
+                    let target = 0;
+                    if (isPlaying) {
+                        // Tính toán độ cao dao động tự nhiên mô phỏng quang phổ âm nhạc sống động
+                        const wave1 = Math.sin(now * 2.4 + i * 0.38);
+                        const wave2 = Math.cos(now * 1.6 - i * 0.22);
+                        const wave3 = Math.sin(now * 4.2 + (i % 6) * 0.7);
+                        const normalized = (wave1 * 0.4 + wave2 * 0.35 + wave3 * 0.25 + 1) / 2; // 0..1
+                        target = Math.max(0.08, normalized) * height * 0.88;
+                    } else {
+                        target = 2; // Độ cao nghỉ
+                    }
+
+                    // Làm mượt chuyển động (lerp)
+                    barHeights[i] += (target - barHeights[i]) * 0.18;
+
+                    const curH = Math.max(2, barHeights[i]);
+                    const x = i * (barWidth + 2);
+                    const y = height - curH;
+
+                    const grad = ctx.createLinearGradient(0, height, 0, y);
+                    grad.addColorStop(0, 'rgba(250, 45, 72, 0.2)');
+                    grad.addColorStop(0.7, 'rgba(236, 72, 153, 0.7)');
+                    grad.addColorStop(1, 'rgba(250, 45, 72, 0.95)');
+
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    if (ctx.roundRect) {
+                        ctx.roundRect(x, y, barWidth, curH, [2, 2, 0, 0]);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(x, y, barWidth, curH);
+                    }
+                }
+            }
+
+            if (!visualizerAnimId) {
+                renderFrame();
+            }
+        }
+
+        // =========================================================================
+        // DATA INITIALIZATION & CATALOG PRELOAD
+        // =========================================================================
+        async function initMusicApp() {
+            loadSavedSynologyConfig();
+
+            // 1. Thử nạp từ LocalStorage
+            let loadedFromStorage = false;
+            try {
+                const storedSongs = localStorage.getItem(STORAGE_KEY_PLAYLIST);
+                const storedAlbums = localStorage.getItem(STORAGE_KEY_ALBUMS);
+                const storedPlaylists = localStorage.getItem(STORAGE_KEY_PLAYLISTS);
+
+                if (storedSongs) {
+                    const parsedSongs = JSON.parse(storedSongs);
+                    // Nếu đã có thư viện thật (> 10 bài)
+                    if (Array.isArray(parsedSongs) && parsedSongs.length >= 10) {
+                        musicLibrary = parsedSongs;
+                        loadedFromStorage = true;
+                    }
+                }
+                if (storedAlbums) synoAlbums = JSON.parse(storedAlbums);
+                if (storedPlaylists) synoPlaylists = JSON.parse(storedPlaylists);
+            } catch(e) {
+                console.warn('[AppleMusic] Lỗi đọc storage ban đầu:', e);
+            }
+
+            // 2. Nếu chưa có hoặc chỉ là dữ liệu mẫu cũ -> Nạp tức thì từ syno_catalog.json
+            if (!loadedFromStorage || musicLibrary.length < 10) {
+                await loadPrecompiledCatalog();
+            }
+
+            // Render giao diện ban đầu
+            renderTrackTable();
+            renderAlbumGrid();
+            renderPlaylistGrid();
+            updateAllBadges();
+
+            // Load âm lượng đã lưu
+            const savedVol = localStorage.getItem('sys_music_volume');
+            if (savedVol !== null) {
+                const vol = parseInt(savedVol, 10);
+                document.getElementById('volSlider').value = vol;
+                audio.volume = vol / 100;
+            } else {
+                audio.volume = 0.85;
+            }
+
+            // Audio element listeners
+            audio.addEventListener('timeupdate', onAudioTimeUpdate);
+            audio.addEventListener('ended', onAudioEnded);
+            audio.addEventListener('play', () => updatePlayStateUI(true));
+            audio.addEventListener('pause', () => updatePlayStateUI(false));
+            audio.addEventListener('loadedmetadata', () => {
+                document.getElementById('durTimeText').innerText = formatDuration(audio.duration);
+            });
+
+            // Tự động khôi phục phiên nếu bài hát bị lỗi stream
+            audio.addEventListener('error', onAudioStreamError);
+
+            // Khởi động Visualizer âm phổ động
+            initVisualizer();
+
+            // Media Session API
+            setupMediaSession();
+
+            // 3. Tự động đồng bộ ngầm với NAS Synology nếu autoSync bật
+            if (synoConfig.autoSync) {
+                setTimeout(() => {
+                    syncWithSynologyNas(true); // Chạy ngầm (silent mode)
+                }, 2000);
+            }
+        }
+
+        async function loadPrecompiledCatalog() {
+            try {
+                const res = await fetch('./syno_catalog.json');
+                if (res.ok) {
+                    const catalog = await res.json();
+                    if (catalog.tracks && catalog.tracks.length > 0) {
+                        musicLibrary = catalog.tracks;
+                        synoAlbums = catalog.albums || [];
+                        synoPlaylists = catalog.playlists || [];
+                        saveLibraryToStorage();
+                        console.log(`[AppleMusic] Đã nạp danh mục nhanh: ${musicLibrary.length} bài hát, ${synoAlbums.length} album, ${synoPlaylists.length} playlist`);
+                    }
+                }
+            } catch(e) {
+                console.warn('[AppleMusic] Không thể tải syno_catalog.json:', e.message);
+            }
+        }
+
+        function saveLibraryToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY_PLAYLIST, JSON.stringify(musicLibrary));
+                localStorage.setItem(STORAGE_KEY_ALBUMS, JSON.stringify(synoAlbums));
+                localStorage.setItem(STORAGE_KEY_PLAYLISTS, JSON.stringify(synoPlaylists));
+
+                // Đồng bộ lên Supabase Cloud REST qua DBStorage
+                if (window.DBStorage && typeof window.DBStorage.set === 'function') {
+                    window.DBStorage.set('sys_music_playlist', musicLibrary);
+                    window.DBStorage.set('sys_synology_albums', synoAlbums);
+                    window.DBStorage.set('sys_synology_playlists', synoPlaylists);
+                }
+            } catch(e) {
+                console.warn('[AppleMusic] Lỗi lưu trữ:', e);
+            }
+        }
+
+        function updateAllBadges() {
+            const trackCount = musicLibrary.length;
+            const albumCount = synoAlbums.length;
+            const playlistCount = synoPlaylists.length;
+            const synoTrackCount = musicLibrary.filter(t => t.source === 'synology').length;
+
+            const badgeTracks = document.getElementById('trackCountBadge');
+            const badgeAlbums = document.getElementById('albumCountBadge');
+            const badgePlaylists = document.getElementById('playlistCountBadge');
+            const sideSyno = document.getElementById('sidebarSynoBadge');
+            const sideAlbums = document.getElementById('sidebarAlbumsBadge');
+            const sidePlaylists = document.getElementById('sidebarPlaylistsBadge');
+            const sideFavs = document.getElementById('sidebarFavoritesBadge');
+
+            if (badgeTracks) badgeTracks.innerText = trackCount;
+            if (badgeAlbums) badgeAlbums.innerText = albumCount;
+            if (badgePlaylists) badgePlaylists.innerText = playlistCount;
+            if (sideSyno) sideSyno.innerText = synoTrackCount;
+            if (sideAlbums) sideAlbums.innerText = albumCount;
+            if (sidePlaylists) sidePlaylists.innerText = playlistCount;
+            if (sideFavs) sideFavs.innerText = favorites.length;
+        }
+
+        // =========================================================================
+        // SYNOLOGY REST API CALLER & CORS PROXY FALLBACK
+        // =========================================================================
+        async function callSynoApi(url) {
+            // Thử gọi trực tiếp trước
+            try {
+                const res = await fetch(url, { method: 'GET' });
+                if (res.ok) {
+                    return await res.json();
+                }
+            } catch(err) {
+                // Nếu dính CORS TypeError, tự động fallback sang CORS proxy
+                console.log('[Synology API] Direct fetch CORS blocked, chuyển sang proxy an toàn...');
+            }
+
+            // Proxy fallback
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            const proxyRes = await fetch(proxyUrl);
+            if (!proxyRes.ok) {
+                throw new Error(`Lỗi kết nối proxy (HTTP ${proxyRes.status})`);
+            }
+            return await proxyRes.json();
+        }
+
+        function loadSavedSynologyConfig() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_CONFIG);
+                if (raw) {
+                    const cfg = JSON.parse(raw);
+                    synoConfig = { ...DEFAULT_SYNO_CONFIG, ...cfg };
+                }
+            } catch(e) {}
+
+            const hostInput = document.getElementById('synoHost');
+            const userInput = document.getElementById('synoUser');
+            const passInput = document.getElementById('synoPass');
+            const autoCheck = document.getElementById('synoAutoSyncCheck');
+
+            if (hostInput) hostInput.value = synoConfig.host || DEFAULT_SYNO_CONFIG.host;
+            if (userInput) userInput.value = synoConfig.user || DEFAULT_SYNO_CONFIG.user;
+            if (passInput) passInput.value = synoConfig.pass || DEFAULT_SYNO_CONFIG.pass;
+            if (autoCheck) autoCheck.checked = synoConfig.autoSync !== false;
+        }
+
+        function saveSynologyConfigToStorage() {
+            const hostInput = document.getElementById('synoHost');
+            const userInput = document.getElementById('synoUser');
+            const passInput = document.getElementById('synoPass');
+            const autoCheck = document.getElementById('synoAutoSyncCheck');
+
+            if (hostInput) synoConfig.host = hostInput.value.trim().replace(/\/+$/, '');
+            if (userInput) synoConfig.user = userInput.value.trim();
+            if (passInput) synoConfig.pass = passInput.value.trim();
+            if (autoCheck) synoConfig.autoSync = autoCheck.checked;
+
+            localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(synoConfig));
+            try {
+                if (window.DBStorage && typeof window.DBStorage.set === 'function') {
+                    window.DBStorage.set('sys_synology_config', synoConfig);
+                }
+            } catch(e) {}
+        }
+
+        async function loginSynology(host, user, pass) {
+            const authUrl = `${host}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${encodeURIComponent(user)}&passwd=${encodeURIComponent(pass)}&session=AudioStation&format=sid`;
+            const data = await callSynoApi(authUrl);
+
+            if (data && data.success && data.data && data.data.sid) {
+                synoConfig.sid = data.data.sid;
+                synoConfig.host = host;
+                synoConfig.user = user;
+                synoConfig.pass = pass;
+                localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(synoConfig));
+                return data.data.sid;
+            } else {
+                const code = data?.error?.code || 'Unknown';
+                let desc = `Mã lỗi ${code}`;
+                if (code === 400) desc = 'Sai tên tài khoản hoặc mật khẩu!';
+                if (code === 401) desc = 'Tài khoản không có quyền truy cập Audio Station!';
+                throw new Error(desc);
+            }
+        }
+
+        async function refreshSynologySession() {
+            try {
+                const sid = await loginSynology(synoConfig.host, synoConfig.user, synoConfig.pass);
+                console.log('[AppleMusic] Đã làm mới session Synology SID thành công:', sid.substring(0, 8) + '...');
+                return sid;
+            } catch(e) {
+                console.warn('[AppleMusic] Không thể làm mới session Synology:', e.message);
+                return null;
+            }
+        }
+
+        async function onAudioStreamError(e) {
+            console.warn('[AppleMusic] Gặp lỗi stream audio:', e);
+            const current = musicLibrary[currentTrackIndex];
+            if (current && current.source === 'synology') {
+                console.warn('[AppleMusic] Tự động làm mới token phiên Synology DSM...');
+                showToast('Đang khôi phục kết nối luồng nhạc Synology NAS...', 'info');
+                const newSid = await refreshSynologySession();
+                if (newSid) {
+                    // Cập nhật SID cho tất cả bài hát Synology trong thư viện
+                    musicLibrary.forEach(t => {
+                        if (t.source === 'synology' && t.url) {
+                            t.url = t.url.replace(/_sid=[^&]+/, `_sid=${encodeURIComponent(newSid)}`);
+                            if (t.cover) {
+                                t.cover = t.cover.replace(/_sid=[^&]+/, `_sid=${encodeURIComponent(newSid)}`);
+                            }
+                        }
+                    });
+                    saveLibraryToStorage();
+
+                    const newUrl = current.url;
+                    audio.src = newUrl;
+                    audio.play().then(() => {
+                        updatePlayStateUI(true);
+                        showToast('Đã kết nối lại NAS và tiếp tục phát nhạc!', 'success');
+                    }).catch(err => {
+                        console.error('[AppleMusic] Lỗi phát sau khi đổi SID:', err);
+                    });
+                } else {
+                    showToast('Không thể kết nối Synology NAS. Vui lòng kiểm tra mạng hoặc mật khẩu!', 'error');
+                }
+            } else {
+                showToast('Không thể phát bài hát này. Nguồn nhạc có thể không khả dụng.', 'error');
+            }
+        }
+
+        // =========================================================================
+        // 2-WAY DIFFERENTIAL SYNC ENGINE (ĐỒNG BỘ HAI CHIỀU TỰ ĐỘNG VỚI NAS)
+        // =========================================================================
+        async function triggerSynologyQuickSync() {
+            await syncWithSynologyNas(false);
+        }
+
+        async function startSynologyFullSync() {
+            saveSynologyConfigToStorage();
+            await syncWithSynologyNas(false);
+        }
+
+        async function syncWithSynologyNas(silent = false) {
+            const host = synoConfig.host || DEFAULT_SYNO_CONFIG.host;
+            const user = synoConfig.user || DEFAULT_SYNO_CONFIG.user;
+            const pass = synoConfig.pass || DEFAULT_SYNO_CONFIG.pass;
+
+            const headerIcon = document.getElementById('headerSyncIcon');
+            const progressWrap = document.getElementById('synoSyncProgress');
+            const bar = document.getElementById('synoSyncProgressBar');
+            const statusEl = document.getElementById('synoSyncStatusText');
+            const countEl = document.getElementById('synoSyncCountText');
+
+            if (headerIcon) headerIcon.classList.add('fa-spin');
+            if (!silent && progressWrap) {
+                progressWrap.style.display = 'block';
+                if (bar) bar.style.width = '15%';
+                if (countEl) countEl.innerText = '15%';
+                if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đăng nhập Synology DSM...';
+            }
+
+            try {
+                // 1. Đăng nhập lấy SID
+                const sid = await loginSynology(host, user, pass);
+
+                if (!silent && bar) {
+                    bar.style.width = '40%';
+                    if (countEl) countEl.innerText = '40%';
+                    if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang quét bài hát từ Audio Station...';
+                }
+
+                // 2. Quét bài hát (tối đa 5000 bài)
+                const songsUrl = `${host}/webapi/AudioStation/song.cgi?api=SYNO.AudioStation.Song&version=3&method=list&limit=5000&additional=song_tag,song_audio&_sid=${encodeURIComponent(sid)}`;
+                const songsData = await callSynoApi(songsUrl);
+                const rawSongs = songsData?.data?.songs || [];
+
+                if (!silent && bar) {
+                    bar.style.width = '70%';
+                    if (countEl) countEl.innerText = '70%';
+                    if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang quét Album và Playlists...';
+                }
+
+                // 3. Quét Albums
+                let rawAlbums = [];
+                try {
+                    const albumsUrl = `${host}/webapi/AudioStation/album.cgi?api=SYNO.AudioStation.Album&version=3&method=list&limit=1000&_sid=${encodeURIComponent(sid)}`;
+                    const albumsData = await callSynoApi(albumsUrl);
+                    rawAlbums = albumsData?.data?.albums || [];
+                } catch(e) {}
+
+                // 4. Quét Playlists
+                let mappedPlaylists = [];
+                try {
+                    const playlistsUrl = `${host}/webapi/AudioStation/playlist.cgi?api=SYNO.AudioStation.Playlist&version=3&method=list&limit=100&_sid=${encodeURIComponent(sid)}`;
+                    const playlistsData = await callSynoApi(playlistsUrl);
+                    const rawPlaylists = playlistsData?.data?.playlists || [];
+
+                    for (const pl of rawPlaylists) {
+                        try {
+                            const plDetailUrl = `${host}/webapi/AudioStation/playlist.cgi?api=SYNO.AudioStation.Playlist&version=3&method=getinfo&id=${encodeURIComponent(pl.id)}&limit=1000&_sid=${encodeURIComponent(sid)}`;
+                            const plDetailData = await callSynoApi(plDetailUrl);
+                            const plSongs = plDetailData?.data?.playlists?.[0]?.additional?.songs || [];
+                            mappedPlaylists.push({
+                                id: pl.id,
+                                name: pl.name,
+                                songIds: plSongs.map(s => 'syno-' + s.id),
+                                trackCount: plSongs.length
+                            });
+                        } catch(e) {
+                            mappedPlaylists.push({
+                                id: pl.id,
+                                name: pl.name,
+                                songIds: [],
+                                trackCount: 0
+                            });
+                        }
+                    }
+                } catch(e) {}
+
+                // 5. DIFFERENTIAL RECONCILIATION (ĐỐI SOÁT THÊM / XÓA BÀI HÁT TỰ ĐỘNG)
+                const nasSongsMap = new Map();
+                rawSongs.forEach(song => {
+                    const durSec = song.additional?.song_audio?.duration || 0;
+                    const min = Math.floor(durSec / 60);
+                    const sec = Math.floor(durSec % 60);
+                    const durStr = durSec > 0 ? `${min}:${sec < 10 ? '0' : ''}${sec}` : '--:--';
+
+                    const streamUrl = `${host}/webapi/AudioStation/stream.cgi?api=SYNO.AudioStation.Stream&version=2&method=stream&id=${song.id}&_sid=${encodeURIComponent(sid)}`;
+                    const coverUrl = `${host}/webapi/AudioStation/cover.cgi?api=SYNO.AudioStation.Cover&version=1&method=getcover&id=${song.id}&_sid=${encodeURIComponent(sid)}`;
+
+                    // Chuẩn hóa tên bài và ca sĩ từ path hoặc tag
+                    let title = song.title || '';
+                    let artist = song.artist || song.additional?.song_tag?.artist || 'Nhiều nghệ sĩ';
+                    let album = song.album || song.additional?.song_tag?.album || 'Single';
+
+                    if (song.path) {
+                        const filename = song.path.split('/').pop().replace(/\.[^/.]+$/, '');
+                        const clean = filename.replace(/\s*\[.*\]\s*$/, '').replace(/\s*\(.*\)\s*$/, '').trim();
+                        if (clean.includes(' - ')) {
+                            const parts = clean.split(' - ');
+                            if (!title || title.toLowerCase().includes('album') || title === clean) {
+                                title = parts[0].trim();
+                                if (!artist || artist === 'Nhiều nghệ sĩ' || artist.toLowerCase().includes('album')) {
+                                    artist = parts[1].trim();
+                                }
+                            }
+                        } else if (!title) {
+                            title = clean;
+                        }
+                    }
+
+                    nasSongsMap.set(song.id, {
+                        id: 'syno-' + song.id,
+                        synoSongId: song.id,
+                        title: title || `Bài hát ${song.id}`,
+                        artist: artist || 'Synology NAS',
+                        album: album || 'Synology Music',
+                        duration: durStr,
+                        durationSec: durSec,
+                        source: 'synology',
+                        url: streamUrl,
+                        cover: coverUrl,
+                        path: song.path || ''
+                    });
+                });
+
+                // A. Lọc bỏ các bài thuộc Synology nhưng đã bị xóa khỏi NAS
+                let removedCount = 0;
+                const reconciledList = musicLibrary.filter(track => {
+                    if (track.source !== 'synology') return true; // Giữ lại G-Drive và local
+                    const existsOnNas = nasSongsMap.has(track.synoSongId);
+                    if (!existsOnNas) removedCount++;
+                    return existsOnNas;
+                });
+
+                // B. Cập nhật bài cũ & Thêm bài mới từ NAS
+                const existingSynoIds = new Set();
+                reconciledList.forEach(track => {
+                    if (track.source === 'synology' && nasSongsMap.has(track.synoSongId)) {
+                        existingSynoIds.add(track.synoSongId);
+                        const fresh = nasSongsMap.get(track.synoSongId);
+                        // Cập nhật link stream mới nhất kèm SID
+                        track.url = fresh.url;
+                        track.cover = fresh.cover;
+                        if (!track.title || track.title.startsWith('Track ') || track.title.startsWith('Bài hát ')) {
+                            track.title = fresh.title;
+                        }
+                        if (!track.artist) track.artist = fresh.artist;
+                    }
+                });
+
+                let addedCount = 0;
+                nasSongsMap.forEach((freshTrack, synoId) => {
+                    if (!existingSynoIds.has(synoId)) {
+                        reconciledList.push(freshTrack);
+                        addedCount++;
+                    }
+                });
+
+                // Cập nhật State
+                musicLibrary = reconciledList;
+                if (rawAlbums.length > 0) {
+                    synoAlbums = rawAlbums.map(a => ({
+                        name: a.name,
+                        artist: a.artist || 'Nhiều nghệ sĩ',
+                        cleanName: a.name.replace(/^\d+\.\s*/, '').trim()
+                    }));
+                }
+                if (mappedPlaylists.length > 0) {
+                    synoPlaylists = mappedPlaylists;
+                }
+
+                // Lưu vào LocalStorage & Supabase REST
+                saveLibraryToStorage();
+
+                // Cập nhật giao diện
+                renderTrackTable();
+                renderAlbumGrid();
+                renderPlaylistGrid();
+                updateAllBadges();
+
+                if (!silent && bar) {
+                    bar.style.width = '100%';
+                    if (countEl) countEl.innerText = '100%';
+                    if (statusEl) statusEl.innerHTML = `<span style="color:#10b981;"><i class="fa-solid fa-circle-check"></i> Đã đồng bộ ${rawSongs.length} bài hát, ${synoAlbums.length} album!</span>`;
+                }
+
+                showToast(`Đồng bộ NAS hoàn tất! Tổng cộng: ${rawSongs.length} bài hát (${addedCount > 0 ? `+${addedCount} mới` : ''}${removedCount > 0 ? `, -${removedCount} đã xóa` : ''}), ${synoAlbums.length} album, ${synoPlaylists.length} playlist.`, 'success');
+
+                if (!silent) {
+                    setTimeout(() => {
+                        closeAddMusicModal();
+                    }, 400);
+                }
+
+            } catch(err) {
+                console.error('[Synology Sync Error]', err);
+                if (!silent) {
+                    if (statusEl) statusEl.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi: ${err.message}</span>`;
+                    showToast(`Lỗi đồng bộ Synology: ${err.message}`, 'error');
+                }
+            } finally {
+                if (headerIcon) headerIcon.classList.remove('fa-spin');
+            }
+        }
+
+        async function testSynologyConnection() {
+            saveSynologyConfigToStorage();
+            const host = synoConfig.host;
+            const user = synoConfig.user;
+            const pass = synoConfig.pass;
+
+            if (!host || !user || !pass) {
+                alert('⚠️ Vui lòng nhập đầy đủ Host Synology, User và Mật khẩu!');
+                return;
+            }
+
+            const statusEl = document.getElementById('synoSyncStatusText');
+            const progressWrap = document.getElementById('synoSyncProgress');
+            const bar = document.getElementById('synoSyncProgressBar');
+            const countEl = document.getElementById('synoSyncCountText');
+
+            if (progressWrap) progressWrap.style.display = 'block';
+            if (bar) bar.style.width = '40%';
+            if (countEl) countEl.innerText = 'Kiểm tra...';
+            if (statusEl) statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực với DSM...';
+
+            try {
+                const sid = await loginSynology(host, user, pass);
+                if (bar) bar.style.width = '100%';
+                if (countEl) countEl.innerText = 'OK';
+                if (statusEl) statusEl.innerHTML = '<span style="color:#10b981;"><i class="fa-solid fa-circle-check"></i> Kết nối thành công! Phiên hợp lệ.</span>';
+                showToast(`Kết nối Synology thành công (SID: ${sid.substring(0, 8)}...)`, 'success');
+            } catch(e) {
+                if (bar) bar.style.width = '0%';
+                if (countEl) countEl.innerText = 'Lỗi';
+                if (statusEl) statusEl.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ${e.message}</span>`;
+                showToast(`Kết nối thất bại: ${e.message}`, 'error');
+            }
+        }
+
+        // =========================================================================
+        // RENDERING VIEWS: TRACKS, ALBUMS & PLAYLISTS
+        // =========================================================================
+        function renderTrackTable(filteredList = null) {
+            const tbody = document.getElementById('trackTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const list = filteredList !== null ? filteredList : getFilteredTracks();
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:36px; color:#64748b; font-style:italic;">Không tìm thấy bài hát nào trong mục này.</td></tr>`;
+                return;
+            }
+
+            list.forEach((track, idx) => {
+                const isCurrent = (musicLibrary[currentTrackIndex] && musicLibrary[currentTrackIndex].id === track.id);
+                const tr = document.createElement('tr');
+                tr.className = `track-row ${isCurrent ? 'active' : ''}`;
+                tr.onclick = () => selectAndPlayTrack(track.id);
+
+                let sourceBadge = '';
+                if (track.source === 'gdrive') sourceBadge = `<span class="source-tag source-gdrive"><i class="fa-brands fa-google-drive"></i> G-Drive</span>`;
+                else if (track.source === 'synology') sourceBadge = `<span class="source-tag source-synology" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3);"><i class="fa-solid fa-server"></i> Synology</span>`;
+                else sourceBadge = `<span class="source-tag source-local"><i class="fa-solid fa-hard-drive"></i> Local</span>`;
+
+                tr.innerHTML = `
+                    <td class="track-index">
+                        <span class="track-index-num">${idx + 1}</span>
+                        <i class="fa-solid ${isCurrent && isPlaying ? 'fa-pause' : 'fa-play'} track-index-play" style="display:none; cursor:pointer;"></i>
+                    </td>
+                    <td>
+                        <div class="track-info-cell">
+                            <div class="track-cover" style="background-image: url('${track.cover || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150'}');"></div>
+                            <div>
+                                <div class="track-name">${escapeHtml(track.title)}</div>
+                                <div class="track-artist">${escapeHtml(track.artist || 'Nghệ sĩ chưa rõ')}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:#94a3b8; font-size:0.82rem;">${escapeHtml(track.album || 'Single')}</td>
+                    <td>${sourceBadge}</td>
+                    <td style="text-align:right; font-family:ui-monospace, monospace; color:#94a3b8; font-size:12px;">${track.duration || '--:--'}</td>
+                    <td style="text-align:center;" onclick="event.stopPropagation()">
+                        <div style="display:inline-flex; gap:6px;">
+                            <button class="btn btn-outline btn-sm" style="padding:4px 8px; font-size:11px;" onclick="toggleFavorite('${track.id}')" title="Yêu thích">
+                                <i class="${favorites.includes(track.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}" style="color:${favorites.includes(track.id) ? '#ec4899' : '#94a3b8'};"></i>
+                            </button>
+                            <button class="btn btn-outline btn-sm" style="padding:4px 8px; font-size:11px; color:#ef4444;" onclick="deleteTrack('${track.id}')" title="Xóa khỏi thư viện">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderAlbumGrid() {
+            const grid = document.getElementById('viewAlbumsContainer');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            // Group bài hát theo Album
+            const albumsMap = {};
+            musicLibrary.forEach(t => {
+                const albName = t.album || 'Single Tracks';
+                if (!albumsMap[albName]) {
+                    albumsMap[albName] = {
+                        name: albName,
+                        artist: t.artist,
+                        cover: t.cover,
+                        tracks: []
+                    };
+                }
+                albumsMap[albName].tracks.push(t);
+            });
+
+            // Nếu synoAlbums có thêm album mà chưa có bài thì vẫn hiển thị
+            synoAlbums.forEach(a => {
+                const name = a.cleanName || a.name;
+                if (!albumsMap[name]) {
+                    albumsMap[name] = {
+                        name: name,
+                        artist: a.artist || 'Synology NAS',
+                        cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400',
+                        tracks: musicLibrary.filter(t => (t.album || '').toLowerCase() === name.toLowerCase())
+                    };
+                }
+            });
+
+            const albumList = Object.values(albumsMap);
+            if (albumList.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b; font-style:italic;">Chưa có Album nào. Hãy bấm "Đồng Bộ NAS" để tải về.</div>`;
+                return;
+            }
+
+            albumList.forEach(album => {
+                const card = document.createElement('div');
+                card.className = 'album-card';
+                card.onclick = () => openDetailModal('album', album.name, album);
+
+                card.innerHTML = `
+                    <div class="album-art-wrap">
+                        <div class="album-art" style="background-image: url('${album.cover || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'}');"></div>
+                        <div class="album-card-play"><i class="fa-solid fa-play"></i></div>
+                    </div>
+                    <div class="album-title">${escapeHtml(album.name)}</div>
+                    <div class="album-subtitle">${escapeHtml(album.artist)} • ${album.tracks.length} bài hát</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderPlaylistGrid() {
+            const grid = document.getElementById('viewPlaylistsContainer');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (synoPlaylists.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b; font-style:italic;">Chưa có Playlist nào trên Synology NAS. Bấm "Đồng Bộ NAS" để cập nhật.</div>`;
+                return;
+            }
+
+            synoPlaylists.forEach(pl => {
+                const card = document.createElement('div');
+                card.className = 'album-card';
+                card.onclick = () => openDetailModal('playlist', pl.id, pl);
+
+                // Tìm bài đầu tiên để lấy cover
+                let coverImg = 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=400';
+                if (pl.songIds && pl.songIds.length > 0) {
+                    const firstTrack = musicLibrary.find(t => t.id === pl.songIds[0] || t.synoSongId === pl.songIds[0]);
+                    if (firstTrack && firstTrack.cover) coverImg = firstTrack.cover;
+                }
+
+                card.innerHTML = `
+                    <div class="album-art-wrap">
+                        <div class="album-art" style="background-image: url('${coverImg}');"></div>
+                        <div class="album-card-play"><i class="fa-solid fa-play"></i></div>
+                    </div>
+                    <div class="album-title">${escapeHtml(pl.name)}</div>
+                    <div class="album-subtitle">Synology Playlist • ${pl.trackCount || pl.songIds?.length || 0} bài hát</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function getFilteredTracks() {
+            if (currentFilter === 'favorites') {
+                return musicLibrary.filter(t => favorites.includes(t.id));
+            }
+            if (currentFilter === 'gdrive') {
+                return musicLibrary.filter(t => t.source === 'gdrive');
+            }
+            if (currentFilter === 'synology') {
+                return musicLibrary.filter(t => t.source === 'synology');
+            }
+            if (currentFilter === 'local') {
+                return musicLibrary.filter(t => t.source === 'local');
+            }
+            return musicLibrary;
+        }
+
+        function switchMusicCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+
+            if (cat === 'all') {
+                document.getElementById('sidebarBtnAll')?.classList.add('active');
+                switchViewMode('tracks');
+            } else if (cat === 'favorites') {
+                document.getElementById('sidebarBtnFavorites')?.classList.add('active');
+                switchViewMode('tracks');
+            } else if (cat === 'albums') {
+                document.getElementById('sidebarBtnAlbums')?.classList.add('active');
+                switchViewMode('albums');
+            } else if (cat === 'playlists') {
+                document.getElementById('sidebarBtnPlaylists')?.classList.add('active');
+                switchViewMode('playlists');
+            }
+            renderTrackTable();
+        }
+
+        function filterBySource(source) {
+            currentFilter = source;
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            if (source === 'synology') document.getElementById('sidebarBtnSyno')?.classList.add('active');
+            else if (source === 'gdrive') document.getElementById('sidebarBtnGdrive')?.classList.add('active');
+            else if (source === 'local') document.getElementById('sidebarBtnLocal')?.classList.add('active');
+
+            switchViewMode('tracks');
+            renderTrackTable();
+        }
+
+        function filterMusicTracks(query) {
+            const q = (query || '').toLowerCase().trim();
+            if (!q) {
+                renderTrackTable();
+                return;
+            }
+            const filtered = musicLibrary.filter(t =>
+                (t.title || '').toLowerCase().includes(q) ||
+                (t.artist || '').toLowerCase().includes(q) ||
+                (t.album || '').toLowerCase().includes(q)
+            );
+            renderTrackTable(filtered);
+        }
+
+        function switchViewMode(mode) {
+            currentViewMode = mode;
+            document.getElementById('tabBtnTracks')?.classList.toggle('active', mode === 'tracks');
+            document.getElementById('tabBtnAlbums')?.classList.toggle('active', mode === 'albums');
+            document.getElementById('tabBtnPlaylists')?.classList.toggle('active', mode === 'playlists');
+
+            document.getElementById('viewTracksContainer').style.display = (mode === 'tracks' ? 'block' : 'none');
+            document.getElementById('viewAlbumsContainer').style.display = (mode === 'albums' ? 'grid' : 'none');
+            document.getElementById('viewPlaylistsContainer').style.display = (mode === 'playlists' ? 'grid' : 'none');
+        }
+
+        // =========================================================================
+        // DETAIL MODAL (ALBUM / PLAYLIST SHEET)
+        // =========================================================================
+        function openDetailModal(type, titleOrId, obj = null) {
+            let title = '';
+            let artist = '';
+            let cover = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400';
+            let tracks = [];
+
+            if (type === 'album') {
+                title = titleOrId;
+                tracks = musicLibrary.filter(t => (t.album || '').toLowerCase() === title.toLowerCase());
+                artist = tracks.length > 0 ? (tracks[0].artist || 'Nhiều nghệ sĩ') : (obj?.artist || 'Synology NAS');
+                if (tracks.length > 0 && tracks[0].cover) cover = tracks[0].cover;
+                document.getElementById('detailType').innerText = 'ALBUM';
+            } else if (type === 'playlist') {
+                const pl = obj || synoPlaylists.find(p => p.id === titleOrId);
+                title = pl ? pl.name : 'Playlist NAS';
+                artist = 'Synology Audio Station';
+                if (pl && pl.songIds) {
+                    tracks = pl.songIds.map(id => musicLibrary.find(t => t.id === id || t.synoSongId === id)).filter(Boolean);
+                }
+                if (tracks.length > 0 && tracks[0].cover) cover = tracks[0].cover;
+                document.getElementById('detailType').innerText = 'PLAYLIST';
+            }
+
+            activeDetailItems = tracks;
+
+            document.getElementById('detailTitle').innerText = title;
+            document.getElementById('detailArtist').innerText = `${artist} • ${tracks.length} bài hát`;
+            document.getElementById('detailCover').style.backgroundImage = `url('${cover}')`;
+
+            const listEl = document.getElementById('detailTracklist');
+            listEl.innerHTML = '';
+
+            if (tracks.length === 0) {
+                listEl.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b; font-style:italic;">Không tìm thấy bài hát nào trong tuyển tập này.</div>`;
+            } else {
+                tracks.forEach((t, i) => {
+                    const row = document.createElement('div');
+                    const isCurrent = (musicLibrary[currentTrackIndex] && musicLibrary[currentTrackIndex].id === t.id);
+                    row.className = `album-detail-row ${isCurrent ? 'active' : ''}`;
+                    row.onclick = () => {
+                        selectAndPlayTrack(t.id);
+                        closeDetailModal();
+                    };
+                    row.innerHTML = `
+                        <div class="album-detail-num">${i + 1}</div>
+                        <div class="album-detail-tname">${escapeHtml(t.title)} <span style="font-size:11px; color:#94a3b8; font-weight:normal;">• ${escapeHtml(t.artist)}</span></div>
+                        <div class="album-detail-dur">${t.duration || '--:--'}</div>
+                    `;
+                    listEl.appendChild(row);
+                });
+            }
+
+            document.getElementById('detailModal').classList.add('show');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        function playAllDetailTracks() {
+            if (activeDetailItems.length === 0) return;
+            selectAndPlayTrack(activeDetailItems[0].id);
+            closeDetailModal();
+            showToast(`Đang phát: ${activeDetailItems.length} bài hát`, 'success');
+        }
+
+        // =========================================================================
+        // PLAYBACK ENGINE (DIRECT HARDWARE AUDIO PIPELINE)
+        // =========================================================================
+        function selectAndPlayTrack(trackId) {
+            const idx = musicLibrary.findIndex(t => t.id === trackId);
+            if (idx === -1) return;
+
+            currentTrackIndex = idx;
+            loadTrackAndPlay(musicLibrary[idx]);
+        }
+
+        function loadTrackAndPlay(track) {
+            if (!track) return;
+
+            let streamUrl = track.url;
+            if (track.source === 'gdrive' && track.gdriveId) {
+                streamUrl = `https://docs.google.com/uc?export=open&id=${track.gdriveId}`;
+            }
+
+            // Đảm bảo không bị mute và âm lượng tối thiểu 85%
+            audio.muted = false;
+            if (!audio.volume || audio.volume <= 0) {
+                audio.volume = 0.85;
+                const volSlider = document.getElementById('volSlider');
+                if (volSlider) volSlider.value = 85;
+            }
+
+            audio.src = streamUrl;
+            audio.play().then(() => {
+                isPlaying = true;
+                updatePlayStateUI(true);
+            }).catch(e => {
+                console.warn('[AppleMusic] Autoplay bị chặn hoặc stream cần refresh:', e.message);
+                isPlaying = false;
+                updatePlayStateUI(false);
+            });
+
+            // Update Player Bar UI
+            document.getElementById('playerTitle').innerText = track.title;
+            document.getElementById('playerArtist').innerText = track.artist || 'Nghệ sĩ chưa rõ';
+            document.getElementById('heroTrackTitle').innerText = `${track.title} • ${track.artist}`;
+            document.getElementById('playerThumb').style.backgroundImage = `url('${track.cover || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300'}')`;
+
+            updateFavoriteIcon();
+            renderLyrics(track.lyrics || []);
+            renderTrackTable();
+
+            // Broadcast to parent dashboard window / Dynamic Island
+            try {
+                const bc = new BroadcastChannel('system_music_broadcast');
+                bc.postMessage({
+                    type: 'MUSIC_PLAYING',
+                    track: {
+                        title: track.title,
+                        artist: track.artist,
+                        cover: track.cover,
+                        isPlaying: true
+                    }
+                });
+            } catch(e) {}
+        }
+
+        function togglePlayPause() {
+            if (!audio.src || audio.src === window.location.href) {
+                if (musicLibrary.length > 0) {
+                    selectAndPlayTrack(musicLibrary[0].id);
+                }
+                return;
+            }
+
+            // Đảm bảo không bị mute
+            audio.muted = false;
+            if (!audio.volume || audio.volume <= 0) {
+                audio.volume = 0.85;
+                const volSlider = document.getElementById('volSlider');
+                if (volSlider) volSlider.value = 85;
+            }
+
+            if (audio.paused) {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updatePlayStateUI(true);
+                }).catch(err => {
+                    console.warn('[AppleMusic] Không thể play:', err);
+                });
+            } else {
+                audio.pause();
+                isPlaying = false;
+                updatePlayStateUI(false);
+            }
+        }
+
+        function updatePlayStateUI(playing) {
+            isPlaying = playing;
+            const btn = document.getElementById('btnMainPlay');
+            const bar = document.getElementById('musicPlayerBar');
+            if (btn) btn.innerHTML = `<i class="fa-solid ${playing ? 'fa-pause' : 'fa-play'}"></i>`;
+            if (bar) bar.classList.toggle('is-playing', playing);
+        }
+
+        function playNextTrack() {
+            if (!musicLibrary.length) return;
+            if (isShuffle) {
+                currentTrackIndex = Math.floor(Math.random() * musicLibrary.length);
+            } else {
+                currentTrackIndex = (currentTrackIndex + 1) % musicLibrary.length;
+            }
+            loadTrackAndPlay(musicLibrary[currentTrackIndex]);
+        }
+
+        function playPrevTrack() {
+            if (!musicLibrary.length) return;
+            if (audio.currentTime > 3) {
+                audio.currentTime = 0;
+                return;
+            }
+            currentTrackIndex = (currentTrackIndex - 1 + musicLibrary.length) % musicLibrary.length;
+            loadTrackAndPlay(musicLibrary[currentTrackIndex]);
+        }
+
+        function playRandomTrack() {
+            if (!musicLibrary.length) return;
+            currentTrackIndex = Math.floor(Math.random() * musicLibrary.length);
+            loadTrackAndPlay(musicLibrary[currentTrackIndex]);
+        }
+
+        function onAudioEnded() {
+            if (repeatMode === 2) {
+                audio.currentTime = 0;
+                audio.play();
+            } else if (repeatMode === 1 || currentTrackIndex < musicLibrary.length - 1) {
+                playNextTrack();
+            } else {
+                updatePlayStateUI(false);
+            }
+        }
+
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            const btn = document.getElementById('btnShuffle');
+            if (btn) btn.classList.toggle('active', isShuffle);
+        }
+
+        function toggleRepeat() {
+            repeatMode = (repeatMode + 1) % 3;
+            const btn = document.getElementById('btnRepeat');
+            if (!btn) return;
+            if (repeatMode === 0) {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+            } else if (repeatMode === 1) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+            } else {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-repeat-1"></i>';
+            }
+        }
+
+        // =========================================================================
+        // PROGRESS & VOLUME
+        // =========================================================================
+        function onAudioTimeUpdate() {
+            const cur = audio.currentTime || 0;
+            const dur = audio.duration || 1;
+            const pct = (cur / dur) * 100;
+
+            const slider = document.getElementById('seekSlider');
+            if (slider && !slider.matches(':active')) {
+                slider.value = pct;
+            }
+            document.getElementById('curTimeText').innerText = formatDuration(cur);
+            highlightActiveLyrics(cur);
+        }
+
+        function onSeekChange(val) {
+            const dur = audio.duration || 1;
+            audio.currentTime = (val / 100) * dur;
+        }
+
+        function onVolumeChange(val) {
+            const vol = val / 100;
+            audio.volume = vol;
+            localStorage.setItem('sys_music_volume', val);
+            const btn = document.getElementById('btnMute');
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid ${vol === 0 ? 'fa-volume-xmark' : (vol < 0.5 ? 'fa-volume-low' : 'fa-volume-high')}"></i>`;
+            }
+        }
+
+        function toggleMute() {
+            if (audio.volume > 0) {
+                audio.dataset.prevVol = audio.volume;
+                audio.volume = 0;
+                document.getElementById('volSlider').value = 0;
+            } else {
+                const prev = parseFloat(audio.dataset.prevVol || 0.85);
+                audio.volume = prev;
+                document.getElementById('volSlider').value = prev * 100;
+            }
+            onVolumeChange(audio.volume * 100);
+        }
+
+        function formatDuration(sec) {
+            if (!sec || isNaN(sec)) return '0:00';
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // =========================================================================
+        // SYNCED LYRICS (KARAOKE)
+        // =========================================================================
+        let currentLyricsList = [];
+
+        function toggleLyricsView() {
+            const el = document.getElementById('lyricsContainer');
+            if (!el) return;
+            const isShown = el.classList.toggle('show');
+            const btn = document.getElementById('btnLyricsView');
+            if (btn) btn.classList.toggle('active', isShown);
+        }
+
+        function renderLyrics(lyrics) {
+            currentLyricsList = lyrics || [];
+            const area = document.getElementById('lyricsContentArea');
+            if (!area) return;
+            area.innerHTML = '';
+
+            if (!currentLyricsList.length) {
+                area.innerHTML = `
+                    <div style="color:rgba(255,255,255,0.4); font-size:1.1rem; padding:40px;">
+                        <i class="fa-solid fa-music" style="font-size:32px; margin-bottom:12px; display:block;"></i>
+                        Chưa có lời bài hát đồng bộ cho bản nhạc này.
+                    </div>
+                `;
+                return;
+            }
+
+            currentLyricsList.forEach((line, i) => {
+                const div = document.createElement('div');
+                div.className = 'lyrics-line';
+                div.id = `lyric-line-${i}`;
+                div.innerText = line.text;
+                div.onclick = (e) => {
+                    e.stopPropagation();
+                    audio.currentTime = line.time;
+                };
+                area.appendChild(div);
+            });
+        }
+
+        function highlightActiveLyrics(curTime) {
+            if (!currentLyricsList.length) return;
+            let activeIdx = -1;
+            for (let i = 0; i < currentLyricsList.length; i++) {
+                if (curTime >= currentLyricsList[i].time) {
+                    activeIdx = i;
+                } else {
+                    break;
+                }
+            }
+
+            document.querySelectorAll('.lyrics-line').forEach(el => el.classList.remove('active'));
+            if (activeIdx !== -1) {
+                const activeEl = document.getElementById(`lyric-line-${activeIdx}`);
+                if (activeEl) {
+                    activeEl.classList.add('active');
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        // =========================================================================
+        // FAVORITES & TRACK MANAGEMENT
+        // =========================================================================
+        function toggleFavorite(id) {
+            if (favorites.includes(id)) {
+                favorites = favorites.filter(f => f !== id);
+            } else {
+                favorites.push(id);
+            }
+            localStorage.setItem(STORAGE_KEY_FAVORITES, JSON.stringify(favorites));
+            updateFavoriteIcon();
+            updateAllBadges();
+            renderTrackTable();
+        }
+
+        function toggleFavoriteCurrentTrack() {
+            const current = musicLibrary[currentTrackIndex];
+            if (current) toggleFavorite(current.id);
+        }
+
+        function updateFavoriteIcon() {
+            const current = musicLibrary[currentTrackIndex];
+            const btn = document.getElementById('btnFavoriteToggle');
+            if (!btn || !current) return;
+            const isFav = favorites.includes(current.id);
+            btn.innerHTML = `<i class="${isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}" style="color:${isFav ? '#ec4899' : '#94a3b8'};"></i>`;
+        }
+
+        function deleteTrack(id) {
+            if (!confirm('Xóa bài hát này khỏi danh sách phát?')) return;
+            musicLibrary = musicLibrary.filter(t => t.id !== id);
+            saveLibraryToStorage();
+            renderTrackTable();
+            renderAlbumGrid();
+            updateAllBadges();
+            showToast('Đã xóa bài hát khỏi danh sách', 'info');
+        }
+
+        // =========================================================================
+        // EQUALIZER CONTROLS
+        // =========================================================================
+        function openEqualizerModal() {
+            document.getElementById('eqModal').classList.add('show');
+        }
+        function closeEqualizerModal() {
+            document.getElementById('eqModal').classList.remove('show');
+        }
+
+        function updateEqGain(bandIdx, val) {
+            if (eqBands[bandIdx]) {
+                eqBands[bandIdx].gain.value = parseFloat(val);
+            }
+        }
+
+        function applyEqPreset(preset) {
+            const presets = {
+                flat: [0, 0, 0, 0, 0],
+                bass: [7, 4, 1, 0, 0],
+                vocal: [-2, 1, 5, 3, 1],
+                acoustic: [4, 2, 2, 4, 3],
+                electronic: [6, 4, 0, 3, 5]
+            };
+            const vals = presets[preset] || presets.flat;
+            const ids = ['eqBand60', 'eqBand230', 'eqBand910', 'eqBand4k', 'eqBand14k'];
+            vals.forEach((v, i) => {
+                document.getElementById(ids[i]).value = v;
+                updateEqGain(i, v);
+            });
+        }
+
+        function resetEq() {
+            document.getElementById('eqPresetSelect').value = 'flat';
+            applyEqPreset('flat');
+        }
+
+        // =========================================================================
+        // ADD MUSIC MODAL
+        // =========================================================================
+        function openAddMusicModal() {
+            loadSavedSynologyConfig();
+            document.getElementById('addMusicModal').classList.add('show');
+        }
+        function closeAddMusicModal() {
+            document.getElementById('addMusicModal').classList.remove('show');
+        }
+
+        function selectSourceTab(tab) {
+            currentActiveTab = tab;
+            document.querySelectorAll('.source-pill').forEach(p => p.classList.remove('active'));
+            document.getElementById('pill' + tab.charAt(0).toUpperCase() + tab.slice(1))?.classList.add('active');
+
+            document.getElementById('tabContentSynology').style.display = (tab === 'synology' ? 'block' : 'none');
+            document.getElementById('tabContentGdrive').style.display = (tab === 'gdrive' ? 'block' : 'none');
+            document.getElementById('tabContentLocal').style.display = (tab === 'local' ? 'block' : 'none');
+        }
+
+        function parseGoogleDriveId(input) {
+            if (!input) return null;
+            const trimmed = input.trim();
+            if (/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) return trimmed;
+            const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+            if (match1 && match1[1]) return match1[1];
+            const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (match2 && match2[1]) return match2[1];
+            return null;
+        }
+
+        function submitAddNewTrack() {
+            if (currentActiveTab === 'synology') {
+                startSynologyFullSync();
+            } else if (currentActiveTab === 'gdrive') {
+                const rawLink = document.getElementById('gdriveInput').value.trim();
+                const gdriveId = parseGoogleDriveId(rawLink);
+                if (!gdriveId) {
+                    alert('Vui lòng nhập đường link Google Drive hợp lệ hoặc File ID!');
+                    return;
+                }
+                const title = document.getElementById('gdriveTitle').value.trim() || 'Bản nhạc Google Drive';
+                const artist = document.getElementById('gdriveArtist').value.trim() || 'Google Drive Stream';
+
+                const newTrack = {
+                    id: 'gd-' + Date.now(),
+                    title: title,
+                    artist: artist,
+                    album: 'Google Drive Cloud',
+                    source: 'gdrive',
+                    gdriveId: gdriveId,
+                    url: `https://docs.google.com/uc?export=open&id=${gdriveId}`,
+                    duration: 'Stream',
+                    cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300'
+                };
+
+                musicLibrary.unshift(newTrack);
+                saveLibraryToStorage();
+                closeAddMusicModal();
+                renderTrackTable();
+                updateAllBadges();
+                selectAndPlayTrack(newTrack.id);
+                showToast(`Đã thêm: ${title}`, 'success');
+
+            } else if (currentActiveTab === 'local') {
+                const url = document.getElementById('directAudioUrl').value.trim();
+                if (!url) {
+                    alert('Vui lòng chọn file nhạc hoặc dán URL trực tiếp!');
+                    return;
+                }
+                const newTrack = {
+                    id: 'url-' + Date.now(),
+                    title: 'Bản nhạc trực tuyến',
+                    artist: 'Web Audio Stream',
+                    album: 'Online Stream',
+                    source: 'local',
+                    url: url,
+                    duration: 'Live',
+                    cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300'
+                };
+                musicLibrary.unshift(newTrack);
+                saveLibraryToStorage();
+                closeAddMusicModal();
+                renderTrackTable();
+                updateAllBadges();
+                selectAndPlayTrack(newTrack.id);
+            }
+        }
+
+        function handleLocalAudioPick(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                const name = file.name.replace(/\.[^/.]+$/, "") || 'Bản nhạc tải lên';
+                const newTrack = {
+                    id: 'local-' + Date.now(),
+                    title: name,
+                    artist: 'Tải lên từ máy',
+                    album: 'Thư viện cục bộ',
+                    source: 'local',
+                    url: dataUrl,
+                    duration: 'Đang đọc',
+                    cover: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300'
+                };
+
+                musicLibrary.unshift(newTrack);
+                saveLibraryToStorage();
+                closeAddMusicModal();
+                renderTrackTable();
+                updateAllBadges();
+                selectAndPlayTrack(newTrack.id);
+                showToast(`Đã tải lên: ${name}`, 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // =========================================================================
+        // UTILITIES & TOAST
+        // =========================================================================
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('musicToast');
+            const icon = document.getElementById('toastIcon');
+            const text = document.getElementById('toastText');
+            if (!toast) return;
+
+            text.innerText = msg;
+            if (type === 'success') {
+                icon.className = 'fa-solid fa-circle-check';
+                icon.style.color = '#10b981';
+            } else if (type === 'error') {
+                icon.className = 'fa-solid fa-triangle-exclamation';
+                icon.style.color = '#ef4444';
+            } else {
+                icon.className = 'fa-solid fa-circle-info';
+                icon.style.color = '#38bdf8';
+            }
+
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // =========================================================================
+        // MEDIA SESSION & SHORTCUTS
+        // =========================================================================
+        function setupMediaSession() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', () => togglePlayPause());
+                navigator.mediaSession.setActionHandler('pause', () => togglePlayPause());
+                navigator.mediaSession.setActionHandler('previoustrack', () => playPrevTrack());
+                navigator.mediaSession.setActionHandler('nexttrack', () => playNextTrack());
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayPause();
+            } else if (e.code === 'ArrowRight') {
+                audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5);
+            } else if (e.code === 'ArrowLeft') {
+                audio.currentTime = Math.max(0, audio.currentTime - 5);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', initMusicApp);
+    </script>
+</body>
+</html>

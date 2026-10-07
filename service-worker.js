@@ -3,7 +3,7 @@
  * Provides offline caching and fast performance
  */
 
-const CACHE_NAME = 'macos-dashboard-v29';
+const CACHE_NAME = 'macos-dashboard-v32';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -18,7 +18,8 @@ const STATIC_ASSETS = [
   './apps/lai-suat/index.html',
   './apps/ghi-chu/index.html',
   './apps/control-panel/index.html',
-  './apps/danh-ba/index.html'
+  './apps/danh-ba/index.html',
+  './apps/music/index.html'
 ];
 
 self.addEventListener('install', (event) => {

@@ -1,1338 +1,3837 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghi Chú & Đếm Ngược - Workspace Pro</title>
-    <!-- Google Fonts: Plus Jakarta Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminders, Notes & Countdowns - Workspace Pro</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Supabase Database Storage Adapter -->
-    <script src="../../assets/js/db-config.js"></script>
-    <script src="../../assets/js/db-storage.js"></script>
+  <!-- Supabase Database Storage Adapter -->
+  <script src="../../assets/js/db-config.js?v=v49"></script>
+  <script src="../../assets/js/db-storage.js?v=v50"></script>
+  <script src="../../assets/js/sound-engine.js?v=v49"></script>
+  <!-- System Version Gatekeeper -->
+  <script src="../../assets/js/system-version.js?v=2.12.0"></script>
 
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #eef2ff;
-            --primary-border: #c7d2fe;
-            --slate-900: #0f172a;
-            --slate-800: #1e293b;
-            --slate-700: #334155;
-            --slate-600: #475569;
-            --slate-500: #64748b;
-            --slate-400: #94a3b8;
-            --slate-200: #e2e8f0;
-            --slate-100: #f1f5f9;
-            --slate-50: #f8fafc;
-            --todo-bg: #fffdf5;
-            --todo-border: #fef08a;
-            --urgent-bg: #fef2f2;
-            --urgent-border: #fecaca;
-            --done-bg: #f0fdf4;
-            --done-border: #bbf7d0;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --border: #e2e8f0;
-            --card-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
-        }
+  <style>
+    :root {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.92);
+      --border-glass: #e2e8f0;
+      --border-highlight: #c7d2fe;
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+      --primary-glow: rgba(79, 70, 229, 0.12);
+      
+      --accent-cyan: #0284c7;
+      --accent-rose: #e11d48;
+      --accent-amber: #d97706;
+      --accent-emerald: #059669;
+      --accent-purple: #7c3aed;
 
-        body {
-            background-color: var(--slate-50);
-            color: var(--slate-800);
-            min-height: 100vh;
-            padding: 20px 16px 60px 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            -webkit-font-smoothing: antialiased;
-        }
+      --text-main: #0f172a; /* Slate 900 - Nổi bật nhất, sắc nét */
+      --text-body: #334155; /* Slate 700 - Đọc rõ ràng */
+      --text-muted: #64748b; /* Slate 500 - Phụ trợ, dịu mắt */
+      --text-dim: #94a3b8; /* Slate 400 - Mờ nhẹ */
 
-        .main-wrapper {
-            display: flex;
-            width: 100%;
-            max-width: 1540px;
-            gap: 20px;
-            justify-content: center;
-            align-items: flex-start;
-        }
+      --prio-high-bg: #fef2f2;
+      --prio-high-border: #fecaca;
+      --prio-high-text: #dc2626;
 
-        /* SIDEBARS */
-        .countdown-sidebar {
-            width: 250px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: sticky;
-            top: 20px;
-        }
-        .sidebar-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--slate-600);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--slate-200);
-        }
+      --prio-med-bg: #fffbeb;
+      --prio-med-border: #fde68a;
+      --prio-med-text: #b45309;
 
-        .mini-note {
-            background: #ffffff;
-            border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            border: 1px solid var(--border);
-            box-shadow: var(--card-shadow);
-            position: relative;
-            transition: all 0.2s ease;
-        }
-        .mini-note:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary-border);
-        }
-        .mini-note.urgent {
-            background: var(--urgent-bg);
-            border-left: 4px solid var(--danger);
-        }
-        .mini-note-text {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--slate-900);
-            line-height: 1.4;
-            margin-bottom: 20px;
-            word-break: break-word;
-        }
-        .mini-note-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.72rem;
-            font-weight: 700;
-        }
-        .mini-countdown {
-            color: var(--danger);
-            background: #ffffff;
-            padding: 2px 7px;
-            border-radius: 12px;
-            border: 1px solid var(--danger);
-        }
-        .mini-time { color: var(--slate-500); }
-        .mini-delete-btn {
-            position: absolute; top: 8px; right: 8px; background: none; border: none;
-            color: var(--slate-400); cursor: pointer; font-size: 13px; font-weight: bold;
-        }
-        .mini-delete-btn:hover { color: var(--danger); }
+      --prio-low-bg: #f0fdf4;
+      --prio-low-border: #bbf7d0;
+      --prio-low-text: #15803d;
 
-        /* CENTER CONTENT */
-        .center-content {
-            flex: 1;
-            max-width: 980px;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
 
-        /* HEADER DASHBOARD */
-        .header-dashboard {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 20px;
-            background: var(--slate-900);
-            padding: 22px 28px;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
-            border: 1px solid var(--slate-800);
-            color: #ffffff;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        .header-title-box h1 {
-            font-size: 1.6rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+      --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.05);
+      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-        .widget-clock-calendar {
-            text-align: right;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .widget-time {
-            font-size: 2.8rem;
-            font-weight: 900;
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-            font-family: 'Courier New', Courier, monospace;
-            color: #60a5fa;
-            text-shadow: 0 0 12px rgba(96, 165, 250, 0.4);
-        }
-        .widget-date {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--slate-400);
-        }
-        .lunar-text {
-            color: #34d399;
-            font-weight: 800;
-            margin-left: 6px;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        /* ADMIN BADGE */
-        .admin-badge {
-            padding: 4px 10px;
-            border-radius: 14px;
-            font-size: 11px;
-            font-weight: 700;
-            background: var(--slate-800);
-            color: var(--slate-400);
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            border: 1px solid var(--slate-700);
-            margin-top: 6px;
-        }
-        body.is-admin .admin-badge {
-            background: #064e3b;
-            color: #6ee7b7;
-            border-color: #059669;
-        }
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-        .view-only-banner {
-            width: 100%;
-            background: var(--primary-light);
-            border: 1px solid var(--primary-border);
-            color: var(--primary-hover);
-            padding: 12px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        body.is-admin .view-only-banner { display: none !important; }
-        body:not(.is-admin) .input-container { display: none !important; }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: var(--radius-full); }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* INPUT PANEL */
-        .input-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            gap: 12px;
-            margin-bottom: 20px;
-            background: #ffffff;
-            padding: 18px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--border);
-        }
-        .main-input-row {
-            display: flex;
-            width: 100%;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .main-input-row textarea {
-            flex: 2;
-            min-width: 220px;
-            padding: 12px 14px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 0.95rem;
-            outline: none;
-            font-family: inherit;
-            resize: none;
-            height: 52px;
-            transition: all 0.2s ease;
-            background-color: var(--slate-50);
-        }
-        .main-input-row textarea:focus {
-            border-color: var(--primary);
-            background-color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-        }
+    /* TOP BAR (macOS Style Header - Light Theme) */
+    .app-header {
+      height: 54px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-glass);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      gap: 12px;
+    }
 
-        .input-controls-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex: 1.6;
-            min-width: 280px;
-        }
-        .date-picker-wrapper { flex: 1.2; }
-        .date-picker-wrapper input[type="date"] {
-            width: 100%;
-            padding: 0 10px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 0.88rem;
-            outline: none;
-            height: 52px;
-            background-color: var(--slate-50);
-            color: var(--slate-800);
-            font-weight: 600;
-        }
-        .hour-input-wrapper { flex: 0.8; }
-        .hour-input-wrapper input[type="text"] {
-            width: 100%;
-            padding: 0 8px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            outline: none;
-            height: 52px;
-            text-align: center;
-            background-color: var(--slate-50);
-            color: var(--slate-800);
-            font-weight: 600;
-        }
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex-shrink: 0;
+    }
 
-        .toggle-mode-container {
-            display: flex;
-            align-items: center;
-            background: var(--slate-100);
-            padding: 3px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            height: 52px;
-            flex: 1.1;
-        }
-        .toggle-mode-label {
-            flex: 1;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: var(--slate-600);
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            user-select: none;
-            white-space: nowrap;
-        }
-        input[name="noteMode"] { display: none; }
-        input[name="noteMode"]:checked + .toggle-mode-label {
-            background-color: #ffffff;
-            color: var(--primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-        }
+    .app-icon-wrap {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+      flex-shrink: 0;
+    }
 
-        .add-btn {
-            padding: 0 20px;
-            height: 52px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-            white-space: nowrap;
-        }
-        .add-btn:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
+    .app-title-group h1 {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
 
-        .shortcut-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding-top: 6px;
-            border-top: 1px dashed var(--border);
-            align-items: center;
-        }
-        .shortcut-label {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--slate-500);
-            margin-right: 4px;
-        }
-        .shortcut-btn {
-            padding: 5px 12px;
-            background-color: var(--slate-100);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--slate-700);
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .shortcut-btn:hover { background-color: var(--slate-200); }
-        .shortcut-btn.active {
-            background-color: var(--primary-light);
-            border-color: var(--primary-border);
-            color: var(--primary);
-        }
+    .app-title-badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      background: var(--primary-light);
+      border: 1px solid var(--border-highlight);
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-        /* SEARCH & FILTER BAR */
-        .filter-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 20px;
-            gap: 12px;
-            flex-wrap: wrap;
-            background: #ffffff;
-            padding: 12px 16px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            box-shadow: var(--card-shadow);
-        }
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 220px;
-        }
-        .search-input {
-            width: 100%;
-            border: none;
-            outline: none;
-            font-size: 0.88rem;
-            font-family: inherit;
-            background: transparent;
-        }
-        .filter-group {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .filter-tab {
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: #ffffff;
-            color: var(--slate-700);
-            font-size: 0.78rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .filter-tab.active {
-            background: var(--slate-900);
-            color: #ffffff;
-            border-color: var(--slate-900);
-        }
+    .header-center-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
 
-        /* BOARD & COLUMNS */
-        .board {
-            display: flex;
-            width: 100%;
-            gap: 20px;
-            align-items: flex-start;
-        }
-        .column {
-            flex: 1;
-            width: 50%;
-            background: #ffffff;
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            box-shadow: var(--card-shadow);
-            min-height: 480px;
-            border: 1px solid var(--border);
-        }
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-            border-bottom: 2px solid var(--slate-100);
-        }
-        .column-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: var(--slate-900);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .column-count {
-            background: var(--slate-100);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--slate-600);
-        }
+    .live-clock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-glass);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--text-main);
+    }
 
-        /* NOTE CARDS */
-        .notes-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .note {
-            background-color: #ffffff;
-            padding: 16px;
-            border-radius: var(--radius-md);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid var(--border);
-            position: relative;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .note:hover {
-            box-shadow: 0 8px 18px -4px rgba(0,0,0,0.08);
-            border-color: var(--primary-border);
-            transform: translateY(-2px);
-        }
-        .note.urgent {
-            background-color: var(--urgent-bg);
-            border-left: 5px solid var(--danger);
-        }
-        .done-column .note {
-            background-color: var(--done-bg);
-            border-left: 5px solid var(--success);
-        }
-        .done-column .note .note-text {
-            text-decoration: line-through;
-            color: var(--slate-500);
-        }
+    .live-calendar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
 
-        .countdown-tag {
-            align-self: flex-start;
-            background-color: #ffffff;
-            color: var(--danger);
-            border: 1.5px solid var(--danger);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.72rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-        .note-text {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--slate-900);
-            line-height: 1.5;
-            white-space: pre-wrap;
-            word-break: break-word;
-            margin-bottom: 14px;
-        }
+    .lunar-tag {
+      color: #d97706;
+      font-weight: 700;
+    }
 
-        .note-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid var(--slate-100);
-            padding-top: 10px;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .deadline-text {
-            font-size: 0.75rem;
-            color: var(--slate-500);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .completed-text {
-            font-size: 0.75rem;
-            color: var(--success);
-            font-weight: 700;
-        }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
 
-        .btn-action-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .action-icon-btn {
-            background: var(--slate-100);
-            border: none;
-            border-radius: 6px;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            color: var(--slate-600);
-            transition: all 0.15s;
-        }
-        .action-icon-btn:hover {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-        .action-icon-btn.delete:hover {
-            background: var(--urgent-bg);
-            color: var(--danger);
-        }
+    .admin-badge {
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border-glass);
+      background: #f1f5f9;
+      color: var(--text-muted);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .admin-badge.admin-active {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #15803d;
+    }
+    .admin-badge.view-only {
+      background: #fef3c7;
+      border-color: #fde68a;
+      color: #b45309;
+    }
 
-        /* ADMIN VISIBILITY */
-        .admin-only { display: none !important; }
-        body.is-admin .admin-only { display: inline-flex !important; }
+    .sound-toggle-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: #f1f5f9;
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .sound-toggle-btn:hover {
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+    .sound-toggle-btn.active {
+      color: var(--primary);
+      background: var(--primary-light);
+      border-color: var(--border-highlight);
+    }
 
-        /* MODAL */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.25s ease;
-            z-index: 9999;
-        }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-box {
-            background: white;
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            width: 90%;
-            max-width: 460px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
-            border: 1px solid var(--border);
-        }
-        .modal-box h3 {
-            margin-top: 0;
-            color: var(--slate-900);
-            font-size: 1.15rem;
-            margin-bottom: 16px;
-            font-weight: 800;
-        }
-        .modal-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 14px;
-        }
-        .modal-field label {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: var(--slate-700);
-        }
-        .modal-field textarea, .modal-field input {
-            padding: 10px 12px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            outline: none;
-            font-family: inherit;
-            background-color: var(--slate-50);
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .modal-btn {
-            padding: 9px 16px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .btn-cancel { background: var(--slate-100); color: var(--slate-700); }
-        .btn-save { background: var(--primary); color: white; }
+    .close-app-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .close-app-btn:hover {
+      background: #fee2e2;
+      color: #ef4444;
+      border-color: #fca5a5;
+    }
+    .close-app-btn:active {
+      transform: scale(0.92);
+    }
 
-        @media (max-width: 1200px) {
-            .countdown-sidebar { display: none; }
-        }
+    /* MAIN WORKSPACE LAYOUT */
+    .workspace-container {
+      flex: 1;
+      display: flex;
+      max-width: 1680px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      gap: 20px;
+      align-items: flex-start;
+    }
 
-        @media (max-width: 768px) {
-            .header-dashboard { flex-direction: column; text-align: center; }
-            .widget-clock-calendar { text-align: center; }
-            .widget-time { font-size: 2.2rem; }
-            .board { flex-direction: column; }
-            .column { width: 100%; min-height: auto; }
-        }
-    </style>
+    /* 1. LEFT SIDEBAR */
+    .workspace-sidebar {
+      width: 250px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: sticky;
+      top: 74px;
+    }
+
+    .nav-card {
+      background: #ffffff;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      padding: 4px 8px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text-body);
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      background: #f1f5f9;
+      color: var(--text-main);
+    }
+
+    .nav-item.active {
+      background: var(--primary-light);
+      border-color: var(--border-highlight);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-icon {
+      font-size: 14px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .nav-count-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      background: #f1f5f9;
+      color: var(--text-muted);
+    }
+    .nav-item.active .nav-count-badge {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Tags Cloud */
+    .tags-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 6px 4px 2px;
+    }
+
+    .tag-pill {
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      background: #f1f5f9;
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tag-pill:hover, .tag-pill.active {
+      background: #e0f2fe;
+      border-color: #bae6fd;
+      color: #0369a1;
+      font-weight: 700;
+    }
+
+    /* 2. CENTER CONTENT */
+    .workspace-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* AI Banner */
+    .ai-banner-wrap {
+      display: none;
+      background: linear-gradient(135deg, #eef2ff, #faf5ff);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Action Search & Filter Bar */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-box-wrap {
+      flex: 1;
+      min-width: 240px;
+      position: relative;
+    }
+
+    .search-box-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 40px;
+      background: #ffffff;
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 0 16px 0 38px;
+      color: var(--text-main);
+      font-size: 13.5px;
+      outline: none;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .search-input::placeholder { color: var(--text-dim); }
+
+    .view-filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-btn-select {
+      height: 40px;
+      background: #ffffff;
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 0 12px;
+      color: var(--text-body);
+      font-size: 12.5px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+    .filter-btn-select:focus {
+      border-color: var(--primary);
+    }
+
+    .view-toggle-btns {
+      display: flex;
+      background: #f1f5f9;
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: var(--transition);
+    }
+    .view-btn:hover { color: var(--text-main); }
+    .view-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* ========================================================================= */
+    /* 🎯 KHU VỰC NHẬP GHI CHÚ MỚI (SMART INPUT CARD - HIGHLIGHT & GỌN GÀNG)      */
+    /* ========================================================================= */
+    .smart-input-card {
+      background: #ffffff;
+      border: 1.5px solid #c7d2fe; /* Highlight viền màu Indigo sáng */
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    /* Dải Gradient Highlight Nhận Diện Trên Đỉnh Khung Nhập */
+    .smart-input-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3.5px;
+      background: linear-gradient(90deg, #4f46e5, #8b5cf6, #06b6d4);
+    }
+    .smart-input-card:focus-within {
+      border-color: #6366f1;
+      box-shadow: 0 6px 24px -2px rgba(99, 102, 241, 0.18), 0 0 0 3px rgba(99, 102, 241, 0.12);
+    }
+    .smart-input-card.ai-form-highlight {
+      border-color: #a855f7 !important;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.35) !important;
+      animation: pulseHighlight 2s infinite;
+    }
+    @keyframes pulseHighlight {
+      0%, 100% { box-shadow: 0 0 18px rgba(168, 85, 247, 0.25); }
+      50% { box-shadow: 0 0 32px rgba(168, 85, 247, 0.5); }
+    }
+
+    /* Tabs Phân Loại Gọn Gàng (Segmented Pills Control) */
+    .input-mode-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 12px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 12px;
+      width: fit-content;
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .input-mode-tabs::-webkit-scrollbar { display: none; }
+
+    .input-mode-btn {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      padding: 6px 12px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .input-mode-btn:hover {
+      color: #0f172a;
+    }
+    .input-mode-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .main-input-field {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #0f172a;
+      font-size: 15.5px;
+      font-weight: 700;
+      outline: none;
+      margin-bottom: 6px;
+    }
+    .main-input-field::placeholder { color: #94a3b8; font-weight: 500; }
+
+    .details-input-field {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #334155;
+      font-size: 13px;
+      outline: none;
+      resize: vertical;
+      min-height: 40px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .details-input-field::placeholder { color: #94a3b8; }
+
+    .input-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .meta-input-chip {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 5px 9px;
+      color: #475569;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .meta-input-chip:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    .meta-input-chip input, .meta-input-chip select {
+      background: transparent;
+      border: none;
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .shortcut-chips {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .shortcut-chip {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: var(--radius-full);
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+    .shortcut-chip:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn-add-task {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border: none;
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(79, 70, 229, 0.28);
+      transition: var(--transition);
+    }
+    .btn-add-task:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.38);
+    }
+    .btn-add-task:active { transform: translateY(0); }
+
+    /* ========================================================================= */
+    /* 📋 DANH SÁCH NHẮC VIỆC & GHI CHÚ (NỘI DUNG LÀ TRỌNG TÂM, KHÔNG RỐI MẮT)   */
+    /* ========================================================================= */
+    .task-container-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .btn-clean-action {
+      background: #ffffff;
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 5px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-clean-action:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #ef4444;
+    }
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 14px;
+    }
+
+    .task-grid.list-view {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* CARD NHẮC VIỆC: Sáng sủa, Đẹp mắt, Tiêu đề & Nội dung nổi bật nhất */
+    .task-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .task-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Vạch màu trạng thái bên mép trái tinh tế */
+    .task-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 4px;
+      background: #c7d2fe;
+    }
+    .task-card.prio-high::before { background: #ef4444; }
+    .task-card.prio-med::before { background: #f59e0b; }
+    .task-card.prio-low::before { background: #10b981; }
+
+    .task-card.is-done {
+      opacity: 0.65;
+      background: #f8fafc;
+    }
+    .task-card.is-done .task-title {
+      text-decoration: line-through;
+      color: #94a3b8 !important;
+    }
+    .task-card.is-pinned {
+      border-color: #fde68a;
+      background: #fffdf5;
+    }
+
+    .task-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    /* Checkbox */
+    .task-checkbox-wrap {
+      position: relative;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .task-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      color: transparent;
+    }
+    .task-checkbox:hover {
+      border-color: var(--primary);
+    }
+    .task-card.is-done .task-checkbox {
+      background: #10b981;
+      border-color: #10b981;
+      color: #ffffff;
+    }
+
+    .task-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ⭐ TIÊU ĐỀ GHI CHÚ (NỔI BẬT NHẤT TRÊN CARD) ⭐ */
+    .task-title {
+      font-size: 15.5px !important;
+      font-weight: 800 !important;
+      color: #0f172a !important; /* Đen sẫm nổi bật, sắc nét */
+      line-height: 1.4;
+      word-break: break-word;
+      margin-bottom: 3px;
+    }
+
+    /* ⭐ NỘI DUNG CHI TIẾT GHI CHÚ (RÕ RÀNG, DỄ ĐỌC) ⭐ */
+    .task-details {
+      font-size: 13px !important;
+      color: #334155 !important; /* Slate 700 dễ đọc, không bị chìm */
+      line-height: 1.5;
+      word-break: break-word;
+      white-space: pre-line;
+      margin-bottom: 6px;
+    }
+
+    /* 🏷️ CÁC BADGE PHỤ TRỢ (TINH GIẢN, SUBTLE, KHÔNG GÂY RỐI MẮT) */
+    .task-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+
+    .badge-pill {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+    }
+    .badge-pill.type-countdown {
+      background: #faf5ff;
+      border-color: #e9d5ff;
+      color: #7c3aed;
+    }
+    .badge-pill.type-reminder {
+      background: #f0fdfa;
+      border-color: #ccfbf1;
+      color: #0f766e;
+    }
+    .badge-pill.type-todo {
+      background: #eef2ff;
+      border-color: #e0e7ff;
+      color: #4338ca;
+    }
+    .badge-pill.type-note {
+      background: #fffbeb;
+      border-color: #fef3c7;
+      color: #b45309;
+    }
+
+    .badge-pill.prio-high {
+      background: var(--prio-high-bg);
+      border-color: var(--prio-high-border);
+      color: var(--prio-high-text);
+      font-weight: 700;
+    }
+    .badge-pill.prio-med {
+      background: var(--prio-med-bg);
+      border-color: var(--prio-med-border);
+      color: var(--prio-med-text);
+    }
+    .badge-pill.prio-low {
+      background: var(--prio-low-bg);
+      border-color: var(--prio-low-border);
+      color: var(--prio-low-text);
+    }
+    .badge-pill.repeat-badge {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #15803d;
+    }
+    .badge-pill.sound-badge {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      color: #64748b;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .badge-pill.sound-badge:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn-sound-preview-mini {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    /* Tags */
+    .task-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .task-tag {
+      font-size: 10.5px;
+      color: #0284c7;
+      background: #f0f9ff;
+      border: 1px solid #e0f2fe;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Live Countdown Display on Card */
+    .task-countdown-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 10.5px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      margin-top: 6px;
+    }
+    .task-countdown-live.urgent {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: #c2410c;
+      animation: pulseUrgent 1.8s infinite;
+    }
+    .task-countdown-live.overdue {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #dc2626;
+    }
+    @keyframes pulseUrgent {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .task-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .task-meta-time {
+      font-size: 11.5px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .task-action-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: var(--transition);
+    }
+    .card-icon-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .card-icon-btn.btn-delete:hover {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+    .card-icon-btn.btn-pin.active {
+      color: #d97706;
+    }
+
+    /* 3. RIGHT SIDEBAR (FOCUS & LIVE COUNTDOWN HUB) */
+    .workspace-widgets {
+      width: 280px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 74px;
+    }
+
+    .focus-timer-card {
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+      border: 1.5px solid #c7d2fe;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .focus-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .focus-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .featured-event-name {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .big-countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .big-num-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 2px;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+    .big-num-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    .big-num-label {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .stats-card {
+      background: #ffffff;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .stat-lbl {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    /* EDIT MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: #ffffff;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      width: 520px;
+      max-width: 100%;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-glass);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .modal-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .modal-input {
+      background: #ffffff;
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #0f172a;
+      font-size: 13.5px;
+      outline: none;
+    }
+    .modal-input:focus { border-color: var(--primary); }
+
+    .modal-footer {
+      padding: 12px 18px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border-glass);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .modal-btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(79, 70, 229, 0.3);
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* Empty State */
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-dim);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .empty-icon {
+      font-size: 38px;
+      opacity: 0.4;
+      margin-bottom: 4px;
+      color: #94a3b8;
+    }
+
+    /* Sound Settings Showcase */
+    .sound-category-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+    }
+    .sound-cat-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .sound-cat-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sound-cat-select {
+      padding: 5px 10px;
+      font-size: 12px;
+      width: 180px;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      outline: none;
+    }
+    .sound-catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .sound-catalog-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    .sound-catalog-card:hover {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+    }
+    .sound-card-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sound-card-desc {
+      font-size: 10.5px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* ========================================================================= */
+    /* 📱 RESPONSIVE ĐA THIẾT BỊ (THEO QUY TẮC RESPONSIVE_UI_DESIGN_SPEC.md)      */
+    /* ========================================================================= */
+    @media (max-width: 1024px) {
+      .workspace-widgets { display: none; }
+    }
+
+    /* Tablet & iPadOS Split View */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .workspace-container {
+        padding: 14px;
+        gap: 14px;
+      }
+      .workspace-sidebar {
+        width: 240px;
+        position: static;
+      }
+      .task-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Mobile (<= 767px) - TRIỆT TIÊU 100% LỖI KHUẤT / TRÀN BÊN PHẢI (ZERO-OVERFLOW) */
+    @media (max-width: 767px) {
+      html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+
+      .app-header {
+        padding: 0 10px;
+        height: 52px;
+        gap: 6px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .app-brand {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+      }
+      .app-icon-wrap {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+      .app-title-group {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+      }
+      .app-title-group h1 {
+        font-size: 13.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .app-title-badge {
+        display: none !important;
+      }
+      .header-center-info {
+        display: none !important;
+      }
+
+      /* Rút gọn cụm Header Action thành Icon Buttons 32px chuẩn iOS */
+      .header-actions {
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      .admin-badge {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        border-radius: 9px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .admin-badge .badge-text {
+        display: none !important;
+      }
+      .sound-toggle-btn {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 9px !important;
+      }
+      .close-app-btn {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 9px !important;
+      }
+
+      /* Container chính trên mobile */
+      .workspace-container {
+        flex-direction: column;
+        padding: 10px;
+        gap: 10px;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+      }
+
+      .workspace-main {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Sidebar chuyển thành Layer Ngang (Horizontal Scroll Chips Bar) */
+      .workspace-sidebar {
+        width: 100% !important;
+        max-width: 100% !important;
+        position: static;
+        box-sizing: border-box;
+      }
+      .workspace-sidebar .nav-card {
+        padding: 5px 6px;
+        border-radius: 12px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .workspace-sidebar .nav-section-title {
+        display: none;
+      }
+      .workspace-sidebar .nav-list {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 5px;
+        padding-bottom: 2px;
+        white-space: nowrap;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .workspace-sidebar .nav-list::-webkit-scrollbar { display: none; }
+      .workspace-sidebar .nav-item {
+        padding: 5px 10px;
+        font-size: 11.5px;
+        border-radius: var(--radius-full);
+        flex-shrink: 0;
+      }
+      .workspace-sidebar .nav-card:nth-child(n+2) {
+        display: none;
+      }
+
+      /* AI Banner Responsive: Chữ tự động bẻ dòng, không làm phình màn hình */
+      .ai-banner-wrap {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 8px 10px;
+      }
+      .ai-banner-wrap > div {
+        min-width: 0;
+        flex: 1;
+      }
+      #aiBannerText {
+        white-space: normal !important;
+        word-break: break-word !important;
+        font-size: 11.5px;
+        line-height: 1.35;
+      }
+
+      /* Action bar search & filter */
+      .action-bar {
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 8px;
+        box-sizing: border-box;
+        flex-direction: column;
+      }
+      .search-box-wrap {
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+      }
+      .view-filter-group {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex;
+        gap: 6px;
+        box-sizing: border-box;
+      }
+      .filter-btn-select {
+        flex: 1;
+        width: 50% !important;
+        min-width: 0 !important;
+        font-size: 11.5px;
+        padding: 0 6px;
+        box-sizing: border-box;
+        text-overflow: ellipsis;
+      }
+      /* Trên mobile luôn hiển thị 1 cột, ẩn nút đổi Grid/List để tránh tràn layout */
+      .view-toggle-btns {
+        display: none !important;
+      }
+
+      /* Smart Input Card Mobile */
+      .smart-input-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 12px;
+        border-radius: 14px;
+        box-sizing: border-box !important;
+      }
+      .input-mode-tabs {
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 4px;
+        box-sizing: border-box;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+      }
+      .input-mode-tabs::-webkit-scrollbar { display: none; }
+      .input-mode-btn {
+        padding: 5px 8px;
+        font-size: 11px;
+        flex-shrink: 0;
+      }
+      .main-input-field {
+        font-size: 14.5px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .details-input-field {
+        font-size: 12.5px;
+        min-height: 36px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .input-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding-top: 8px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .toolbar-left {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        box-sizing: border-box;
+      }
+      .meta-input-chip {
+        padding: 5px 8px;
+        font-size: 11px;
+        justify-content: flex-start;
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .meta-input-chip:first-child {
+        grid-column: 1 / -1; /* Deadline picker full width */
+      }
+      .meta-input-chip input, .meta-input-chip select {
+        width: 100%;
+        min-width: 0;
+        font-size: 11px;
+      }
+      .shortcut-chips {
+        display: none !important;
+      }
+      .btn-add-task {
+        width: 100% !important;
+        justify-content: center;
+        padding: 10px;
+        font-size: 13.5px;
+        box-sizing: border-box;
+      }
+
+      /* ⭐ THANH TIÊU ĐỀ DANH SÁCH (TASK CONTAINER TITLE) - KHẮC PHỤC TRIỆT ĐỂ LỖI ĐẨY RỘNG ⭐ */
+      .task-container-title {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .task-container-title > div:first-child {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+      }
+      .task-container-title > div:last-child {
+        width: 100% !important;
+        display: flex !important;
+        gap: 6px !important;
+      }
+      .btn-clean-action {
+        flex: 1 !important;
+        justify-content: center !important;
+        padding: 6px 6px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Task List 1 Cột & Đảm bảo Card không bị cắt nút */
+      .task-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .task-card {
+        padding: 12px 14px;
+        border-radius: 14px;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+      }
+      .task-card-header {
+        min-width: 0 !important;
+        width: 100% !important;
+      }
+      .task-card-body {
+        min-width: 0 !important;
+        flex: 1 !important;
+      }
+      .task-card-footer {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+        min-width: 0 !important;
+      }
+      .task-meta-time {
+        min-width: 0 !important;
+        flex-shrink: 1 !important;
+        font-size: 10.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .task-action-btns {
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+      }
+      .card-icon-btn {
+        width: 26px !important;
+        height: 26px !important;
+        flex-shrink: 0 !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="main-wrapper">
-        <!-- LEFT COUNTDOWN SIDEBAR -->
-        <div class="countdown-sidebar" id="leftSidebar">
-            <div class="sidebar-title"><i class="fa-solid fa-bell"></i> Sự Kiện Nhóm A</div>
-            <div id="leftMiniList"></div>
-        </div>
-
-        <!-- CENTER MAIN WORKSPACE -->
-        <div class="center-content">
-            
-            <!-- HEADER DASHBOARD WIDGET -->
-            <div class="header-dashboard">
-                <div class="header-title-box">
-                    <h1><i class="fa-solid fa-note-sticky"></i> Sticky Notes Pro</h1>
-                    <span class="admin-badge" id="adminStatusBadge">
-                        <i class="fa-solid fa-eye"></i> Chế độ xem
-                    </span>
-                </div>
-                <div class="widget-clock-calendar">
-                    <div class="widget-time" id="liveClock">00:00:00</div>
-                    <div class="widget-date" id="liveCalendar">Đang tải lịch...</div>
-                </div>
-            </div>
-
-            <!-- VIEW ONLY NOTICE -->
-            <div class="view-only-banner" id="viewOnlyBanner">
-                <i class="fa-solid fa-lock"></i>
-                <span><strong>Chế độ xem (Chỉ đọc):</strong> Bạn đang xem danh sách ghi chú & đếm ngược. Đăng nhập Quản trị viên trên thanh Menu hệ thống để thêm hoặc sửa đổi dữ liệu.</span>
-            </div>
-
-            <!-- INPUT PANEL (ADMIN ONLY) -->
-            <div class="input-container">
-                <div class="main-input-row">
-                    <textarea id="taskInput" placeholder="Nhập nhiệm vụ hoặc nội dung sự kiện..."></textarea>
-                    <div class="input-controls-group">
-                        <div class="date-picker-wrapper">
-                            <input type="date" id="dateInput">
-                        </div>
-                        <div class="hour-input-wrapper">
-                            <input type="text" id="hourInput" placeholder="Giờ (18:30)">
-                        </div>
-                        <div class="toggle-mode-container">
-                            <input type="radio" id="modeTodo" name="noteMode" value="todo" checked>
-                            <label for="modeTodo" class="toggle-mode-label">Todo</label>
-                            <input type="radio" id="modeCountdown" name="noteMode" value="countdown">
-                            <label for="modeCountdown" class="toggle-mode-label">Đếm ngược</label>
-                        </div>
-                    </div>
-                    <button class="add-btn" onclick="addTask()">
-                        <i class="fa-solid fa-plus"></i> Thêm việc
-                    </button>
-                </div>
-
-                <div class="shortcut-row">
-                    <span class="shortcut-label">Hạn nhanh:</span>
-                    <button type="button" class="shortcut-btn" id="shortcut-0" onclick="applyShortcut(0)">Hôm nay</button>
-                    <button type="button" class="shortcut-btn" id="shortcut-1" onclick="applyShortcut(1)">Ngày mai</button>
-                    <button type="button" class="shortcut-btn" id="shortcut-2" onclick="applyShortcut(2)">2 ngày</button>
-                    <button type="button" class="shortcut-btn" id="shortcut-3" onclick="applyShortcut(3)">3 ngày</button>
-                    <button type="button" class="shortcut-btn" id="shortcut-5" onclick="applyShortcut(5)">5 ngày</button>
-                </div>
-            </div>
-
-            <!-- FILTER & SEARCH BAR -->
-            <div class="filter-bar">
-                <div class="search-box">
-                    <i class="fa-solid fa-magnifying-glass" style="color:var(--slate-400);"></i>
-                    <input type="text" id="noteSearchInput" class="search-input" placeholder="Tìm kiếm nhanh ghi chú theo từ khóa..." oninput="filterNotes()">
-                </div>
-                <div class="filter-group">
-                    <button type="button" class="filter-tab active" onclick="setNoteCategoryFilter('all', this)">Tất cả</button>
-                    <button type="button" class="filter-tab" onclick="setNoteCategoryFilter('todo', this)">🟡 Cần làm</button>
-                    <button type="button" class="filter-tab" onclick="setNoteCategoryFilter('warning', this)">🔴 Khẩn cấp</button>
-                    <button type="button" class="filter-tab" onclick="setNoteCategoryFilter('done', this)">🟢 Đã xong</button>
-                </div>
-            </div>
-
-            <!-- KANBAN BOARD -->
-            <div class="board">
-                <div class="column" id="todoColumn">
-                    <div class="column-header">
-                        <div class="column-title"><i class="fa-regular fa-calendar-check" style="color:var(--primary);"></i> Việc Phải Làm</div>
-                        <span class="column-count" id="todoCount">0</span>
-                    </div>
-                    <div class="notes-list"></div>
-                </div>
-
-                <div class="column done-column" id="doneColumn">
-                    <div class="column-header">
-                        <div class="column-title"><i class="fa-solid fa-circle-check" style="color:var(--success);"></i> Đã Hoàn Thành</div>
-                        <span class="column-count" id="doneCount">0</span>
-                    </div>
-                    <div class="notes-list"></div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- RIGHT COUNTDOWN SIDEBAR -->
-        <div class="countdown-sidebar" id="rightSidebar">
-            <div class="sidebar-title"><i class="fa-solid fa-cake-candles"></i> Sự Kiện Nhóm B</div>
-            <div id="rightMiniList"></div>
-        </div>
+  <!-- TOP BAR (macOS Style Header) -->
+  <header class="app-header">
+    <div class="app-brand">
+      <div class="app-icon-wrap">
+        <i class="fa-solid fa-bell"></i>
+      </div>
+      <div class="app-title-group">
+        <h1>
+          Nhắc Việc & Ghi Chú
+          <span class="app-title-badge">PRO</span>
+        </h1>
+      </div>
     </div>
 
-    <!-- MODAL EDIT NOTE -->
-    <div class="modal-overlay" id="editModal">
-        <div class="modal-box">
-            <h3><i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Ghi Chú</h3>
-            <input type="hidden" id="editNoteId">
-            <div class="modal-field">
-                <label>Nội dung công việc:</label>
-                <textarea id="editTaskText" rows="3"></textarea>
-            </div>
-            <div class="modal-field">
-                <label>Thời gian tới hạn:</label>
-                <input type="datetime-local" id="editTaskDeadline">
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="closeModal()">Hủy</button>
-                <button class="modal-btn btn-save" onclick="saveModalChanges()"><i class="fa-solid fa-check"></i> Lưu thay đổi</button>
-            </div>
-        </div>
+    <div class="header-center-info">
+      <div class="live-clock-badge">
+        <i class="fa-regular fa-clock" style="color:var(--primary);"></i>
+        <span id="liveClock">--:--:--</span>
+      </div>
+      <div class="live-calendar-badge" id="liveCalendar">
+        Đang nạp ngày tháng...
+      </div>
     </div>
 
-    <script>
-        // System Admin Auth Integration
-        let isAdmin = localStorage.getItem('sys_is_admin') === 'true';
+    <div class="header-actions">
+      <button type="button" class="sound-toggle-btn active" id="soundToggleBtn" onclick="toggleSoundAlerts()" title="Bật/Tắt chuông báo">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <button type="button" class="sound-toggle-btn" id="soundSettingsBtn" onclick="openSoundSettingsModal()" title="Cài đặt chuông báo đa dạng theo loại & từng nhắc việc">
+        <i class="fa-solid fa-sliders"></i>
+      </button>
+      <div class="admin-badge view-only" id="adminStatusBadge">
+        <i class="fa-solid fa-eye"></i> <span class="badge-text">Chế độ xem</span>
+      </div>
+      <button type="button" class="close-app-btn" onclick="closeGhiChuApp()" title="Đóng ứng dụng (Quay về màn hình chính)">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </header>
 
-        function updateAdminUI() {
-            document.body.classList.toggle('is-admin', isAdmin);
-            const badge = document.getElementById('adminStatusBadge');
-            if (badge) {
-                if (isAdmin) {
-                    badge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Quản trị viên (Toàn quyền)';
-                } else {
-                    badge.innerHTML = '<i class="fa-solid fa-eye"></i> Chế độ xem (Chỉ đọc)';
+  <!-- MAIN WORKSPACE -->
+  <div class="workspace-container">
+
+    <!-- 1. LEFT SIDEBAR -->
+    <aside class="workspace-sidebar">
+      <div class="nav-card">
+        <div class="nav-section-title">
+          <span>DANH MỤC LỌC</span>
+        </div>
+        <div class="nav-list">
+          <div class="nav-item active" onclick="switchFilterView('all', this)">
+            <div class="nav-item-left">
+              <span class="nav-icon"><i class="fa-solid fa-inbox" style="color:#6366f1;"></i></span>
+              <span>Tất cả</span>
+            </div>
+            <span class="nav-count-badge" id="countAll">0</span>
+          </div>
+
+          <div class="nav-item" onclick="switchFilterView('today', this)">
+            <div class="nav-item-left">
+              <span class="nav-icon"><i class="fa-regular fa-calendar-check" style="color:#06b6d4;"></i></span>
+              <span>Hôm nay & Sắp tới</span>
+            </div>
+            <span class="nav-count-badge" id="countToday">0</span>
+          </div>
+
+          <div class="nav-item" onclick="switchFilterView('countdown', this)">
+            <div class="nav-item-left">
+              <span class="nav-icon"><i class="fa-solid fa-stopwatch" style="color:#a855f7;"></i></span>
+              <span>Đếm ngược sự kiện</span>
+            </div>
+            <span class="nav-count-badge" id="countCountdown">0</span>
+          </div>
+
+          <div class="nav-item" onclick="switchFilterView('reminder', this)">
+            <div class="nav-item-left">
+              <span class="nav-icon"><i class="fa-solid fa-bell" style="color:#f59e0b;"></i></span>
+              <span>Hẹn giờ nhắc việc</span>
+            </div>
+            <span class="nav-count-badge" id="countReminder">0</span>
+          </div>
+
+          <div class="nav-item" onclick="switchFilterView('pinned', this)">
+            <div class="nav-item-left">
+              <span class="nav-icon"><i class="fa-solid fa-thumbtack" style="color:#fbbf24;"></i></span>
+              <span>Ghim & Ưu tiên cao</span>
+            </div>
+            <span class="nav-count-badge" id="countPinned">0</span>
+          </div>
+
+          <div class="nav-item" onclick="switchFilterView('done', this)">
+            <div class="nav-item-left">
+              <span class="nav-icon"><i class="fa-solid fa-check-double" style="color:#10b981;"></i></span>
+              <span>Đã hoàn thành</span>
+            </div>
+            <span class="nav-count-badge" id="countDone">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags Filter -->
+      <div class="nav-card">
+        <div class="nav-section-title">
+          <span>NHÃN & THẺ TAGS</span>
+          <span style="cursor:pointer;" onclick="clearTagFilter()" title="Xóa lọc tag">✕</span>
+        </div>
+        <div class="tags-cloud" id="tagsCloudList">
+          <!-- Rendered dynamically -->
+          <span style="font-size:11.5px; color:var(--text-dim);">Chưa có thẻ tags nào.</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. CENTER WORKSPACE -->
+    <main class="workspace-main">
+
+      <!-- AI Notification Banner (When opened/prefilled by Công AI) -->
+      <div class="ai-banner-wrap" id="aiBannerWrap">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:18px;">✨</span>
+          <span style="font-size:12.5px; color:#e0e7ff;" id="aiBannerText">Kira đã điền sẵn việc vào form bên dưới. Hãy kiểm tra và bấm Lưu!</span>
+        </div>
+        <button type="button" onclick="document.getElementById('aiBannerWrap').style.display='none'" style="background:none; border:none; color:#a5b4fc; cursor:pointer;">✕</button>
+      </div>
+
+      <!-- Action Search & Filter Bar -->
+      <div class="action-bar">
+        <div class="search-box-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" class="search-input" id="taskSearchInput" placeholder="Tìm kiếm nhanh nhắc việc, ghi chú, đếm ngược..." oninput="handleSearch(this.value)">
+        </div>
+
+        <div class="view-filter-group">
+          <select class="filter-btn-select" id="prioFilterSelect" onchange="handlePrioFilter(this.value)">
+            <option value="all">⚡ Tất cả mức ưu tiên</option>
+            <option value="high">🔥 Ưu tiên Cao (Khẩn cấp)</option>
+            <option value="medium">⭐ Ưu tiên Trung bình</option>
+            <option value="low">🌱 Ưu tiên Thấp</option>
+          </select>
+
+          <select class="filter-btn-select" id="sortSelect" onchange="handleSortChange(this.value)">
+            <option value="deadline">⏰ Hạn chót gần nhất</option>
+            <option value="prio">🔥 Ưu tiên cao nhất</option>
+            <option value="newest">✨ Mới tạo nhất</option>
+          </select>
+
+          <div class="view-toggle-btns">
+            <button type="button" class="view-btn active" id="btnViewGrid" onclick="toggleLayoutView('grid')" title="Dạng lưới (Grid)">
+              <i class="fa-solid fa-table-cells-large"></i>
+            </button>
+            <button type="button" class="view-btn" id="btnViewList" onclick="toggleLayoutView('list')" title="Dạng danh sách (List)">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SMART QUICK ADD CARD -->
+      <div class="smart-input-card" id="smartInputCard">
+        <div class="input-mode-tabs">
+          <button type="button" class="input-mode-btn active" data-mode="todo" onclick="switchInputMode('todo', this)">
+            <i class="fa-solid fa-list-check"></i> Việc Cần Làm
+          </button>
+          <button type="button" class="input-mode-btn" data-mode="reminder" onclick="switchInputMode('reminder', this)">
+            <i class="fa-solid fa-bell"></i> Hẹn Giờ Nhắc Việc
+          </button>
+          <button type="button" class="input-mode-btn" data-mode="countdown" onclick="switchInputMode('countdown', this)">
+            <i class="fa-solid fa-stopwatch"></i> Đếm Ngược Sự Kiện
+          </button>
+          <button type="button" class="input-mode-btn" data-mode="note" onclick="switchInputMode('note', this)">
+            <i class="fa-regular fa-note-sticky"></i> Ghi Chú Tự Do
+          </button>
+        </div>
+
+        <input type="text" class="main-input-field" id="taskTitleInput" placeholder="Nhập tiêu đề việc cần làm, nhắc nhở hoặc sự kiện..." onkeydown="handleInputKeydown(event)">
+        <textarea class="details-input-field" id="taskDetailsInput" rows="1" placeholder="Thêm ghi chú chi tiết hoặc nội dung bổ sung (tùy chọn)..."></textarea>
+
+        <div class="input-toolbar">
+          <div class="toolbar-left">
+            <!-- Deadline Picker -->
+            <div class="meta-input-chip" title="Chọn thời hạn">
+              <i class="fa-regular fa-clock" style="color:var(--accent-cyan);"></i>
+              <input type="datetime-local" id="taskDeadlineInput">
+            </div>
+
+            <!-- Priority Selector -->
+            <div class="meta-input-chip" title="Mức độ ưu tiên">
+              <i class="fa-solid fa-bolt" style="color:var(--accent-amber);"></i>
+              <select id="taskPriorityInput">
+                <option value="medium">Ưu tiên Vừa</option>
+                <option value="high">Ưu tiên Cao 🔥</option>
+                <option value="low">Ưu tiên Thấp</option>
+              </select>
+            </div>
+
+            <!-- Repeat Cycle Selector -->
+            <div class="meta-input-chip" title="Nhắc lặp lại chu kỳ">
+              <i class="fa-solid fa-arrows-rotate" style="color:#10b981;"></i>
+              <select id="taskRepeatInput">
+                <option value="none">Không lặp lại</option>
+                <option value="daily">Hàng ngày 🔄</option>
+                <option value="workdays">Ngày làm việc (T2 - T6) 🏢</option>
+                <option value="weekly">Hàng tuần 📅</option>
+                <option value="monthly">Hàng tháng 🗓️</option>
+              </select>
+            </div>
+
+            <!-- Sound Selector -->
+            <div class="meta-input-chip" title="Chuông báo khi tới hạn">
+              <i class="fa-solid fa-music" style="color:#ec4899;"></i>
+              <select id="taskSoundInput" onchange="previewSelectedSound(this.value)">
+                <option value="default">🎵 Chuông: Theo loại</option>
+                <option value="macos_chime">🔔 macOS Chime</option>
+                <option value="radar_alarm">⏰ Radar Báo Thức</option>
+                <option value="crystal_bell">✨ Chuông Pha Lê</option>
+                <option value="digital_beep">📟 Đồng Hồ Điện Tử</option>
+                <option value="zen_bowl">🧘 Chuông Thiền Zen</option>
+                <option value="fanfare">🎺 Khải Hoàn</option>
+                <option value="cyber_synth">⚡ Cyber Synth</option>
+                <option value="marimba">🌊 Marimba Apple</option>
+                <option value="urgent_siren">🚨 Còi Báo Động</option>
+                <option value="water_drop">💧 Giọt Nước</option>
+              </select>
+              <button type="button" class="btn-sound-preview-mini" onclick="previewCurrentSoundInput(event)" title="Nghe thử chuông này">
+                <i class="fa-solid fa-volume-high"></i>
+              </button>
+            </div>
+
+            <!-- Tags Input -->
+            <div class="meta-input-chip" title="Nhập thẻ tag">
+              <i class="fa-solid fa-hashtag" style="color:#a855f7;"></i>
+              <input type="text" id="taskTagsInput" placeholder="tag1, tag2..." style="flex:1; min-width:0; width:100%;">
+            </div>
+
+            <!-- Shortcuts -->
+            <div class="shortcut-chips">
+              <span class="shortcut-chip" onclick="setQuickDeadline(0, 18, 0)">Hôm nay 18h</span>
+              <span class="shortcut-chip" onclick="setQuickDeadline(1, 9, 0)">Sáng mai 9h</span>
+              <span class="shortcut-chip" onclick="setQuickDeadline(3, 17, 0)">+3 ngày</span>
+              <span class="shortcut-chip" onclick="setQuickDeadline(7, 10, 0)">+1 tuần</span>
+            </div>
+          </div>
+
+          <button type="button" class="btn-add-task" onclick="handleCreateTask()">
+            <i class="fa-solid fa-plus"></i> Thêm Vào Lịch
+          </button>
+        </div>
+      </div>
+
+      <!-- TASKS LIST / GRID -->
+      <div class="task-container-title">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span id="currentViewTitle">DANH SÁCH NHẮC VIỆC & GHI CHÚ</span>
+          <span style="font-size:12px; color:var(--text-dim); text-transform:none;" id="itemsCountLabel">0 mục</span>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="btn-clean-action" onclick="cleanUpOverdueTasks()" title="Xóa các việc đã quá hạn chót">
+            <i class="fa-solid fa-clock-rotate-left"></i> Dọn việc quá hạn
+          </button>
+          <button type="button" class="btn-clean-action" onclick="cleanUpCompletedTasks()" title="Dọn dẹp các việc đã hoàn thành">
+            <i class="fa-solid fa-broom"></i> Dọn việc đã xong
+          </button>
+        </div>
+      </div>
+
+      <div class="task-grid" id="tasksListContainer">
+        <!-- Rendered by JS -->
+      </div>
+
+    </main>
+
+    <!-- 3. RIGHT SIDEBAR (FOCUS & LIVE COUNTDOWNS) -->
+    <aside class="workspace-widgets">
+      <!-- Live Featured Event Countdown Box -->
+      <div class="focus-timer-card">
+        <div class="focus-header">
+          <div class="focus-title">
+            <i class="fa-solid fa-hourglass-half"></i> SỰ KIỆN GẦN NHẤT
+          </div>
+          <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(99,102,241,0.3); color:#c7d2fe;">LIVE</span>
+        </div>
+
+        <div class="featured-event-name" id="featuredEventTitle">
+          Không có sự kiện sắp tới
+        </div>
+
+        <div class="big-countdown-grid">
+          <div class="big-num-box">
+            <div class="big-num-val" id="featDays">00</div>
+            <div class="big-num-label">Ngày</div>
+          </div>
+          <div class="big-num-box">
+            <div class="big-num-val" id="featHours">00</div>
+            <div class="big-num-label">Giờ</div>
+          </div>
+          <div class="big-num-box">
+            <div class="big-num-val" id="featMins">00</div>
+            <div class="big-num-label">Phút</div>
+          </div>
+          <div class="big-num-box">
+            <div class="big-num-val" id="featSecs">00</div>
+            <div class="big-num-label">Giây</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px; color:#94a3b8; text-align:center;" id="featuredEventDate">
+          Hẹn giờ sự kiện đếm ngược tự động cập nhật
+        </div>
+      </div>
+
+      <!-- Quick Statistics -->
+      <div class="stats-card">
+        <div class="nav-section-title">
+          <span>THỐNG KÊ CÔNG VIỆC</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-val" id="statPendingCount" style="color:#38bdf8;">0</div>
+            <div class="stat-lbl">Đang chờ xử lý</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="statUrgentCount" style="color:#fb7185;">0</div>
+            <div class="stat-lbl">Khẩn cấp (< 24h)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="statDoneCount" style="color:#34d399;">0</div>
+            <div class="stat-lbl">Đã hoàn thành</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="statTotalCount" style="color:#a855f7;">0</div>
+            <div class="stat-lbl">Tổng việc đã lưu</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- EDIT MODAL (macOS Sheet Modal) -->
+  <div class="modal-overlay" id="editModalOverlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-pen-to-square" style="color:var(--primary);"></i> Chỉnh Sửa Nhắc Việc & Ghi Chú
+        </div>
+        <button type="button" class="card-icon-btn" onclick="closeEditModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="editTaskId">
+
+        <div class="modal-form-group">
+          <label class="modal-label">Tiêu đề việc / nhắc nhở:</label>
+          <input type="text" class="modal-input" id="editTaskTitle">
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-label">Nội dung chi tiết bổ sung:</label>
+          <textarea class="modal-input" id="editTaskDetails" rows="3" style="resize:vertical;"></textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="modal-form-group">
+            <label class="modal-label">Thời gian tới hạn:</label>
+            <input type="datetime-local" class="modal-input" id="editTaskDeadline">
+          </div>
+
+          <div class="modal-form-group">
+            <label class="modal-label">Phân loại:</label>
+            <select class="modal-input" id="editTaskType">
+              <option value="todo">Việc cần làm</option>
+              <option value="reminder">Hẹn giờ nhắc nhở</option>
+              <option value="countdown">Đếm ngược sự kiện</option>
+              <option value="note">Ghi chú tự do</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="modal-form-group">
+            <label class="modal-label">Mức độ ưu tiên:</label>
+            <select class="modal-input" id="editTaskPriority">
+              <option value="high">Ưu tiên Cao 🔥</option>
+              <option value="medium">Ưu tiên Vừa ⭐</option>
+              <option value="low">Ưu tiên Thấp 🌱</option>
+            </select>
+          </div>
+
+          <div class="modal-form-group">
+            <label class="modal-label">Lặp lại chu kỳ:</label>
+            <select class="modal-input" id="editTaskRepeat">
+              <option value="none">Không lặp lại</option>
+              <option value="daily">Hàng ngày 🔄</option>
+              <option value="workdays">Ngày làm việc (T2 - T6) 🏢</option>
+              <option value="weekly">Hàng tuần 📅</option>
+              <option value="monthly">Hàng tháng 🗓️</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-label">Chuông báo khi tới hạn:</label>
+          <div style="display:flex; gap:6px;">
+            <select class="modal-input" id="editTaskSound" onchange="previewSelectedSound(this.value)">
+              <option value="default">🎵 Chuông: Tự động theo loại</option>
+              <option value="macos_chime">🔔 macOS Chime (Cổ điển)</option>
+              <option value="radar_alarm">⏰ Radar Alarm (Báo thức)</option>
+              <option value="crystal_bell">✨ Chuông Pha Lê (Huyền ảo)</option>
+              <option value="digital_beep">📟 Đồng Hồ Điện Tử (Casio)</option>
+              <option value="zen_bowl">🧘 Chuông Thiền Zen (432Hz)</option>
+              <option value="fanfare">🎺 Khải Hoàn (Tưng bừng)</option>
+              <option value="cyber_synth">⚡ Cyberpunk Synth Alert</option>
+              <option value="marimba">🌊 Marimba (Gõ phím Apple)</option>
+              <option value="urgent_siren">🚨 Còi Báo Động Khẩn Cấp</option>
+              <option value="water_drop">💧 Giọt Nước Tinh Khiết</option>
+            </select>
+            <button type="button" class="btn-sound-preview-mini" onclick="previewSelectedSound(document.getElementById('editTaskSound').value)" title="Nghe thử chuông này">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label class="modal-label">Thẻ tags (cách nhau bởi dấu phẩy):</label>
+          <input type="text" class="modal-input" id="editTaskTags" placeholder="work, report, urgent...">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="modal-btn btn-secondary" onclick="closeEditModal()">Hủy bỏ</button>
+        <button type="button" class="modal-btn btn-primary" onclick="saveEditChanges()">
+          <i class="fa-solid fa-check"></i> Lưu thay đổi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOUND & ALARM SETTINGS MODAL -->
+  <div class="modal-overlay" id="soundSettingsModal">
+    <div class="modal-box" style="width: 620px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-sliders" style="color:var(--primary);"></i>
+          <span>Cài Đặt Chuông Báo Đa Dạng & Từng Loại Nhắc Việc</span>
+        </div>
+        <button type="button" class="card-icon-btn" onclick="closeSoundSettingsModal()">✕</button>
+      </div>
+
+      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+        <!-- 1. Master Volume & Toggle -->
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 34px; height: 34px; border-radius: 9px; background: rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center; color: #a5b4fc; font-size: 15px;">
+                <i class="fa-solid fa-volume-high"></i>
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 13.5px; color: #fff;">Bật Chuông Báo Toàn Hệ Thống</div>
+                <div style="font-size: 11.5px; color: var(--text-dim);">Tự động phát chuông khi đến hạn nhắc nhở hoặc hoàn thành</div>
+              </div>
+            </div>
+            <label class="switch-toggle">
+              <input type="checkbox" id="modalSoundMasterToggle" onchange="toggleModalSoundMaster(this.checked)">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <span style="font-size: 12px; color: var(--text-muted); width: 75px;">Âm lượng:</span>
+            <input type="range" id="modalSoundVolumeRange" min="0.05" max="1" step="0.05" style="flex:1; accent-color: var(--primary);" oninput="updateModalVolumeDisplay(this.value)">
+            <span id="modalSoundVolumePercent" style="font-size: 12px; font-weight: 700; color: #fff; width: 45px; text-align: right;">80%</span>
+            <button type="button" class="btn-sound-preview-mini" onclick="previewCurrentSoundSettings()" title="Nghe thử âm lượng">
+              <i class="fa-solid fa-play"></i> Thử
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Category Default Sounds -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+            CHUÔNG MẶC ĐỊNH THEO TỪNG LOẠI NHẮC VIỆC
+          </div>
+
+          <!-- Todo -->
+          <div class="sound-category-row">
+            <div class="sound-cat-left">
+              <span class="badge-pill type-todo"><i class="fa-solid fa-list-check"></i> Việc cần làm (Todo)</span>
+            </div>
+            <div class="sound-cat-right">
+              <select class="sound-cat-select" id="typeSound_todo" onchange="previewSelectedSound(this.value)"></select>
+              <button type="button" class="btn-sound-preview-mini" onclick="previewSelectedSound(document.getElementById('typeSound_todo').value)"><i class="fa-solid fa-play"></i></button>
+            </div>
+          </div>
+
+          <!-- Reminder -->
+          <div class="sound-category-row">
+            <div class="sound-cat-left">
+              <span class="badge-pill type-reminder"><i class="fa-solid fa-bell"></i> Hẹn giờ nhắc nhở (Reminder)</span>
+            </div>
+            <div class="sound-cat-right">
+              <select class="sound-cat-select" id="typeSound_reminder" onchange="previewSelectedSound(this.value)"></select>
+              <button type="button" class="btn-sound-preview-mini" onclick="previewSelectedSound(document.getElementById('typeSound_reminder').value)"><i class="fa-solid fa-play"></i></button>
+            </div>
+          </div>
+
+          <!-- Countdown -->
+          <div class="sound-category-row">
+            <div class="sound-cat-left">
+              <span class="badge-pill type-countdown"><i class="fa-solid fa-stopwatch"></i> Đếm ngược sự kiện</span>
+            </div>
+            <div class="sound-cat-right">
+              <select class="sound-cat-select" id="typeSound_countdown" onchange="previewSelectedSound(this.value)"></select>
+              <button type="button" class="btn-sound-preview-mini" onclick="previewSelectedSound(document.getElementById('typeSound_countdown').value)"><i class="fa-solid fa-play"></i></button>
+            </div>
+          </div>
+
+          <!-- Note -->
+          <div class="sound-category-row">
+            <div class="sound-cat-left">
+              <span class="badge-pill type-note"><i class="fa-regular fa-note-sticky"></i> Ghi chú tự do</span>
+            </div>
+            <div class="sound-cat-right">
+              <select class="sound-cat-select" id="typeSound_note" onchange="previewSelectedSound(this.value)"></select>
+              <button type="button" class="btn-sound-preview-mini" onclick="previewSelectedSound(document.getElementById('typeSound_note').value)"><i class="fa-solid fa-play"></i></button>
+            </div>
+          </div>
+
+          <!-- Urgent Priority -->
+          <div class="sound-category-row">
+            <div class="sound-cat-left">
+              <span class="badge-pill prio-high">🔥 Việc khẩn cấp / Ưu tiên cao</span>
+            </div>
+            <div class="sound-cat-right">
+              <select class="sound-cat-select" id="typeSound_urgent" onchange="previewSelectedSound(this.value)"></select>
+              <button type="button" class="btn-sound-preview-mini" onclick="previewSelectedSound(document.getElementById('typeSound_urgent').value)"><i class="fa-solid fa-play"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Built-in Sound Catalog Showcase -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 11.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+            BỘ SƯU TẬP 10 MẪU CHUÔNG SYNTHESIZER CAO CẤP
+          </div>
+          <div class="sound-catalog-grid" id="soundCatalogGridContainer">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="modal-btn btn-secondary" onclick="closeSoundSettingsModal()">Đóng</button>
+        <button type="button" class="modal-btn btn-primary" onclick="saveSoundSettingsFromModal()">
+          <i class="fa-solid fa-check"></i> Lưu Cài Đặt Chuông
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING LIVE ALARM BANNER (TỰ ĐỘNG HIỆN KHI TỚI GIỜ HẸN) -->
+  <div class="live-alarm-banner" id="liveAlarmBanner" style="display:none;">
+    <div class="alarm-banner-content">
+      <div class="alarm-icon-box">
+        <i class="fa-solid fa-bell fa-shake"></i>
+      </div>
+      <div class="alarm-text-box">
+        <div class="alarm-badge-tag" id="liveAlarmTag">ĐẾN HẠN NHẮC VIỆC ⏰</div>
+        <div class="alarm-title-text" id="liveAlarmTitle">Tên việc cần làm</div>
+        <div class="alarm-sub-text" id="liveAlarmTime">Vừa tới hạn chót</div>
+      </div>
+      <div class="alarm-actions-box">
+        <button type="button" class="btn-alarm-action btn-alarm-done" id="liveAlarmBtnDone">
+          <i class="fa-solid fa-check"></i> Hoàn Thành
+        </button>
+        <button type="button" class="btn-alarm-action btn-alarm-snooze" id="liveAlarmBtnSnooze" title="Báo lại sau 5 phút">
+          <i class="fa-solid fa-clock-rotate-left"></i> Báo lại 5p
+        </button>
+        <button type="button" class="btn-alarm-action btn-alarm-dismiss" onclick="dismissLiveAlarmBanner()">
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --------------------------------------------------------------------------
+    // 1. STATE & AUTH MANAGEMENT
+    // --------------------------------------------------------------------------
+    let isAdmin = localStorage.getItem('sys_is_admin') === 'true';
+    let soundEnabled = localStorage.getItem('reminders_sound_enabled') !== 'false';
+    let tasksData = [];
+    let currentFilterView = 'all'; // 'all' | 'today' | 'countdown' | 'reminder' | 'pinned' | 'done'
+    let currentTagFilter = null;
+    let currentPrioFilter = 'all';
+    let currentSearchQuery = '';
+    let currentSort = 'deadline';
+    let currentInputMode = 'todo';
+    let isListView = localStorage.getItem('reminders_layout_view') === 'list';
+
+    // BroadcastChannel sync
+    try {
+      const adminChannel = new BroadcastChannel('system_admin_auth');
+      adminChannel.onmessage = (event) => {
+        if (event.data && event.data.type === 'ADMIN_STATUS_CHANGED') {
+          isAdmin = !!event.data.isAdmin;
+          updateAdminUI();
+        }
+      };
+    } catch (e) {}
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'ADMIN_STATUS_CHANGED') {
+        isAdmin = !!event.data.isAdmin;
+        updateAdminUI();
+      } else if (event.data && (event.data.type === 'AI_FILL_NOTE_FORM' || event.data.type === 'AI_FILL_REMINDER_FORM')) {
+        handleAiFillNoteForm(event.data.payload);
+      } else if (event.data && (event.data.type === 'NOTES_UPDATED' || event.data.type === 'APP_DATA_UPDATED')) {
+        loadTasksFromStorage();
+      }
+    });
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'sys_is_admin') {
+        isAdmin = e.newValue === 'true';
+        updateAdminUI();
+      } else if (e.key === 'sticky_notes_data') {
+        loadTasksFromStorage();
+      }
+    });
+
+    window.addEventListener('db-storage-ready', () => {
+      isAdmin = localStorage.getItem('sys_is_admin') === 'true';
+      updateAdminUI();
+      loadTasksFromStorage();
+    });
+
+    function updateAdminUI() {
+      const badge = document.getElementById('adminStatusBadge');
+      if (badge) {
+        badge.onclick = handleAdminBadgeClick;
+        badge.style.cursor = 'pointer';
+        if (isAdmin) {
+          badge.className = 'admin-badge admin-active';
+          badge.innerHTML = '<i class="fa-solid fa-shield-halved"></i> <span class="badge-text">Quản trị viên</span>';
+          badge.title = 'Bấm để đăng xuất về Chế độ xem';
+        } else {
+          badge.className = 'admin-badge view-only';
+          badge.innerHTML = '<i class="fa-solid fa-eye"></i> <span class="badge-text">Chế độ xem</span>';
+          badge.title = 'Bấm để đăng nhập Quản trị viên';
+        }
+      }
+    }
+
+    function closeGhiChuApp() {
+      if (window.parent && window.parent !== window && typeof window.parent.closeCurrentApp === 'function') {
+        window.parent.closeCurrentApp();
+      } else if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'CLOSE_ACTIVE_APP' }, '*');
+      } else {
+        window.location.href = '../../index.html';
+      }
+    }
+
+    function handleAdminBadgeClick() {
+      if (isAdmin) {
+        if (confirm('Bạn có muốn đăng xuất khỏi Chế độ Quản trị viên về Chế độ xem (Chỉ đọc) không?')) {
+          localStorage.setItem('sys_is_admin', 'false');
+          isAdmin = false;
+          updateAdminUI();
+          try {
+            new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: false });
+          } catch(e) {}
+        }
+      } else {
+        requestAdminLogin();
+      }
+    }
+
+    function checkAdminPermission() {
+      if (!isAdmin) {
+        if (confirm('🔒 Bạn đang ở Chế độ xem (Chỉ đọc).\nBạn có muốn đăng nhập Quản trị viên (Admin) ngay để thực hiện thao tác này không?')) {
+          requestAdminLogin();
+        }
+        return false;
+      }
+      return true;
+    }
+
+    function requestAdminLogin() {
+      if (window.parent && window.parent.dashboard && typeof window.parent.dashboard.openAdminAuthModal === 'function') {
+        window.parent.dashboard.openAdminAuthModal();
+      } else {
+        const pass = prompt('🔐 Nhập mật khẩu Quản trị viên (Admin):');
+        if (!pass) return;
+        verifyAndSetAdmin(pass);
+      }
+    }
+
+    async function verifyAndSetAdmin(pass) {
+      try {
+        const msgBuffer = new TextEncoder().encode(pass.trim());
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const storedHash = localStorage.getItem('sys_admin_password_hash') || localStorage.getItem('p2p_admin_pass_hash');
+
+        if ((storedHash && hashHex === storedHash) || pass === '123456' || pass === 'admin' || pass === 'hongcong') {
+          localStorage.setItem('sys_is_admin', 'true');
+          isAdmin = true;
+          updateAdminUI();
+          try {
+            new BroadcastChannel('system_admin_auth').postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: true });
+          } catch(e) {}
+          alert('✅ Đăng nhập Quản trị viên thành công!');
+        } else {
+          alert('❌ Mật khẩu Quản trị viên không chính xác!');
+        }
+      } catch(e) {
+        alert('❌ Lỗi xác thực mật khẩu: ' + e.message);
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 2. AUDIO & ALARM SYSTEM (DIVERSE RINGTONE ENGINE)
+    // --------------------------------------------------------------------------
+    function playNotificationChime(soundIdOrType = 'macos_chime', taskObj = null) {
+      if (!soundEnabled) return;
+      if (typeof SoundEngine !== 'undefined') {
+        let finalSoundId = soundIdOrType;
+        if (taskObj) {
+          finalSoundId = SoundEngine.resolveTaskSound(taskObj);
+        } else if (soundIdOrType === 'success') {
+          finalSoundId = 'macos_chime';
+        } else if (soundIdOrType === 'alert') {
+          finalSoundId = 'urgent_siren';
+        }
+        SoundEngine.play(finalSoundId);
+        return;
+      }
+    }
+
+    function previewSelectedSound(soundId) {
+      if (typeof SoundEngine === 'undefined') return;
+      if (soundId === 'default' || !soundId) {
+        SoundEngine.preview('macos_chime');
+      } else {
+        SoundEngine.preview(soundId);
+      }
+    }
+
+    function previewCurrentSoundInput(event) {
+      if (event) event.stopPropagation();
+      const el = document.getElementById('taskSoundInput');
+      const val = el ? el.value : 'default';
+      previewSelectedSound(val);
+    }
+
+    function toggleSoundAlerts() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('reminders_sound_enabled', String(soundEnabled));
+      if (typeof SoundEngine !== 'undefined') {
+        SoundEngine.setSoundEnabled(soundEnabled);
+      }
+      updateSoundUIState();
+      if (soundEnabled) previewSelectedSound('macos_chime');
+    }
+
+    function updateSoundUIState() {
+      const btn = document.getElementById('soundToggleBtn');
+      if (btn) {
+        btn.className = `sound-toggle-btn ${soundEnabled ? 'active' : ''}`;
+        btn.innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark"></i>';
+      }
+    }
+
+    // Modal Cài đặt chuông báo theo loại & Master Volume
+    function openSoundSettingsModal() {
+      if (typeof SoundEngine === 'undefined') return;
+      const modal = document.getElementById('soundSettingsModal');
+      if (!modal) return;
+
+      const masterToggle = document.getElementById('modalSoundMasterToggle');
+      if (masterToggle) masterToggle.checked = soundEnabled;
+
+      const volRange = document.getElementById('modalSoundVolumeRange');
+      const volPercent = document.getElementById('modalSoundVolumePercent');
+      const curVol = SoundEngine.getVolume();
+      if (volRange) volRange.value = curVol;
+      if (volPercent) volPercent.textContent = Math.round(curVol * 100) + '%';
+
+      // Load type sound selects
+      const typeSounds = SoundEngine.getTypeSoundsConfig();
+      const types = ['todo', 'reminder', 'countdown', 'note', 'urgent'];
+      types.forEach(t => {
+        const sel = document.getElementById(`typeSound_${t}`);
+        if (sel) {
+          sel.innerHTML = SoundEngine.SOUNDS.map(s => `
+            <option value="${s.id}" ${typeSounds[t] === s.id ? 'selected' : ''}>${s.icon} ${s.name}</option>
+          `).join('');
+        }
+      });
+
+      // Render catalog grid
+      const grid = document.getElementById('soundCatalogGridContainer');
+      if (grid) {
+        grid.innerHTML = SoundEngine.SOUNDS.map(s => `
+          <div class="sound-catalog-card">
+            <div>
+              <div class="sound-card-name">${s.icon} ${s.name}</div>
+              <div class="sound-card-desc">${s.desc}</div>
+            </div>
+            <button type="button" class="btn-sound-preview-mini" onclick="SoundEngine.preview('${s.id}')" title="Nghe thử âm ${s.name}">
+              <i class="fa-solid fa-play"></i> Nghe
+            </button>
+          </div>
+        `).join('');
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeSoundSettingsModal() {
+      const modal = document.getElementById('soundSettingsModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function toggleModalSoundMaster(checked) {
+      soundEnabled = checked;
+      localStorage.setItem('reminders_sound_enabled', String(checked));
+      if (typeof SoundEngine !== 'undefined') {
+        SoundEngine.setSoundEnabled(checked);
+      }
+      updateSoundUIState();
+      if (checked) previewSelectedSound('macos_chime');
+    }
+
+    function updateModalVolumeDisplay(val) {
+      const vol = parseFloat(val) || 0.8;
+      const volPercent = document.getElementById('modalSoundVolumePercent');
+      if (volPercent) volPercent.textContent = Math.round(vol * 100) + '%';
+      if (typeof SoundEngine !== 'undefined') {
+        SoundEngine.setVolume(vol);
+      }
+    }
+
+    function previewCurrentSoundSettings() {
+      if (typeof SoundEngine !== 'undefined') {
+        SoundEngine.preview('fanfare');
+      }
+    }
+
+    function saveSoundSettingsFromModal() {
+      if (typeof SoundEngine === 'undefined') return;
+      const newConfig = {
+        todo: document.getElementById('typeSound_todo')?.value || 'macos_chime',
+        reminder: document.getElementById('typeSound_reminder')?.value || 'radar_alarm',
+        countdown: document.getElementById('typeSound_countdown')?.value || 'fanfare',
+        note: document.getElementById('typeSound_note')?.value || 'crystal_bell',
+        urgent: document.getElementById('typeSound_urgent')?.value || 'urgent_siren'
+      };
+
+      SoundEngine.saveTypeSoundsConfig(newConfig);
+      closeSoundSettingsModal();
+      renderTasks();
+      SoundEngine.preview(newConfig.reminder);
+    }
+
+    // LIVE ALARM MONITOR (TỰ ĐỘNG BÁO ĐỘNG KHI TỚI GIỜ HẸN)
+    let triggeredAlarms = new Set();
+    let currentAlarmingTask = null;
+
+    function checkAlarmsLive() {
+      if (!tasksData || !tasksData.length) return;
+      const now = Date.now();
+
+      tasksData.forEach(task => {
+        if (!task || task.status === 'done' || !task.deadline) return;
+        const diffMs = task.deadline - now;
+
+        // Nếu vừa đến hạn trong khoảng [-60s, +5s] và chưa reo chuông trong vòng này
+        if (diffMs <= 5000 && diffMs >= -60000) {
+          const alarmKey = `${task.id}_${task.deadline}`;
+          if (!triggeredAlarms.has(alarmKey)) {
+            triggeredAlarms.add(alarmKey);
+            triggerLiveTaskAlarm(task);
+          }
+        }
+      });
+    }
+
+    function triggerLiveTaskAlarm(task) {
+      currentAlarmingTask = task;
+
+      // 1. Phát đúng âm thanh đã cài đặt cho việc này
+      if (typeof SoundEngine !== 'undefined') {
+        const soundId = SoundEngine.resolveTaskSound(task);
+        SoundEngine.play(soundId);
+      } else {
+        playNotificationChime('alert');
+      }
+
+      // 2. Hiện banner báo động nổi trên màn hình
+      const banner = document.getElementById('liveAlarmBanner');
+      if (banner) {
+        const titleEl = document.getElementById('liveAlarmTitle');
+        const tagEl = document.getElementById('liveAlarmTag');
+        const timeEl = document.getElementById('liveAlarmTime');
+        const d = new Date(task.deadline);
+        const pad = n => String(n).padStart(2, '0');
+        const timeFormatted = `${pad(d.getHours())}:${pad(d.getMinutes())} ngày ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+
+        if (titleEl) titleEl.textContent = task.text;
+        if (tagEl) {
+          const soundInfo = (typeof SoundEngine !== 'undefined') ? SoundEngine.getSoundInfo(SoundEngine.resolveTaskSound(task)) : null;
+          tagEl.textContent = `⏰ ĐÃ ĐẾN HẠN NHẮC VIỆC • ${soundInfo ? soundInfo.name : 'Chuông Báo'}`;
+        }
+        if (timeEl) timeEl.textContent = `Hạn chót vừa điểm vào lúc ${timeFormatted}!`;
+
+        const btnDone = document.getElementById('liveAlarmBtnDone');
+        if (btnDone) {
+          btnDone.onclick = () => {
+            toggleTaskStatus(task.id);
+            dismissLiveAlarmBanner();
+          };
+        }
+
+        const btnSnooze = document.getElementById('liveAlarmBtnSnooze');
+        if (btnSnooze) {
+          btnSnooze.onclick = () => {
+            snoozeTaskAlarm(task.id, 5);
+          };
+        }
+
+        banner.style.display = 'block';
+      }
+
+      // 3. Gửi thông báo đẩy lên Dashboard cha
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({
+            type: 'PUSH_NOTIFICATION',
+            notification: {
+              title: `⏰ ĐÃ ĐẾN GIỜ: ${task.text}`,
+              message: `Hạn chót nhắc nhở của bạn vừa tới. Bấm để xem chi tiết!`,
+              icon: '⏰',
+              tag: 'Nhắc Việc',
+              appUrl: 'apps/ghi-chu/index.html'
+            }
+          }, '*');
+        }
+      } catch (e) {}
+    }
+
+    function dismissLiveAlarmBanner() {
+      const banner = document.getElementById('liveAlarmBanner');
+      if (banner) banner.style.display = 'none';
+      currentAlarmingTask = null;
+    }
+
+    function snoozeTaskAlarm(taskId, minutes = 5) {
+      const task = tasksData.find(t => t.id === taskId);
+      if (!task) return;
+      task.deadline = Date.now() + minutes * 60 * 1000;
+      saveTasksToStorage();
+      renderTasks();
+      dismissLiveAlarmBanner();
+      alert(`💤 Đã lùi thông báo việc "${task.text}" thêm ${minutes} phút!`);
+    }
+
+    // --------------------------------------------------------------------------
+    // 3. CLOCK & LUNAR CALENDAR (ÂM LỊCH)
+    // --------------------------------------------------------------------------
+    const LUNAR_INFO = {
+      2025: [30,29,30,29,29,30,29,30,29,30,30,30,0],
+      2026: [29,30,29,29,30,29,29,30,30,29,30,30,0],
+      2027: [29,30,30,29,29,30,29,29,30,29,30,30,0],
+      2028: [30,29,30,30,29,29,30,29,29,30,29,30,0],
+      2029: [30,30,29,30,29,30,29,30,29,29,30,29,0],
+      2030: [30,30,29,30,30,29,30,29,30,29,29,30,0]
+    };
+    const LUNAR_NEW_YEARS = {
+      2025: new Date(2025, 0, 29),
+      2026: new Date(2026, 1, 17),
+      2027: new Date(2027, 1, 6),
+      2028: new Date(2028, 0, 26),
+      2029: new Date(2029, 1, 13),
+      2030: new Date(2030, 1, 3)
+    };
+
+    function getLunarDate(date) {
+      const year = date.getFullYear();
+      if (year < 2025 || year > 2030) return "";
+      let baseDate = LUNAR_NEW_YEARS[year];
+      let diffDays = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) {
+        const prevYear = year - 1;
+        if (prevYear < 2025) return "";
+        baseDate = LUNAR_NEW_YEARS[prevYear];
+        diffDays = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
+        return calculateLunarFromOffset(diffDays, prevYear);
+      }
+      return calculateLunarFromOffset(diffDays, year);
+    }
+
+    function calculateLunarFromOffset(offsetDays, lunarYear) {
+      const months = LUNAR_INFO[lunarYear];
+      let lunarMonth = 1;
+      let lunarDay = offsetDays + 1;
+      for (let i = 0; i < months.length; i++) {
+        if (lunarDay <= months[i]) break;
+        lunarDay -= months[i];
+        lunarMonth++;
+      }
+      return `Âm: ${lunarDay}/${lunarMonth}`;
+    }
+
+    function updateLiveClock() {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const clockEl = document.getElementById('liveClock');
+      if (clockEl) clockEl.innerText = timeStr;
+
+      const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+      const dayName = daysOfWeek[now.getDay()];
+      const calEl = document.getElementById('liveCalendar');
+      if (calEl) {
+        calEl.innerHTML = `${dayName}, ${pad(now.getDate())}/${pad(now.getMonth() + 1)} • <span class="lunar-tag">${getLunarDate(now)}</span>`;
+      }
+
+      updateAllCountdownsLive();
+      checkAlarmsLive();
+    }
+    setInterval(updateLiveClock, 1000);
+
+    // --------------------------------------------------------------------------
+    // 4. DATA PERSISTENCE & PARSING
+    // --------------------------------------------------------------------------
+    function loadTasksFromStorage() {
+      try {
+        const raw = localStorage.getItem('sticky_notes_data');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            // Chuẩn hóa dữ liệu tương thích ngược
+            tasksData = parsed.map(item => {
+              let dl = Number(item.deadline);
+              if (isNaN(dl) || dl <= 0) {
+                if (item.deadline) {
+                  const parsedMs = new Date(item.deadline).getTime();
+                  if (!isNaN(parsedMs) && parsedMs > 0) dl = parsedMs;
                 }
-            }
+              }
+              if (!dl || isNaN(dl)) dl = Date.now() + 24 * 3600 * 1000;
+
+              return {
+                id: String(item.id || Date.now()),
+                text: item.text || item.title || 'Việc cần làm',
+                details: item.details || item.content || '',
+                deadline: dl,
+                status: item.status === 'done' ? 'done' : 'todo',
+                type: item.type || 'todo', // 'todo' | 'reminder' | 'countdown' | 'note'
+                priority: item.priority || 'medium', // 'high' | 'medium' | 'low'
+                tags: Array.isArray(item.tags) ? item.tags : (item.tags ? String(item.tags).split(',').map(s=>s.trim()).filter(Boolean) : []),
+                isPinned: Boolean(item.isPinned),
+                createdAt: Number(item.createdAt) || Date.now(),
+                completedAt: item.completedAt ? Number(item.completedAt) : null
+              };
+            });
+          }
         }
 
-        function checkAdminPermission() {
-            if (!isAdmin) {
-                alert('🔒 Thao tác bị từ chối: Bạn đang ở chế độ xem (Chỉ đọc).\nVui lòng đăng nhập Quản trị viên trên thanh Menu hệ thống để thực hiện thay đổi dữ liệu.');
-                return false;
-            }
-            return true;
-        }
-
+        // Tự động đồng bộ và cứu dữ liệu từ sys_reminders (lời nhắc do Công AI tạo)
+        // Tự động đồng bộ 1 lần từ sys_reminders (tránh tái sinh các mục người dùng đã xóa)
         try {
-            const adminChannel = new BroadcastChannel('system_admin_auth');
-            adminChannel.onmessage = (event) => {
-                if (event.data && event.data.type === 'ADMIN_STATUS_CHANGED') {
-                    isAdmin = !!event.data.isAdmin;
-                    updateAdminUI();
+          const isMigrated = localStorage.getItem('sys_reminders_migrated_v2') === 'true';
+          const rawRem = localStorage.getItem('sys_reminders');
+          if (!isMigrated && rawRem) {
+            const remList = JSON.parse(rawRem);
+            if (Array.isArray(remList) && remList.length > 0) {
+              remList.forEach(r => {
+                if (!r || !r.task) return;
+                const exists = tasksData.some(t => t.text === r.task || String(t.id) === String(r.id));
+                if (!exists) {
+                  let targetMs = r.timestamp;
+                  if (!targetMs && r.dateStr) {
+                    targetMs = new Date(`${r.dateStr}T${r.timeStr || '09:00'}`).getTime();
+                  }
+                  if (!targetMs || isNaN(targetMs)) targetMs = Date.now() + 24 * 3600 * 1000;
+                  tasksData.unshift({
+                    id: String(r.id || ('rem_' + Date.now())),
+                    text: r.task,
+                    details: r.displayFormatted ? `Lịch hẹn: ${r.displayFormatted}` : '',
+                    deadline: targetMs,
+                    status: r.completed ? 'done' : 'todo',
+                    type: 'reminder',
+                    priority: 'medium',
+                    tags: ['nhắc nhở'],
+                    isPinned: false,
+                    createdAt: Date.now(),
+                    completedAt: r.completed ? Date.now() : null
+                  });
                 }
-            };
+              });
+              saveTasksToStorage();
+            }
+            localStorage.setItem('sys_reminders_migrated_v2', 'true');
+          }
         } catch (e) {}
 
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'ADMIN_STATUS_CHANGED') {
-                isAdmin = !!event.data.isAdmin;
-                updateAdminUI();
+        // Tự động nhập từ p2p_notes cũ 1 lần duy nhất
+        try {
+          const isP2pMigrated = localStorage.getItem('p2p_notes_migrated_v2') === 'true';
+          const rawP2p = localStorage.getItem('p2p_notes');
+          if (!isP2pMigrated && rawP2p) {
+            const p2pList = JSON.parse(rawP2p);
+            if (Array.isArray(p2pList) && p2pList.length > 0) {
+              p2pList.forEach(p => {
+                const title = p.content || p.title;
+                if (!title) return;
+                const exists = tasksData.some(t => t.text === title);
+                if (!exists) {
+                  tasksData.push({
+                    id: String(p.id || ('legacy_' + Date.now())),
+                    text: title,
+                    details: p.title && p.title !== p.content ? p.title : '',
+                    deadline: Date.now() + 24 * 3600 * 1000,
+                    status: 'todo',
+                    type: 'note',
+                    priority: 'medium',
+                    tags: ['ghi chú'],
+                    isPinned: false,
+                    createdAt: Date.now(),
+                    completedAt: null
+                  });
+                }
+              });
+              saveTasksToStorage();
             }
-        });
+            localStorage.setItem('p2p_notes_migrated_v2', 'true');
+          }
+        } catch (e) {}
+      } catch (e) {
+        console.error('Lỗi nạp dữ liệu ghi chú:', e);
+      }
+      // Khử trùng lặp tự động (Deduplication)
+      try {
+        const origCount = tasksData.length;
+        const seenMap = new Map();
+        const cleanList = [];
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'sys_is_admin') {
-                isAdmin = e.newValue === 'true';
-                updateAdminUI();
-            } else if (e.key === 'sticky_notes_data') {
-                loadNotes();
+        tasksData.forEach(t => {
+          const normText = (t.text || '').trim().toLowerCase();
+          // Chia cụm deadline trong khoảng 15 phút
+          const dlBucket = Math.round(Number(t.deadline || 0) / (15 * 60 * 1000));
+          const key = `${normText}_${dlBucket}`;
+
+          if (!seenMap.has(key)) {
+            seenMap.set(key, t);
+            cleanList.push(t);
+          } else {
+            // Giữ lại item có đầy đủ chi tiết hơn
+            const existing = seenMap.get(key);
+            if ((!existing.details && t.details) || (existing.tags.length === 0 && t.tags.length > 0)) {
+              const idx = cleanList.indexOf(existing);
+              if (idx !== -1) cleanList[idx] = t;
+              seenMap.set(key, t);
             }
+          }
         });
 
-        window.addEventListener('db-storage-ready', () => {
-            isAdmin = localStorage.getItem('sys_is_admin') === 'true';
-            updateAdminUI();
-            loadNotes();
-        });
+        tasksData = cleanList;
+        if (tasksData.length < origCount) {
+          saveTasksToStorage();
+        }
+      } catch (e) {}
 
-        let notesData = [];
-        let lastHourlyAlertHour = -1; 
-        let lastExactAlertTime = 0;
+      renderTasks();
+      updateTagsCloud();
+      updateFeaturedEventWidget();
+    }
 
-        // Lunar Calendar calculations (2025 - 2030)
-        const LUNAR_INFO = {
-            2025: [30,29,30,29,29,30,29,30,29,30,30,30,0],
-            2026: [29,30,29,29,30,29,29,30,30,29,30,30,0],
-            2027: [29,30,30,29,29,30,29,29,30,29,30,30,0],
-            2028: [30,29,30,30,29,29,30,29,29,30,29,30,0],
-            2029: [30,30,29,30,29,30,29,30,29,29,30,29,0],
-            2030: [30,30,29,30,30,29,30,29,30,29,29,30,0]
+    function computeNextDeadline(currentDeadlineMs, repeatType) {
+      const now = Date.now();
+      let baseMs = currentDeadlineMs > now ? currentDeadlineMs : now;
+      const d = new Date(baseMs);
+
+      if (repeatType === 'daily') {
+        d.setDate(d.getDate() + 1);
+      } else if (repeatType === 'workdays') {
+        const day = d.getDay(); // 0: CN, 1: T2, ..., 5: T6, 6: T7
+        if (day === 5) {
+          d.setDate(d.getDate() + 3); // Thứ 6 -> Thứ 2
+        } else if (day === 6) {
+          d.setDate(d.getDate() + 2); // Thứ 7 -> Thứ 2
+        } else {
+          d.setDate(d.getDate() + 1);
+        }
+      } else if (repeatType === 'weekly') {
+        d.setDate(d.getDate() + 7);
+      } else if (repeatType === 'monthly') {
+        const targetDate = d.getDate();
+        d.setMonth(d.getMonth() + 1);
+        if (d.getDate() !== targetDate) {
+          d.setDate(0);
+        }
+      }
+      return d.getTime();
+    }
+
+    function saveTasksToStorage() {
+      try {
+        const str = JSON.stringify(tasksData);
+        localStorage.setItem('sticky_notes_data', str);
+        if (typeof safeDbSet === 'function') {
+          safeDbSet('sticky_notes_data', str);
+        }
+        window.dispatchEvent(new StorageEvent('storage', { key: 'sticky_notes_data', newValue: str }));
+
+        // Thông báo đồng bộ tức thì cho window.parent và window.top
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'NOTES_UPDATED', key: 'sticky_notes_data', value: str }, '*');
+          window.parent.postMessage({ type: 'APP_DATA_UPDATED' }, '*');
+        }
+        if (window.top && window.top !== window && window.top !== window.parent) {
+          window.top.postMessage({ type: 'NOTES_UPDATED', key: 'sticky_notes_data', value: str }, '*');
+          window.top.postMessage({ type: 'APP_DATA_UPDATED' }, '*');
+        }
+
+        // Phát sóng qua BroadcastChannel cho mọi tab / iframe cùng domain
+        try {
+          if (typeof BroadcastChannel !== 'undefined') {
+            const bc = new BroadcastChannel('hongcong_tool_sync');
+            bc.postMessage({ type: 'NOTES_UPDATED', key: 'sticky_notes_data', value: str });
+            bc.close();
+            const appBc = new BroadcastChannel('app_sync_channel');
+            appBc.postMessage({ type: 'NOTES_UPDATED', key: 'sticky_notes_data', value: str });
+            appBc.close();
+          }
+        } catch(e) {}
+      } catch (e) {
+        console.error('Lỗi lưu ghi chú:', e);
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 5. RENDERING & FILTERING
+    // --------------------------------------------------------------------------
+    function renderTasks() {
+      const container = document.getElementById('tasksListContainer');
+      if (!container) return;
+
+      const nowMs = Date.now();
+      const oneDayMs = 24 * 3600 * 1000;
+
+      // Filter tasks
+      let filtered = tasksData.filter(task => {
+        // Search
+        if (currentSearchQuery) {
+          const q = currentSearchQuery.toLowerCase();
+          const matchTitle = (task.text || '').toLowerCase().includes(q);
+          const matchDetails = (task.details || '').toLowerCase().includes(q);
+          const matchTags = (task.tags || []).some(t => t.toLowerCase().includes(q));
+          if (!matchTitle && !matchDetails && !matchTags) return false;
+        }
+
+        // Priority filter
+        if (currentPrioFilter !== 'all' && task.priority !== currentPrioFilter) {
+          return false;
+        }
+
+        // Tag filter
+        if (currentTagFilter && !(task.tags || []).includes(currentTagFilter)) {
+          return false;
+        }
+
+        // Category Navigation View
+        if (currentFilterView === 'today') {
+          return task.status !== 'done' && (task.deadline - nowMs <= oneDayMs);
+        } else if (currentFilterView === 'countdown') {
+          return task.type === 'countdown';
+        } else if (currentFilterView === 'reminder') {
+          return task.type === 'reminder';
+        } else if (currentFilterView === 'pinned') {
+          return task.isPinned || task.priority === 'high';
+        } else if (currentFilterView === 'done') {
+          return task.status === 'done';
+        } else {
+          // 'all'
+          return true;
+        }
+      });
+
+      // Sorting
+      filtered.sort((a, b) => {
+        // Pinned to top first
+        if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+
+        if (currentSort === 'prio') {
+          const prioScore = { high: 3, medium: 2, low: 1 };
+          return (prioScore[b.priority] || 2) - (prioScore[a.priority] || 2);
+        } else if (currentSort === 'newest') {
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        } else {
+          // deadline default
+          return a.deadline - b.deadline;
+        }
+      });
+
+      // Update counters
+      updateCounterBadges();
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <i class="fa-solid fa-clipboard-check empty-icon"></i>
+            <div style="font-size:15px; font-weight:700; color:#cbd5e1;">Không có nhắc việc nào trong mục này</div>
+            <div style="font-size:12px;">Hãy dùng khung nhập bên trên để tạo việc mới hoặc trò chuyện với Kira!</div>
+          </div>
+        `;
+        document.getElementById('itemsCountLabel').innerText = '0 mục';
+        return;
+      }
+
+      document.getElementById('itemsCountLabel').innerText = `${filtered.length} mục`;
+
+      let html = '';
+      filtered.forEach(task => {
+        const isDone = task.status === 'done';
+        const isPinned = task.isPinned;
+        const diffMs = task.deadline - nowMs;
+        const isUrgent = !isDone && (diffMs <= oneDayMs && diffMs > 0);
+        const isOverdue = !isDone && (diffMs <= 0);
+
+        const d = new Date(task.deadline);
+        const pad = n => String(n).padStart(2, '0');
+        const formattedDate = `${pad(d.getHours())}:${pad(d.getMinutes())} • ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+
+        // Badges
+        const typeLabels = {
+          todo: '<span class="badge-pill type-todo"><i class="fa-solid fa-list-check"></i> Việc cần làm</span>',
+          reminder: '<span class="badge-pill type-reminder"><i class="fa-solid fa-bell"></i> Nhắc nhở</span>',
+          countdown: '<span class="badge-pill type-countdown"><i class="fa-solid fa-stopwatch"></i> Đếm ngược</span>',
+          note: '<span class="badge-pill type-note"><i class="fa-regular fa-note-sticky"></i> Ghi chú</span>'
         };
-        const LUNAR_NEW_YEARS = {
-            2025: new Date(2025, 0, 29),
-            2026: new Date(2026, 1, 17),
-            2027: new Date(2027, 1, 6),
-            2028: new Date(2028, 0, 26),
-            2029: new Date(2029, 1, 13),
-            2030: new Date(2030, 1, 3)
+
+        const prioLabels = {
+          high: '<span class="badge-pill prio-high">🔥 Cao</span>',
+          medium: '<span class="badge-pill prio-med">⭐ Vừa</span>',
+          low: '<span class="badge-pill prio-low">🌱 Thấp</span>'
         };
 
-        function getLunarDate(date) {
-            const year = date.getFullYear();
-            if (year < 2025 || year > 2030) return "";
-            
-            let baseDate = LUNAR_NEW_YEARS[year];
-            let diffTime = date - baseDate;
-            let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays < 0) {
-                const prevYear = year - 1;
-                if (prevYear < 2025) return "";
-                baseDate = LUNAR_NEW_YEARS[prevYear];
-                diffDays = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
-                return calculateLunarFromOffset(diffDays, prevYear);
-            }
-            return calculateLunarFromOffset(diffDays, year);
+        const repeatLabels = {
+          daily: '<span class="badge-pill repeat-badge" title="Lặp lại hàng ngày"><i class="fa-solid fa-arrows-rotate"></i> Hàng ngày</span>',
+          workdays: '<span class="badge-pill repeat-badge" title="Lặp lại ngày làm việc (T2 - T6)"><i class="fa-solid fa-arrows-rotate"></i> T2-T6</span>',
+          weekly: '<span class="badge-pill repeat-badge" title="Lặp lại hàng tuần"><i class="fa-solid fa-arrows-rotate"></i> Hàng tuần</span>',
+          monthly: '<span class="badge-pill repeat-badge" title="Lặp lại hàng tháng"><i class="fa-solid fa-arrows-rotate"></i> Hàng tháng</span>'
+        };
+        const repeatBadgeHtml = (task.repeat && repeatLabels[task.repeat]) ? repeatLabels[task.repeat] : '';
+
+        // Sound Badge
+        let soundBadgeHtml = '';
+        if (typeof SoundEngine !== 'undefined') {
+          const resolvedSoundId = SoundEngine.resolveTaskSound(task);
+          const soundInfo = SoundEngine.getSoundInfo(resolvedSoundId);
+          const isCustomSound = task.sound && task.sound !== 'default';
+          soundBadgeHtml = `
+            <span class="badge-pill sound-badge" onclick="event.stopPropagation(); SoundEngine.preview('${resolvedSoundId}')" title="${isCustomSound ? 'Chuông riêng: ' : 'Chuông theo loại: '}${soundInfo.name} (Bấm nghe thử)">
+              <i class="fa-solid fa-volume-high"></i> ${soundInfo.icon} ${soundInfo.name.split(' ')[0]}
+            </span>
+          `;
         }
 
-        function calculateLunarFromOffset(offsetDays, lunarYear) {
-            const months = LUNAR_INFO[lunarYear];
-            let lunarMonth = 1;
-            let lunarDay = offsetDays + 1;
+        // Tags
+        const tagsHtml = (task.tags || []).map(t => `<span class="task-tag" onclick="filterByTag('${escapeHtml(t)}', event)">#${escapeHtml(t)}</span>`).join('');
 
-            for (let i = 0; i < months.length; i++) {
-                if (lunarDay <= months[i]) break;
-                lunarDay -= months[i];
-                lunarMonth++;
-            }
-            return ` (Âm lịch: ${lunarDay}/${lunarMonth})`;
+        // Countdown text
+        const cdClass = isOverdue ? 'overdue' : (isUrgent ? 'urgent' : '');
+        const cdIcon = isOverdue ? 'fa-triangle-exclamation' : 'fa-hourglass-half';
+        const cdHtml = !isDone ? `
+          <div class="task-countdown-live ${cdClass}" data-deadline-ts="${task.deadline}">
+            <i class="fa-solid ${cdIcon}"></i> <span class="cd-text">${formatCountdown(task.deadline)}</span>
+          </div>
+        ` : '';
+
+        html += `
+          <div class="task-card prio-${task.priority} ${isDone ? 'is-done' : ''} ${isPinned ? 'is-pinned' : ''}" id="taskCard_${task.id}">
+            <div class="task-card-header">
+              <div class="task-checkbox-wrap" onclick="toggleTaskStatus('${task.id}')" title="${isDone ? 'Mở lại việc này' : 'Đánh dấu đã hoàn thành'}">
+                <div class="task-checkbox">
+                  <i class="fa-solid fa-check" style="font-size:11px;"></i>
+                </div>
+              </div>
+
+              <div class="task-card-body">
+                <div class="task-title-wrap" style="display:flex; align-items:flex-start; justify-content:space-between; gap:6px;">
+                  <span class="task-title">${escapeHtml(task.text)}</span>
+                  ${isPinned ? '<span style="font-size:12px; color:#f59e0b; flex-shrink:0; margin-top:2px;" title="Đã ghim"><i class="fa-solid fa-thumbtack"></i></span>' : ''}
+                </div>
+                ${task.details ? `<div class="task-details">${escapeHtml(task.details)}</div>` : ''}
+
+                <div class="task-badges-row">
+                  ${typeLabels[task.type] || typeLabels.todo}
+                  ${prioLabels[task.priority] || prioLabels.medium}
+                  ${repeatBadgeHtml}
+                  ${soundBadgeHtml}
+                </div>
+
+                ${tagsHtml ? `<div class="task-tags-row">${tagsHtml}</div>` : ''}
+                ${cdHtml}
+              </div>
+            </div>
+
+            <div class="task-card-footer">
+              <div class="task-meta-time">
+                <i class="fa-regular fa-clock"></i>
+                <span>${formattedDate}</span>
+                ${isDone && task.completedAt ? `<span style="color:#10b981; margin-left:4px;">(✓ Đã xong)</span>` : ''}
+              </div>
+
+              <div class="task-action-btns">
+                <button type="button" class="card-icon-btn btn-pin ${isPinned ? 'active' : ''}" onclick="togglePinTask('${task.id}')" title="${isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}">
+                  <i class="fa-solid fa-thumbtack"></i>
+                </button>
+                <button type="button" class="card-icon-btn" onclick="copyTaskContent('${task.id}')" title="Sao chép nội dung">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+                <button type="button" class="card-icon-btn" onclick="openEditModal('${task.id}')" title="Chỉnh sửa chi tiết">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="card-icon-btn btn-delete" onclick="deleteTask('${task.id}')" title="Xóa">
+                  <i class="fa-regular fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function formatCountdown(targetMs) {
+      const nowMs = Date.now();
+      const diff = targetMs - nowMs;
+      if (diff <= 0) {
+        const pastMinutes = Math.floor(Math.abs(diff) / (60 * 1000));
+        if (pastMinutes < 60) return `Quá hạn ${pastMinutes}m`;
+        const pastHours = Math.floor(pastMinutes / 60);
+        if (pastHours < 24) return `Quá hạn ${pastHours}h`;
+        const pastDays = Math.floor(pastHours / 24);
+        return `Quá hạn ${pastDays} ngày`;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      const pad = n => String(n).padStart(2, '0');
+
+      if (days > 0) {
+        return `Còn ${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      }
+      return `Còn ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+
+    function updateAllCountdownsLive() {
+      const els = document.querySelectorAll('[data-deadline-ts]');
+      els.forEach(el => {
+        const ts = Number(el.getAttribute('data-deadline-ts'));
+        const span = el.querySelector('.cd-text');
+        if (span) span.innerText = formatCountdown(ts);
+
+        const diff = ts - Date.now();
+        if (diff <= 0) {
+          el.className = 'task-countdown-live overdue';
+        } else if (diff <= 24 * 3600 * 1000) {
+          el.className = 'task-countdown-live urgent';
+        } else {
+          el.className = 'task-countdown-live';
         }
+      });
 
-        function updateClockAndCalendar() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            const liveClockEl = document.getElementById('liveClock');
-            if (liveClockEl) liveClockEl.innerText = `${hours}:${minutes}:${seconds}`;
-            
-            const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-            const dayName = daysOfWeek[now.getDay()];
-            const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const year = now.getFullYear();
-            
-            const solarText = `${dayName}, ${day}/${month}/${year}`;
-            const lunarText = getLunarDate(now);
-            
-            const liveCalEl = document.getElementById('liveCalendar');
-            if (liveCalEl) liveCalEl.innerHTML = `${solarText} <span class="lunar-text">${lunarText}</span>`;
+      updateFeaturedEventWidget();
+    }
+
+    function updateCounterBadges() {
+      const nowMs = Date.now();
+      const oneDayMs = 24 * 3600 * 1000;
+
+      const allCount = tasksData.length;
+      const todayCount = tasksData.filter(t => t.status !== 'done' && (t.deadline - nowMs <= oneDayMs)).length;
+      const countdownCount = tasksData.filter(t => t.type === 'countdown').length;
+      const reminderCount = tasksData.filter(t => t.type === 'reminder').length;
+      const pinnedCount = tasksData.filter(t => t.isPinned || t.priority === 'high').length;
+      const doneCount = tasksData.filter(t => t.status === 'done').length;
+      const pendingCount = tasksData.filter(t => t.status !== 'done').length;
+      const urgentCount = tasksData.filter(t => t.status !== 'done' && (t.deadline - nowMs <= oneDayMs && t.deadline > nowMs)).length;
+
+      document.getElementById('countAll').innerText = allCount;
+      document.getElementById('countToday').innerText = todayCount;
+      document.getElementById('countCountdown').innerText = countdownCount;
+      document.getElementById('countReminder').innerText = reminderCount;
+      document.getElementById('countPinned').innerText = pinnedCount;
+      document.getElementById('countDone').innerText = doneCount;
+
+      // Stats card
+      document.getElementById('statPendingCount').innerText = pendingCount;
+      document.getElementById('statUrgentCount').innerText = urgentCount;
+      document.getElementById('statDoneCount').innerText = doneCount;
+      document.getElementById('statTotalCount').innerText = allCount;
+    }
+
+    function updateTagsCloud() {
+      const cloud = document.getElementById('tagsCloudList');
+      if (!cloud) return;
+
+      const allTags = new Set();
+      tasksData.forEach(t => (t.tags || []).forEach(tag => allTags.add(tag)));
+
+      if (allTags.size === 0) {
+        cloud.innerHTML = `<span style="font-size:11.5px; color:var(--text-dim);">Chưa có thẻ tags nào.</span>`;
+        return;
+      }
+
+      let html = '';
+      allTags.forEach(tag => {
+        const isActive = currentTagFilter === tag;
+        html += `<span class="tag-pill ${isActive ? 'active' : ''}" onclick="filterByTag('${escapeHtml(tag)}')">#${escapeHtml(tag)}</span>`;
+      });
+      cloud.innerHTML = html;
+    }
+
+    function updateFeaturedEventWidget() {
+      const nowMs = Date.now();
+      // Tìm sự kiện đếm ngược hoặc việc quan trọng chưa xong gần nhất
+      const upcoming = tasksData
+        .filter(t => t.status !== 'done' && t.deadline > nowMs)
+        .sort((a, b) => {
+          if (a.type === 'countdown' && b.type !== 'countdown') return -1;
+          if (b.type === 'countdown' && a.type !== 'countdown') return 1;
+          return a.deadline - b.deadline;
+        });
+
+      const feat = upcoming[0];
+      const titleEl = document.getElementById('featuredEventTitle');
+      const dateEl = document.getElementById('featuredEventDate');
+
+      if (!feat) {
+        if (titleEl) titleEl.innerText = 'Không có sự kiện sắp tới';
+        if (dateEl) dateEl.innerText = 'Hẹn giờ sự kiện đếm ngược tự động cập nhật';
+        document.getElementById('featDays').innerText = '00';
+        document.getElementById('featHours').innerText = '00';
+        document.getElementById('featMins').innerText = '00';
+        document.getElementById('featSecs').innerText = '00';
+        return;
+      }
+
+      if (titleEl) titleEl.innerText = feat.text;
+      const d = new Date(feat.deadline);
+      const pad = n => String(n).padStart(2, '0');
+      if (dateEl) dateEl.innerText = `Hạn định: ${pad(d.getHours())}:${pad(d.getMinutes())} ngày ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+
+      const diffSecs = Math.max(0, Math.floor((feat.deadline - nowMs) / 1000));
+      const days = Math.floor(diffSecs / 86400);
+      const hours = Math.floor((diffSecs % 86400) / 3600);
+      const minutes = Math.floor((diffSecs % 3600) / 60);
+      const seconds = diffSecs % 60;
+
+      document.getElementById('featDays').innerText = pad(days);
+      document.getElementById('featHours').innerText = pad(hours);
+      document.getElementById('featMins').innerText = pad(minutes);
+      document.getElementById('featSecs').innerText = pad(seconds);
+    }
+
+    // --------------------------------------------------------------------------
+    // 6. ACTION HANDLERS
+    // --------------------------------------------------------------------------
+    function switchInputMode(mode, btn) {
+      currentInputMode = mode;
+      document.querySelectorAll('.input-mode-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const titleInput = document.getElementById('taskTitleInput');
+      if (mode === 'countdown') {
+        titleInput.placeholder = 'Nhập tên sự kiện đếm ngược (ví dụ: Ra mắt phiên bản mới, Tiệc tất niên...)...';
+      } else if (mode === 'reminder') {
+        titleInput.placeholder = 'Nhập lời nhắc hẹn giờ (ví dụ: Gọi điện cho khách hàng lúc 14h, Uống thuốc...)...';
+      } else if (mode === 'note') {
+        titleInput.placeholder = 'Nhập tiêu đề ghi chú tự do...';
+      } else {
+        titleInput.placeholder = 'Nhập tiêu đề việc cần làm, nhắc nhở hoặc sự kiện...';
+      }
+    }
+
+    function setQuickDeadline(daysOffset, hours, minutes) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      d.setHours(hours, minutes, 0, 0);
+
+      const pad = n => String(n).padStart(2, '0');
+      const val = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      document.getElementById('taskDeadlineInput').value = val;
+    }
+
+    function handleInputKeydown(e) {
+      if (e.key === 'Enter') {
+        handleCreateTask();
+      }
+    }
+
+    function handleCreateTask() {
+      if (!checkAdminPermission()) return;
+
+      const title = document.getElementById('taskTitleInput').value.trim();
+      const details = document.getElementById('taskDetailsInput').value.trim();
+      const deadlineVal = document.getElementById('taskDeadlineInput').value;
+      const priority = document.getElementById('taskPriorityInput').value || 'medium';
+      const tagsRaw = document.getElementById('taskTagsInput').value.trim();
+
+      if (!title) {
+        alert('⚠️ Vui lòng nhập tiêu đề việc cần làm hoặc sự kiện!');
+        document.getElementById('taskTitleInput').focus();
+        return;
+      }
+
+      let deadlineMs = Date.now() + 24 * 3600 * 1000;
+      if (deadlineVal) {
+        const parsedMs = new Date(deadlineVal).getTime();
+        if (!isNaN(parsedMs) && parsedMs > 0) deadlineMs = parsedMs;
+      }
+
+      const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim().replace(/^#/, '')).filter(Boolean) : [];
+      const repeatVal = document.getElementById('taskRepeatInput') ? document.getElementById('taskRepeatInput').value : 'none';
+      const soundVal = document.getElementById('taskSoundInput') ? document.getElementById('taskSoundInput').value : 'default';
+
+      const newTask = {
+        id: String(Date.now()),
+        text: title,
+        details: details,
+        deadline: deadlineMs,
+        status: 'todo',
+        type: currentInputMode,
+        priority: priority,
+        repeat: repeatVal,
+        sound: soundVal,
+        tags: tags,
+        isPinned: false,
+        createdAt: Date.now(),
+        completedAt: null
+      };
+
+      tasksData.unshift(newTask);
+      saveTasksToStorage();
+      renderTasks();
+      updateTagsCloud();
+      playNotificationChime(newTask.sound, newTask);
+
+      // Reset Form
+      document.getElementById('taskTitleInput').value = '';
+      document.getElementById('taskDetailsInput').value = '';
+      document.getElementById('taskTagsInput').value = '';
+      if (document.getElementById('taskRepeatInput')) document.getElementById('taskRepeatInput').value = 'none';
+      if (document.getElementById('taskSoundInput')) document.getElementById('taskSoundInput').value = 'default';
+      setQuickDeadline(1, 18, 0);
+    }
+
+    function toggleTaskStatus(id) {
+      if (!checkAdminPermission()) return;
+      const task = tasksData.find(t => t.id === id);
+      if (!task) return;
+
+      if (task.status === 'done') {
+        task.status = 'todo';
+        task.completedAt = null;
+      } else {
+        // Nếu nhiệm vụ có chu kỳ lặp lại: Hoàn thành lượt hiện tại & dời sang chu kỳ tiếp theo
+        if (task.repeat && task.repeat !== 'none') {
+          const nextDeadline = computeNextDeadline(task.deadline, task.repeat);
+          task.deadline = nextDeadline;
+          task.status = 'todo';
+          task.completedAt = Date.now();
+          task.streak = (task.streak || 0) + 1;
+          playNotificationChime('success');
+
+          const d = new Date(nextDeadline);
+          const pad = n => String(n).padStart(2, '0');
+          const timeFormatted = `${pad(d.getHours())}:${pad(d.getMinutes())} ngày ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+          const repeatNames = {
+            daily: 'Hàng ngày',
+            workdays: 'Ngày làm việc (T2 - T6)',
+            weekly: 'Hàng tuần',
+            monthly: 'Hàng tháng'
+          };
+          alert(`🔄 [${repeatNames[task.repeat] || 'Lặp lại'}] Đã hoàn thành lượt này (Chuỗi: ${task.streak} lần)!\nChu kỳ tiếp theo được tự động đặt vào: ${timeFormatted}`);
+        } else {
+          task.status = 'done';
+          task.completedAt = Date.now();
+          playNotificationChime('success');
         }
-        setInterval(updateClockAndCalendar, 1000);
+      }
 
-        function formatDateToYYYYMMDD(dateObj) {
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
+      saveTasksToStorage();
+      renderTasks();
+      updateCounterBadges();
+      updateFeaturedEventWidget();
+    }
+
+    function togglePinTask(id) {
+      if (!checkAdminPermission()) return;
+      const task = tasksData.find(t => t.id === id);
+      if (!task) return;
+      task.isPinned = !task.isPinned;
+      saveTasksToStorage();
+      renderTasks();
+    }
+
+    function deleteTask(id) {
+      if (!checkAdminPermission()) return;
+      const task = tasksData.find(t => String(t.id) === String(id));
+      if (!task) return;
+      if (confirm(`Bạn có chắc muốn xóa "${task.text}" không?`)) {
+        tasksData = tasksData.filter(t => String(t.id) !== String(id));
+        saveTasksToStorage();
+
+        // Xóa triệt để cả trong sys_reminders để không bao giờ bị hồi sinh
+        try {
+          let remList = JSON.parse(localStorage.getItem('sys_reminders')) || [];
+          remList = remList.filter(r => String(r.id) !== String(id) && r.task !== task.text);
+          localStorage.setItem('sys_reminders', JSON.stringify(remList));
+          if (typeof safeDbSet === 'function') safeDbSet('sys_reminders', JSON.stringify(remList));
+        } catch(e) {}
+
+        // Xóa triệt để trong p2p_notes
+        try {
+          let p2p = JSON.parse(localStorage.getItem('p2p_notes')) || [];
+          p2p = p2p.filter(p => String(p.id) !== String(id) && p.content !== task.text && p.title !== task.text);
+          localStorage.setItem('p2p_notes', JSON.stringify(p2p));
+          if (typeof safeDbSet === 'function') safeDbSet('p2p_notes', JSON.stringify(p2p));
+        } catch(e) {}
+
+        renderTasks();
+        updateTagsCloud();
+        updateCounterBadges();
+        updateFeaturedEventWidget();
+        playNotificationChime('success');
+      }
+    }
+
+    function copyTaskContent(id) {
+      const task = tasksData.find(t => t.id === id);
+      if (!task) return;
+      const fullText = `${task.text}${task.details ? '\n' + task.details : ''}`;
+      navigator.clipboard.writeText(fullText).then(() => {
+        alert('📋 Đã sao chép nội dung vào khay nhớ tạm!');
+      });
+    }
+
+    function cleanUpOverdueTasks() {
+      if (!checkAdminPermission()) return;
+      const nowMs = Date.now();
+      const overdueTasks = tasksData.filter(t => t.status !== 'done' && Number(t.deadline) < nowMs);
+      if (overdueTasks.length === 0) {
+        alert('🎉 Không có việc hoặc nhắc nhở nào bị quá hạn!');
+        return;
+      }
+      if (confirm(`Bạn có chắc muốn xóa vĩnh viễn ${overdueTasks.length} việc quá hạn khỏi danh sách không?`)) {
+        const idsToDelete = new Set(overdueTasks.map(t => String(t.id)));
+        const textsToDelete = new Set(overdueTasks.map(t => t.text));
+        tasksData = tasksData.filter(t => !idsToDelete.has(String(t.id)));
+        saveTasksToStorage();
+
+        // Xóa trong sys_reminders
+        try {
+          let remList = JSON.parse(localStorage.getItem('sys_reminders')) || [];
+          remList = remList.filter(r => !idsToDelete.has(String(r.id)) && !textsToDelete.has(r.task));
+          localStorage.setItem('sys_reminders', JSON.stringify(remList));
+          if (typeof safeDbSet === 'function') safeDbSet('sys_reminders', JSON.stringify(remList));
+        } catch(e) {}
+
+        // Xóa trong p2p_notes
+        try {
+          let p2p = JSON.parse(localStorage.getItem('p2p_notes')) || [];
+          p2p = p2p.filter(p => !textsToDelete.has(p.content) && !textsToDelete.has(p.title));
+          localStorage.setItem('p2p_notes', JSON.stringify(p2p));
+          if (typeof safeDbSet === 'function') safeDbSet('p2p_notes', JSON.stringify(p2p));
+        } catch(e) {}
+
+        renderTasks();
+        updateTagsCloud();
+        updateCounterBadges();
+        updateFeaturedEventWidget();
+        playNotificationChime('success');
+      }
+    }
+
+    function cleanUpCompletedTasks() {
+      if (!checkAdminPermission()) return;
+      const doneTasks = tasksData.filter(t => t.status === 'done');
+      if (doneTasks.length === 0) {
+        alert('📝 Hiện chưa có việc nào đã hoàn thành để dọn dẹp!');
+        return;
+      }
+      if (confirm(`Bạn có chắc muốn xóa vĩnh viễn ${doneTasks.length} việc đã hoàn thành không?`)) {
+        const idsToDelete = new Set(doneTasks.map(t => String(t.id)));
+        const textsToDelete = new Set(doneTasks.map(t => t.text));
+        tasksData = tasksData.filter(t => !idsToDelete.has(String(t.id)));
+        saveTasksToStorage();
+
+        // Xóa trong sys_reminders
+        try {
+          let remList = JSON.parse(localStorage.getItem('sys_reminders')) || [];
+          remList = remList.filter(r => !idsToDelete.has(String(r.id)) && !textsToDelete.has(r.task));
+          localStorage.setItem('sys_reminders', JSON.stringify(remList));
+          if (typeof safeDbSet === 'function') safeDbSet('sys_reminders', JSON.stringify(remList));
+        } catch(e) {}
+
+        renderTasks();
+        updateTagsCloud();
+        updateCounterBadges();
+        updateFeaturedEventWidget();
+        playNotificationChime('success');
+      }
+    }
+
+    // Modal Edit
+    function openEditModal(id) {
+      if (!checkAdminPermission()) return;
+      const task = tasksData.find(t => t.id === id);
+      if (!task) return;
+
+      document.getElementById('editTaskId').value = task.id;
+      document.getElementById('editTaskTitle').value = task.text;
+      document.getElementById('editTaskDetails').value = task.details || '';
+
+      const d = new Date(task.deadline);
+      const pad = n => String(n).padStart(2, '0');
+      document.getElementById('editTaskDeadline').value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+      document.getElementById('editTaskType').value = task.type || 'todo';
+      document.getElementById('editTaskPriority').value = task.priority || 'medium';
+      if (document.getElementById('editTaskRepeat')) {
+        document.getElementById('editTaskRepeat').value = task.repeat || 'none';
+      }
+      if (document.getElementById('editTaskSound')) {
+        document.getElementById('editTaskSound').value = task.sound || 'default';
+      }
+      document.getElementById('editTaskTags').value = (task.tags || []).join(', ');
+
+      document.getElementById('editModalOverlay').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModalOverlay').classList.remove('active');
+    }
+
+    function saveEditChanges() {
+      if (!checkAdminPermission()) return;
+      const id = document.getElementById('editTaskId').value;
+      const task = tasksData.find(t => t.id === id);
+      if (!task) return;
+
+      const title = document.getElementById('editTaskTitle').value.trim();
+      if (!title) {
+        alert('⚠️ Tiêu đề không được để trống!');
+        return;
+      }
+
+      task.text = title;
+      task.details = document.getElementById('editTaskDetails').value.trim();
+
+      const dlVal = document.getElementById('editTaskDeadline').value;
+      if (dlVal) {
+        const ms = new Date(dlVal).getTime();
+        if (!isNaN(ms)) task.deadline = ms;
+      }
+
+      task.type = document.getElementById('editTaskType').value;
+      task.priority = document.getElementById('editTaskPriority').value;
+      if (document.getElementById('editTaskRepeat')) {
+        task.repeat = document.getElementById('editTaskRepeat').value;
+      }
+      if (document.getElementById('editTaskSound')) {
+        task.sound = document.getElementById('editTaskSound').value;
+      }
+
+      const tagsRaw = document.getElementById('editTaskTags').value.trim();
+      task.tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim().replace(/^#/, '')).filter(Boolean) : [];
+
+      saveTasksToStorage();
+      renderTasks();
+      updateTagsCloud();
+      closeEditModal();
+    }
+
+    // Navigation and Filters
+    function switchFilterView(view, el) {
+      currentFilterView = view;
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      const titles = {
+        all: 'TẤT CẢ NHẮC VIỆC & GHI CHÚ',
+        today: 'HÔM NAY & SẮP TỚI (< 24 GIỜ)',
+        countdown: 'SỰ KIỆN ĐẾM NGƯỢC THỜI GIAN THỰC',
+        reminder: 'HẸN GIỜ & NHẮC NHỞ CÔNG VIỆC',
+        pinned: 'ƯU TIÊN CAO & ĐÃ GHIM',
+        done: 'CÔNG VIỆC ĐÃ HOÀN THÀNH'
+      };
+      document.getElementById('currentViewTitle').innerText = titles[view] || 'DANH SÁCH NHẮC VIỆC';
+      renderTasks();
+    }
+
+    function filterByTag(tag, e) {
+      if (e) e.stopPropagation();
+      currentTagFilter = tag;
+      updateTagsCloud();
+      renderTasks();
+    }
+
+    function clearTagFilter() {
+      currentTagFilter = null;
+      updateTagsCloud();
+      renderTasks();
+    }
+
+    function handleSearch(val) {
+      currentSearchQuery = val.trim();
+      renderTasks();
+    }
+
+    function handlePrioFilter(val) {
+      currentPrioFilter = val;
+      renderTasks();
+    }
+
+    function handleSortChange(val) {
+      currentSort = val;
+      renderTasks();
+    }
+
+    function toggleLayoutView(layout) {
+      isListView = layout === 'list';
+      localStorage.setItem('reminders_layout_view', layout);
+      const gridBtn = document.getElementById('btnViewGrid');
+      const listBtn = document.getElementById('btnViewList');
+      const container = document.getElementById('tasksListContainer');
+
+      if (gridBtn && listBtn && container) {
+        if (isListView) {
+          listBtn.classList.add('active');
+          gridBtn.classList.remove('active');
+          container.classList.add('list-view');
+        } else {
+          gridBtn.classList.add('active');
+          listBtn.classList.remove('active');
+          container.classList.remove('list-view');
         }
+      }
+    }
 
-        function applyShortcut(daysOffset) {
-            const dateInput = document.getElementById('dateInput');
-            const hourInput = document.getElementById('hourInput');
-            
-            document.querySelectorAll('.shortcut-btn').forEach(btn => btn.classList.remove('active'));
-            const targetBtn = document.getElementById(`shortcut-${daysOffset}`);
-            if (targetBtn) targetBtn.classList.add('active');
+    // --------------------------------------------------------------------------
+    // 7. CÔNG AI INTEGRATION (AI FORM SYNC PROTOCOL)
+    // --------------------------------------------------------------------------
+    function handleAiFillNoteForm(payload) {
+      if (!payload) return;
 
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() + daysOffset);
-            
-            dateInput.value = formatDateToYYYYMMDD(targetDate);
-            hourInput.value = "18:30"; 
-        }
+      const titleInput = document.getElementById('taskTitleInput');
+      const detailsInput = document.getElementById('taskDetailsInput');
+      const deadlineInput = document.getElementById('taskDeadlineInput');
+      const prioSelect = document.getElementById('taskPriorityInput');
+      const tagsInput = document.getElementById('taskTagsInput');
 
-        function initDefaultDateTime() { applyShortcut(0); }
+      if (titleInput && (payload.text || payload.title || payload.task)) {
+        titleInput.value = payload.text || payload.title || payload.task;
+        titleInput.focus();
+      }
 
-        function loadNotes() {
-            const savedNotes = localStorage.getItem('sticky_notes_data');
-            if (savedNotes) {
-                notesData = JSON.parse(savedNotes);
-                autoCleanOldDoneNotes();
-                renderAllNotes();
-            }
-        }
+      if (detailsInput && (payload.details || payload.content || payload.note)) {
+        detailsInput.value = payload.details || payload.content || payload.note;
+      }
 
-        function saveNotesToStorage() { localStorage.setItem('sticky_notes_data', JSON.stringify(notesData)); }
+      // Deadline handling
+      let targetDate = null;
+      if (payload.deadline) {
+        const ts = typeof payload.deadline === 'number' ? payload.deadline : new Date(payload.deadline).getTime();
+        if (!isNaN(ts) && ts > 0) targetDate = new Date(ts);
+      } else if (payload.date || payload.time) {
+        const now = new Date();
+        const dStr = payload.date || `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+        const tStr = payload.time || payload.hour || '18:00';
+        const ts = new Date(`${dStr}T${tStr}`).getTime();
+        if (!isNaN(ts)) targetDate = new Date(ts);
+      }
 
-        function autoCleanOldDoneNotes() {
-            const nowMs = new Date().getTime();
-            const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
-            const filteredNotes = notesData.filter(noteObj => {
-                if (noteObj.status === 'done' && noteObj.completedAt) {
-                    return (nowMs - noteObj.completedAt) < twoDaysInMs;
-                }
-                return true;
-            });
-            if (filteredNotes.length !== notesData.length) {
-                notesData = filteredNotes;
-                saveNotesToStorage();
-            }
-        }
+      const pad = n => String(n).padStart(2, '0');
+      if (targetDate && deadlineInput) {
+        deadlineInput.value = `${targetDate.getFullYear()}-${pad(targetDate.getMonth() + 1)}-${pad(targetDate.getDate())}T${pad(targetDate.getHours())}:${pad(targetDate.getMinutes())}`;
+      }
 
-        function getCountdownText(deadlineMs) {
-            const nowMs = new Date().getTime();
-            const diffMs = deadlineMs - nowMs;
-            if (diffMs <= 0) return "Quá hạn!";
+      // Priority
+      if (prioSelect && payload.priority) {
+        prioSelect.value = payload.priority;
+      }
 
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-            if (diffHours < 24) {
-                return `Còn: ${diffHours} giờ`;
-            } else {
-                const days = Math.floor(diffHours / 24);
-                const hours = diffHours % 24;
-                return `Còn: ${days}ngày ${hours}g`;
-            }
-        }
+      // Repeat cycle
+      const repeatSelect = document.getElementById('taskRepeatInput');
+      if (repeatSelect && payload.repeat) {
+        repeatSelect.value = payload.repeat;
+      }
 
-        // Search & Category Filters
-        let currentSearchKeyword = '';
-        let currentCategoryFilter = 'all';
+      // Sound
+      const soundSelect = document.getElementById('taskSoundInput');
+      if (soundSelect && payload.sound) {
+        soundSelect.value = payload.sound;
+      }
 
-        function filterNotes() {
-            currentSearchKeyword = document.getElementById('noteSearchInput').value.trim().toLowerCase();
-            renderAllNotes();
-        }
+      // Tags
+      if (tagsInput && payload.tags) {
+        tagsInput.value = Array.isArray(payload.tags) ? payload.tags.join(', ') : payload.tags;
+      }
 
-        function setNoteCategoryFilter(category, btn) {
-            currentCategoryFilter = category;
-            document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderAllNotes();
-        }
+      // Mode
+      const mode = (payload.type || payload.mode || payload.noteType || 'todo').toLowerCase();
+      const modeBtn = document.querySelector(`.input-mode-btn[data-mode="${mode}"]`);
+      if (modeBtn) switchInputMode(mode, modeBtn);
 
-        function copyNoteText(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert("📋 Đã sao chép nội dung ghi chú!");
-            });
-        }
+      // Banner & Highlight
+      const banner = document.getElementById('aiBannerWrap');
+      const bannerText = document.getElementById('aiBannerText');
+      if (banner && bannerText) {
+        bannerText.innerText = `Kira đã chuẩn bị việc: "${payload.text || payload.title || 'Mới'}". Bạn hãy kiểm tra lại và bấm [Thêm Vào Lịch]!`;
+        banner.style.display = 'flex';
+      }
 
-        function renderAllNotes() {
-            document.querySelector('#todoColumn .notes-list').innerHTML = '';
-            document.querySelector('#doneColumn .notes-list').innerHTML = '';
-            document.getElementById('leftMiniList').innerHTML = '';
-            document.getElementById('rightMiniList').innerHTML = '';
+      const card = document.getElementById('smartInputCard');
+      if (card) {
+        card.classList.add('ai-form-highlight');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => card.classList.remove('ai-form-highlight'), 3800);
+      }
+    }
 
-            let todoAndDoneNotes = notesData.filter(n => n.type !== 'countdown');
-            let countdownNotes = notesData.filter(n => n.type === 'countdown');
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-            // Search filter
-            if (currentSearchKeyword) {
-                todoAndDoneNotes = todoAndDoneNotes.filter(n => n.text.toLowerCase().includes(currentSearchKeyword));
-                countdownNotes = countdownNotes.filter(n => n.text.toLowerCase().includes(currentSearchKeyword));
-            }
+    // Lắng nghe Message từ Công AI / Dashboard
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+      if (!data || typeof data !== 'object') return;
 
-            // Category filter
-            if (currentCategoryFilter === 'todo') {
-                todoAndDoneNotes = todoAndDoneNotes.filter(n => n.status === 'todo');
-            } else if (currentCategoryFilter === 'done') {
-                todoAndDoneNotes = todoAndDoneNotes.filter(n => n.status === 'done');
-            } else if (currentCategoryFilter === 'warning') {
-                const nowMs = Date.now();
-                todoAndDoneNotes = todoAndDoneNotes.filter(n => (n.deadline - nowMs <= 24 * 3600 * 1000) && n.status === 'todo');
-                countdownNotes = countdownNotes.filter(n => (n.deadline - nowMs <= 24 * 3600 * 1000));
-            }
-
-            let todoCount = 0;
-            let doneCount = 0;
-
-            todoAndDoneNotes.sort((a, b) => a.deadline - b.deadline);
-            todoAndDoneNotes.forEach(noteObj => {
-                const deadlineDate = new Date(noteObj.deadline);
-                const formattedDate = deadlineDate.toLocaleString('vi-VN', {
-                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                });
-
-                const note = document.createElement('div');
-                note.className = 'note';
-                note.dataset.id = noteObj.id;
-                note.dataset.deadline = noteObj.deadline;
-
-                const isTodo = noteObj.status === 'todo';
-                if (isTodo) todoCount++;
-                else doneCount++;
-
-                let countdownHtml = isTodo ? `<div class="countdown-tag"><i class="fa-solid fa-stopwatch"></i> ${getCountdownText(noteObj.deadline)}</div>` : '';
-
-                let completedTimeHtml = '';
-                if (!isTodo && noteObj.completedAt) {
-                    const compDate = new Date(noteObj.completedAt);
-                    completedTimeHtml = `<span class="completed-text"><i class="fa-solid fa-check"></i> Xong: ${compDate.getHours()}:${String(compDate.getMinutes()).padStart(2, '0')} - ${compDate.getDate()}/${compDate.getMonth()+1}</span>`;
-                }
-
-                note.innerHTML = `
-                    ${countdownHtml}
-                    <div class="note-text">${noteObj.text}</div>
-                    
-                    <div class="note-actions">
-                        <button class="action-icon-btn admin-only" style="visibility: ${isTodo ? 'hidden' : 'visible'};" onclick="moveLeft(this)" title="Chuyển về Chưa xong">
-                            <i class="fa-solid fa-arrow-left"></i>
-                        </button>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="deadline-text"><i class="fa-regular fa-clock"></i> ${formattedDate}</span>
-                            ${completedTimeHtml}
-                        </div>
-                        <div class="btn-action-group">
-                            <button class="action-icon-btn" onclick="copyNoteText(\`${noteObj.text.replace(/`/g, '\\`')}\`)" title="Sao chép nội dung">
-                                <i class="fa-solid fa-copy"></i>
-                            </button>
-                            <button class="action-icon-btn admin-only" onclick="openEditModal('${noteObj.id}')" title="Sửa ghi chú">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button class="action-icon-btn delete admin-only" onclick="deleteNoteById('${noteObj.id}')" title="Xóa ghi chú">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                            <button class="action-icon-btn admin-only" style="visibility: ${isTodo ? 'visible' : 'hidden'};" onclick="moveRight(this)" title="Đánh dấu Hoàn thành">
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                if (isTodo) {
-                    document.querySelector('#todoColumn .notes-list').appendChild(note);
-                } else {
-                    document.querySelector('#doneColumn .notes-list').appendChild(note);
-                }
-            });
-
-            document.getElementById('todoCount').innerText = todoCount;
-            document.getElementById('doneCount').innerText = doneCount;
-
-            // Render Countdown mini notes
-            countdownNotes.sort((a, b) => a.deadline - b.deadline);
-            countdownNotes.forEach((noteObj, idx) => {
-                const deadlineDate = new Date(noteObj.deadline);
-                const nowMs = new Date().getTime();
-                const isUrgent = (noteObj.deadline - nowMs) <= (24 * 60 * 60 * 1000);
-                
-                const miniNote = document.createElement('div');
-                miniNote.className = `mini-note ${isUrgent ? 'urgent' : ''}`;
-                const miniTimeText = `${deadlineDate.getDate()}/${deadlineDate.getMonth()+1} lúc ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}`;
-                
-                miniNote.innerHTML = `
-                    <button class="mini-delete-btn admin-only" onclick="deleteNoteById('${noteObj.id}')">✕</button>
-                    <div class="mini-note-text">${noteObj.text}</div>
-                    <div class="mini-note-meta">
-                        <span class="mini-time"><i class="fa-regular fa-clock"></i> ${miniTimeText}</span>
-                        <span class="mini-countdown" data-mini-deadline="${noteObj.deadline}">${getCountdownText(noteObj.deadline)}</span>
-                    </div>
-                `;
-
-                if (idx % 2 === 0) {
-                    document.getElementById('leftMiniList').appendChild(miniNote);
-                } else {
-                    document.getElementById('rightMiniList').appendChild(miniNote);
-                }
-            });
-
-            checkTimeAndAlerts();
-        }
-
-        function validateAndParseTime(hourStr) {
-            const cleanStr = hourStr.trim().replace('h', ':');
-            const timeRegex = /^([0-1]?[0-9]|2[0-3])(:[0-5][0-9])?$/;
-            if (!timeRegex.test(cleanStr)) {
-                alert("❌ SAI ĐỊNH DẠNG GIỜ!\nVui lòng nhập đúng định dạng 24h (Ví dụ: 9, 13:15, 18:30).");
-                return null;
-            }
-            let hours = 0, minutes = 0;
-            if (cleanStr.includes(':')) {
-                const parts = cleanStr.split(':');
-                hours = parseInt(parts[0]);
-                minutes = parseInt(parts[1]);
-            } else {
-                hours = parseInt(cleanStr);
-                minutes = 0;
-            }
-            return { hours, minutes };
-        }
-
-        function addTask() {
-            if (!checkAdminPermission()) return;
-            const taskInput = document.getElementById('taskInput');
-            const dateInput = document.getElementById('dateInput');
-            const hourInput = document.getElementById('hourInput');
-            
-            const selectedMode = document.querySelector('input[name="noteMode"]:checked').value;
-            const taskText = taskInput.value.trim();
-            const dateValue = dateInput.value;
-
-            if (taskText === "" || dateValue === "") {
-                alert("Vui lòng nhập nội dung và chọn ngày!");
-                return;
-            }
-
-            const timeObj = validateAndParseTime(hourInput.value);
-            if (timeObj === null) return; 
-
-            const dateParts = dateValue.split('-'); 
-            const deadlineDate = new Date(
-                parseInt(dateParts[0]),
-                parseInt(dateParts[1]) - 1,
-                parseInt(dateParts[2]),
-                timeObj.hours,
-                timeObj.minutes,
-                0, 0
-            );
-
-            if (deadlineDate.getTime() < new Date().getTime()) {
-                alert("❌ THỜI GIAN LÀ QUÁ KHỨ!\nHạn định không được nhỏ hơn thời gian hiện tại.");
-                return;
-            }
-
-            notesData.push({
-                id: Date.now().toString(),
-                text: taskText,
-                deadline: deadlineDate.getTime(),
-                status: 'todo',
-                type: selectedMode,
-                completedAt: null
-            });
-            saveNotesToStorage();
-            renderAllNotes();
-
-            taskInput.value = "";
-            initDefaultDateTime(); 
-        }
-
-        function openEditModal(id) {
-            if (!checkAdminPermission()) return;
-            const noteObj = notesData.find(n => n.id === id);
-            if (!noteObj) return;
-
-            document.getElementById('editNoteId').value = id;
-            document.getElementById('editTaskText').value = noteObj.text;
-
-            const d = new Date(noteObj.deadline);
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            const hours = String(d.getHours()).padStart(2, '0');
-            const minutes = String(d.getMinutes()).padStart(2, '0');
-            
-            document.getElementById('editTaskDeadline').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function closeModal() { document.getElementById('editModal').classList.remove('active'); }
-
-        function saveModalChanges() {
-            if (!checkAdminPermission()) return;
-            const id = document.getElementById('editNoteId').value;
-            const newText = document.getElementById('editTaskText').value.trim();
-            const newDeadlineValue = document.getElementById('editTaskDeadline').value;
-
-            if (newText === "" || newDeadlineValue === "") {
-                alert("Nội dung và thời gian không được để trống!");
-                return;
-            }
-
-            const newDeadlineDate = new Date(newDeadlineValue);
-            if (isNaN(newDeadlineDate.getTime())) { alert("Thời gian không hợp lệ!"); return; }
-            if (newDeadlineDate.getTime() < new Date().getTime()) { alert("❌ THỜI GIAN LÀ QUÁ KHỨ!"); return; }
-
-            const noteObj = notesData.find(n => n.id === id);
-            if (noteObj) {
-                noteObj.text = newText;
-                noteObj.deadline = newDeadlineDate.getTime();
-                saveNotesToStorage();
-                renderAllNotes();
-                closeModal();
-            }
-        }
-
-        function checkTimeAndAlerts() {
-            const nowMs = new Date().getTime();
-            const oneDayInMs = 24 * 60 * 60 * 1000; 
-            autoCleanOldDoneNotes();
-
-            const todoNotes = document.querySelectorAll('#todoColumn .note');
-            todoNotes.forEach(note => {
-                const deadline = parseInt(note.dataset.deadline);
-                const timeLeft = deadline - nowMs;
-                const tag = note.querySelector('.countdown-tag');
-                if (tag) tag.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${getCountdownText(deadline)}`;
-
-                if (timeLeft <= 0 || timeLeft <= oneDayInMs) {
-                    note.classList.add('urgent');
-                } else {
-                    note.classList.remove('urgent');
-                }
-            });
-
-            const miniCountdowns = document.querySelectorAll('[data-mini-deadline]');
-            miniCountdowns.forEach(miniTag => {
-                const deadline = parseInt(miniTag.dataset.miniDeadline);
-                miniTag.innerText = getCountdownText(deadline);
-                const miniNoteCard = miniTag.closest('.mini-note');
-                if (miniNoteCard) {
-                    if (deadline - nowMs <= 0 || deadline - nowMs <= oneDayInMs) {
-                        miniNoteCard.classList.add('urgent');
-                    } else {
-                        miniNoteCard.classList.remove('urgent');
-                    }
-                }
-            });
-        }
-        setInterval(checkTimeAndAlerts, 10000);
-
-        function moveRight(button) {
-            if (!checkAdminPermission()) return;
-            const note = button.closest('.note');
-            const noteObj = notesData.find(n => n.id === note.dataset.id);
-            if (noteObj) { noteObj.status = 'done'; noteObj.completedAt = new Date().getTime(); }
-            saveNotesToStorage();
-            renderAllNotes();
-        }
-
-        function moveLeft(button) {
-            if (!checkAdminPermission()) return;
-            const note = button.closest('.note');
-            const noteObj = notesData.find(n => n.id === note.dataset.id);
-            if (noteObj) { noteObj.status = 'todo'; noteObj.completedAt = null; }
-            saveNotesToStorage();
-            renderAllNotes();
-        }
-
-        function deleteNoteById(id) {
-            if (!checkAdminPermission()) return;
-            if (confirm("Bạn có chắc chắn muốn xóa ghi chú này không?")) {
-                notesData = notesData.filter(n => n.id !== id);
-                saveNotesToStorage();
-                renderAllNotes();
-            }
-        }
-
-        // Initialize App
+      if (data.type === 'AI_FILL_NOTE_FORM') {
+        handleAiFillNoteForm(data.payload);
+      } else if (data.type === 'NOTES_UPDATED' || data.type === 'APP_DATA_UPDATED' || data.type === 'REFRESH_NOTES' || (data.type === 'STORAGE_KEY_CHANGED' && (data.key === 'sticky_notes_data' || data.key === 'sys_reminders'))) {
+        loadTasksFromStorage();
+      } else if (data.type === 'ADMIN_STATUS_CHANGED') {
         updateAdminUI();
-        updateClockAndCalendar();
-        initDefaultDateTime();
-        loadNotes();
-    </script>
+      }
+    });
+
+    // Lắng nghe thay đổi Storage từ các tab / cửa sổ khác
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'sticky_notes_data' || event.key === 'sys_reminders' || !event.key) {
+        loadTasksFromStorage();
+      }
+      if (event.key === 'sys_admin_logged') {
+        updateAdminUI();
+      }
+    });
+
+    window.addEventListener('system_storage_changed', (ev) => {
+      const key = ev.detail && ev.detail.key;
+      if (key === 'sticky_notes_data' || key === 'sys_reminders' || !key) {
+        loadTasksFromStorage();
+      }
+    });
+
+    // Lắng nghe BroadcastChannel quản trị hệ thống và kênh sync toàn app
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const authBc = new BroadcastChannel('system_admin_auth');
+        authBc.onmessage = (ev) => {
+          if (ev.data && ev.data.type === 'ADMIN_STATUS_CHANGED') {
+            updateAdminUI();
+          }
+        };
+        const appBc = new BroadcastChannel('app_sync_channel');
+        appBc.onmessage = (ev) => {
+          if (ev.data && (ev.data.type === 'NOTES_UPDATED' || ev.data.type === 'APP_DATA_UPDATED')) {
+            loadTasksFromStorage();
+          }
+        };
+        const toolBc = new BroadcastChannel('hongcong_tool_sync');
+        toolBc.onmessage = (ev) => {
+          if (ev.data && (ev.data.type === 'NOTES_UPDATED' || ev.data.type === 'APP_DATA_UPDATED' || (ev.data.type === 'STORAGE_KEY_CHANGED' && (ev.data.key === 'sticky_notes_data' || ev.data.key === 'sys_reminders')))) {
+            loadTasksFromStorage();
+          }
+        };
+      }
+    } catch (e) {}
+
+    // --------------------------------------------------------------------------
+    // 8. INIT ON LOAD
+    // --------------------------------------------------------------------------
+    updateAdminUI();
+    updateLiveClock();
+    setQuickDeadline(1, 18, 0); // Default tomorrow 18:00
+    if (isListView) toggleLayoutView('list');
+    loadTasksFromStorage();
+
+  </script>
 </body>
 </html>

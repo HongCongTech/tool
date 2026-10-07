@@ -34,9 +34,11 @@
     { id: '1', title: 'Chia Bill', icon: '🍻', url: 'apps/chia-bill/index.html', adminOnly: false },
     { id: '2', title: 'Tính Tiền Cơm', icon: '🍚', url: 'apps/tien-com/index.html', adminOnly: false },
     { id: '3', title: 'Lãi Suất', icon: '💵', url: 'apps/lai-suat/index.html', adminOnly: false },
-    { id: '4', title: 'Ghi Chú', icon: '📝', url: 'apps/ghi-chu/index.html', adminOnly: false },
+    { id: '4', title: 'Nhắc Việc & Ghi Chú', icon: '🔔', url: 'apps/ghi-chu/index.html', adminOnly: false },
     { id: '5', title: 'Danh Bạ', icon: '👥', url: 'apps/danh-ba/index.html', adminOnly: false },
-    { id: 'control-panel', title: 'Cài Đặt', icon: '⚙️', url: 'apps/control-panel/index.html', adminOnly: true }
+    { id: 'music', title: 'Apple Music', icon: '🎵', url: 'apps/music/index.html', adminOnly: false },
+    { id: 'admin-database', title: 'Quản Trị DB', icon: '🗄️', url: '#admin/database', adminOnly: true },
+    { id: 'control-panel', title: 'Cài Đặt', icon: '⚙️', url: 'apps/control-panel/index.html', adminOnly: false }
   ];
 
   const LEGACY_URL_MAPPINGS = {
@@ -46,7 +48,8 @@
     'tiencom 2.html': 'apps/tien-com/index.html',
     'laisuat.html': 'apps/lai-suat/index.html',
     'laiSuat.html': 'apps/lai-suat/index.html',
-    'note.html': 'apps/ghi-chu/index.html'
+    'note.html': 'apps/ghi-chu/index.html',
+    'music.html': 'apps/music/index.html'
   };
 
   // State
@@ -58,9 +61,26 @@
   let spotlightFilteredItems = [];
 
   // Window Manager State
-  let openWindows = {}; // map of appId -> { id, app, el, iframe, isMinimized, isMaximized, rect }
+  const openWindows = {};
   let activeWindowId = null;
-  let highestZIndex = 500;
+  // Desktop Window & Layer Manager (chuẩn Windows & macOS)
+  window.globalHighestZIndex = Math.max(window.globalHighestZIndex || 2000, 2000);
+  let highestZIndex = window.globalHighestZIndex;
+
+  function bringLayerToFront(targetEl, label) {
+    if (!targetEl) return;
+    window.globalHighestZIndex = Math.max(window.globalHighestZIndex || 2000, 2000) + 1;
+    highestZIndex = window.globalHighestZIndex;
+    targetEl.style.zIndex = window.globalHighestZIndex;
+
+    // Đẩy cả container chứa cửa sổ lên layer cao nhất để không bị modal/AI khác che khuất
+    const winContainer = document.getElementById('windows-container');
+    if (winContainer && (targetEl === winContainer || winContainer.contains(targetEl))) {
+      winContainer.style.zIndex = window.globalHighestZIndex;
+    }
+  }
+  window.bringLayerToFront = bringLayerToFront;
+
   let cascadeOffset = 0;
   const WORKSPACE_SESSION_KEY = 'mac_dashboard_active_workspace_v1';
   let isRestoringSession = false;
@@ -170,13 +190,13 @@
     if (isAdmin) {
       document.body.classList.add('is-admin');
       if (DOM.adminBadgeText) {
-        DOM.adminBadgeText.innerText = '🔑 Admin Mode';
+        DOM.adminBadgeText.innerHTML = '<span class="badge-icon">🔑</span> <span class="badge-label">Admin Mode</span>';
       }
     } else {
       document.body.classList.remove('is-admin');
       document.body.classList.remove('admin-edit-mode-active');
       if (DOM.adminBadgeText) {
-        DOM.adminBadgeText.innerText = '👁️ Chế độ xem';
+        DOM.adminBadgeText.innerHTML = '<span class="badge-icon">👁️</span> <span class="badge-label">Chế độ xem</span>';
       }
       if (isEditMode) {
         toggleEditMode(false);
@@ -191,18 +211,49 @@
     const diAdminVal = document.getElementById('diAdminVal');
     if (diAdminIcon) diAdminIcon.innerText = isAdmin ? '🛡️' : '👁️';
     if (diAdminVal) diAdminVal.innerText = isAdmin ? 'Admin Mode' : 'Chế độ xem';
+
+    // Đồng bộ lên SpringBoard status badge trên mobile
+    const mobileAdminIcon = document.getElementById('mobileAdminIcon');
+    if (mobileAdminIcon) {
+      mobileAdminIcon.innerText = isAdmin ? '🛡️' : '👁️';
+    }
+
+    // Đồng bộ sang giao diện cửa sổ Công AI
+    if (typeof window.aiUpdateAdminStatusUI === 'function') {
+      window.aiUpdateAdminStatusUI(isAdmin);
+    }
+
+    // Tự động làm mới giao diện Desktop và Dock theo quyền truy cập hiện tại
+    renderAppGrid();
+    renderDockApps();
+    updateRunningAppIndicators();
   }
 
 
   function setAdminMode(enable) {
     isAdmin = enable;
     localStorage.setItem(SYS_IS_ADMIN_KEY, enable ? 'true' : 'false');
+
+    if (!enable) {
+      // Đóng tất cả các cửa sổ ứng dụng chỉ dành cho Admin nếu chuyển về Chế độ xem
+      Object.keys(openWindows).forEach(appId => {
+        const app = appsList.find(a => String(a.id) === String(appId));
+        if (app && app.adminOnly) {
+          closeWindow(appId);
+        }
+      });
+    }
+
     updateAdminUI();
 
     // Broadcast change to other tabs and sub-apps
     if (authChannel) {
       authChannel.postMessage({ type: 'ADMIN_STATUS_CHANGED', isAdmin: enable });
     }
+    try {
+      window.dispatchEvent(new StorageEvent('storage', { key: SYS_IS_ADMIN_KEY, newValue: enable ? 'true' : 'false' }));
+      window.dispatchEvent(new CustomEvent('admin_status_changed', { detail: { isAdmin: enable } }));
+    } catch (e) {}
     broadcastAdminToWindows(enable);
   }
 
@@ -261,7 +312,10 @@
         '🛡️ Quản Trị Hệ Thống (Admin)',
         `Bạn hiện đang đăng nhập ở <b>Chế độ Quản trị viên</b>.<br>Vui lòng chọn tác vụ quản trị mong muốn bên dưới:<br><br>
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <button type="button" class="btn-action" style="background:#0284c7; width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; cursor:pointer;" onclick="closeMacAlert(); openChangeAdminPassModal();">
+          <button type="button" class="btn-action" style="background:#0284c7; width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; cursor:pointer;" onclick="closeMacAlert(); openControlPanel();">
+            ⚙️ Mở Cài Đặt Hệ Thống (Control Panel)
+          </button>
+          <button type="button" class="btn-action" style="background:rgba(255,255,255,0.08); width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; cursor:pointer;" onclick="closeMacAlert(); openChangeAdminPassModal();">
             🔑 Đổi Mật Khẩu Admin
           </button>
           <button type="button" class="btn-action" style="background:rgba(255,255,255,0.08); width:100%; padding:10px 14px; border-radius:10px; font-weight:700; text-align:left; color:#38bdf8; cursor:pointer;" onclick="closeMacAlert(); openChangeMasterKeyModal();">
@@ -365,9 +419,16 @@
     quickResetAdminPassword();
   }
 
-  function openAdminAuthModal() {
+  let pendingAdminCallback = null;
+
+  function openAdminAuthModal(customDesc, onSuccessCallback) {
     closeAllMenus();
+    pendingAdminCallback = onSuccessCallback || null;
     if (!DOM.adminAuthModal) return;
+    const descEl = document.getElementById('adminAuthDesc');
+    if (descEl) {
+      descEl.innerText = customDesc || 'Nhập mật khẩu Admin để truy cập toàn quyền hệ thống:';
+    }
     DOM.adminAuthModal.classList.add('active');
     if (DOM.adminAuthInput) {
       DOM.adminAuthInput.value = '';
@@ -376,7 +437,12 @@
   }
 
   function closeAdminAuthModal() {
+    pendingAdminCallback = null;
     if (DOM.adminAuthModal) DOM.adminAuthModal.classList.remove('active');
+    const descEl = document.getElementById('adminAuthDesc');
+    if (descEl) {
+      descEl.innerText = 'Nhập mật khẩu Admin để truy cập toàn quyền hệ thống:';
+    }
   }
 
   async function submitAdminAuth() {
@@ -393,9 +459,14 @@
     if (isMatched || isMasterMatched) {
       failedAttempts = 0;
       localStorage.setItem(SYS_FAILED_KEY, '0');
+      const callback = pendingAdminCallback;
+      pendingAdminCallback = null;
       setAdminMode(true);
       closeAdminAuthModal();
-      window.location.reload();
+      showToast('Đã đăng nhập Quản trị viên thành công!', '🔑');
+      if (typeof callback === 'function') {
+        try { callback(); } catch (e) {}
+      }
     } else {
       failedAttempts++;
       showMacAlert(
@@ -1045,9 +1116,7 @@
             needsSave = true;
             updated.url = LEGACY_URL_MAPPINGS[app.url];
           }
-          if (updated.id === 'control-panel' || (updated.url && updated.url.includes('control-panel'))) {
-            if (!updated.adminOnly) { updated.adminOnly = true; needsSave = true; }
-          } else if (typeof updated.adminOnly !== 'boolean') {
+          if (typeof updated.adminOnly !== 'boolean') {
             updated.adminOnly = false;
             needsSave = true;
           }
@@ -1061,6 +1130,13 @@
           needsSave = true;
         }
 
+        // Tự động thêm Apple Music nếu chưa có trong danh sách apps
+        const hasMusic = appsList.some(app => app.id === 'music' || (app.url && app.url.includes('music')));
+        if (!hasMusic) {
+          appsList.push({ id: 'music', title: 'Apple Music', icon: '🎵', url: 'apps/music/index.html', adminOnly: false });
+          needsSave = true;
+        }
+
         // Xóa Vinh Danh & Chi Tiêu nếu còn sót lại từ phiên bản cũ
         const hadAnalytics = appsList.some(app => app.id === 'analytics' || (app.url && app.url.includes('modal:analytics')));
         if (hadAnalytics) {
@@ -1071,7 +1147,30 @@
         // Tự động thêm Control Panel nếu chưa có trong danh sách apps
         const hasControlPanel = appsList.some(app => app.id === 'control-panel' || (app.url && app.url.includes('control-panel')));
         if (!hasControlPanel) {
-          appsList.push({ id: 'control-panel', title: 'Cài Đặt', icon: '⚙️', url: 'apps/control-panel/index.html', adminOnly: true });
+          appsList.push({ id: 'control-panel', title: 'Cài Đặt', icon: '⚙️', url: 'apps/control-panel/index.html', adminOnly: false });
+          needsSave = true;
+        }
+
+        // Loại bỏ trùng lặp nếu có nhiều hơn 1 mục Cài Đặt và bảo tồn quyền adminOnly
+        const cpIndices = [];
+        appsList.forEach((app, idx) => {
+          if (app.id === 'control-panel' || (app.url && app.url.includes('control-panel'))) {
+            cpIndices.push(idx);
+          }
+        });
+        if (cpIndices.length > 1) {
+          const hasAnyAdminOnly = cpIndices.some(i => appsList[i].adminOnly === true);
+          appsList[cpIndices[0]].adminOnly = hasAnyAdminOnly;
+          for (let i = cpIndices.length - 1; i > 0; i--) {
+            appsList.splice(cpIndices[i], 1);
+          }
+          needsSave = true;
+        }
+
+        // Tự động thêm Quản Trị DB nếu chưa có trong danh sách apps
+        const hasAdminDb = appsList.some(app => app.id === 'admin-database' || (app.url && app.url.includes('admin/database')));
+        if (!hasAdminDb) {
+          appsList.push({ id: 'admin-database', title: 'Quản Trị DB', icon: '🗄️', url: '#admin/database', adminOnly: true });
           needsSave = true;
         }
 
@@ -1089,6 +1188,9 @@
   function saveAppsToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appsList));
     localStorage.setItem(LEGACY_STORAGE_KEY_V2, JSON.stringify(appsList));
+    if (window.dbStorage) {
+      window.dbStorage.setItem(STORAGE_KEY, JSON.stringify(appsList));
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -1671,17 +1773,20 @@
 
   function openControlPanel() {
     closeAllMenus();
-    if (!isAdmin) {
-      openAdminAuthModal('🔒 Chức năng Cài đặt chỉ dành cho Quản trị viên (Admin Mode).\nVui lòng nhập mật khẩu Admin để truy cập Cài đặt:');
-      return;
-    }
-    openApp({
+    const cpApp = appsList.find(a => a.id === 'control-panel' || (a.url && a.url.includes('control-panel'))) || {
       id: 'control-panel',
       title: 'Cài Đặt',
       icon: '⚙️',
       url: 'apps/control-panel/index.html',
-      adminOnly: true
-    });
+      adminOnly: false
+    };
+    if (cpApp.adminOnly && !isAdmin) {
+      openAdminAuthModal('🔒 Ứng dụng "Cài Đặt" chỉ dành cho Quản trị viên (Admin Mode).\nVui lòng nhập mật khẩu Admin để mở:', () => {
+        openApp(cpApp);
+      });
+      return;
+    }
+    openApp(cpApp);
   }
 
   function openControlPanelAi() {
@@ -1699,11 +1804,51 @@
     }, 600);
   }
 
+  // TẠO URL ỨNG DỤNG ĐÍNH KÈM PHIÊN BẢN (AUTO CACHE-BUSTER CHO IFRAME)
+  function buildAppUrlWithVersion(rawUrl, isHardReload = false) {
+    if (!rawUrl || rawUrl.startsWith('#') || rawUrl.startsWith('javascript:')) return rawUrl;
+    const sysVer = (window.SYSTEM_VERSION && window.SYSTEM_VERSION.version) ? window.SYSTEM_VERSION.version : '2.5.0';
+    const buildNo = isHardReload ? Date.now() : ((window.SYSTEM_VERSION && window.SYSTEM_VERSION.buildNumber) ? window.SYSTEM_VERSION.buildNumber : '2026100602');
+    const sep = rawUrl.includes('?') ? '&' : '?';
+    return `${rawUrl}${sep}sys_v=${encodeURIComponent(sysVer)}&_b=${buildNo}`;
+  }
+  window.buildAppUrlWithVersion = buildAppUrlWithVersion;
+
   function openApp(app) {
     if (!DOM.windowsContainer) return;
 
-    if ((app.adminOnly || app.id === 'control-panel') && !isAdmin) {
-      openAdminAuthModal(`🔒 Ứng dụng "${app.title}" được thiết lập chỉ dành cho Quản trị viên (Admin Mode).\nVui lòng nhập mật khẩu Admin để mở:`);
+    if (typeof app === 'string') {
+      const targetId = app.trim();
+      let found = appsList.find(a => a.id === targetId || (a.url && a.url.includes(targetId)) || (a.title && a.title.toLowerCase().includes(targetId.toLowerCase())));
+      if (!found) {
+        if (targetId.includes('tien') || targetId.includes('com')) found = appsList.find(a => a.id === '2');
+        else if (targetId.includes('chia') || targetId.includes('bill')) found = appsList.find(a => a.id === '1');
+        else if (targetId.includes('ghi') || targetId.includes('chu')) found = appsList.find(a => a.id === '4');
+        else if (targetId.includes('danh') || targetId.includes('ba')) found = appsList.find(a => a.id === '5');
+      }
+      if (found) app = found;
+      else return;
+    }
+
+    if (app.id === 'admin-database' || app.url === '#admin/database' || app.action === 'openAdminDatabaseModal') {
+      if (!isAdmin) {
+        openAdminAuthModal(`🔒 Ứng dụng "Quản Trị Cơ Sở Dữ Liệu" chỉ dành cho Quản trị viên (Admin Mode).\nVui lòng nhập mật khẩu Admin để mở:`, () => {
+          if (typeof window.openAdminDatabaseModal === 'function') {
+            window.openAdminDatabaseModal();
+          }
+        });
+        return;
+      }
+      if (typeof window.openAdminDatabaseModal === 'function') {
+        window.openAdminDatabaseModal();
+        return;
+      }
+    }
+
+    if (app.adminOnly && !isAdmin) {
+      openAdminAuthModal(`🔒 Ứng dụng "${app.title}" được thiết lập chỉ dành cho Quản trị viên (Admin Mode).\nVui lòng nhập mật khẩu Admin để mở:`, () => {
+        openApp(app);
+      });
       return;
     }
 
@@ -1750,7 +1895,7 @@
       cascadeOffset = (cascadeOffset + 30) % 150;
     }
 
-    highestZIndex++;
+    const freshAppUrl = buildAppUrlWithVersion(app.url);
 
     const winEl = document.createElement('div');
     winEl.className = 'mac-window focused';
@@ -1760,7 +1905,7 @@
     winEl.style.height = `${defaultH}px`;
     winEl.style.left = `${left}px`;
     winEl.style.top = `${top}px`;
-    winEl.style.zIndex = highestZIndex;
+    bringLayerToFront(winEl, `App: ${app.id}`);
 
     winEl.innerHTML = `
       <!-- 1. Header giao diện Desktop (macOS Window Header) -->
@@ -1801,7 +1946,7 @@
       <!-- Khung chứa Iframe ứng dụng -->
       <div class="window-body">
         <div class="iframe-shield"></div>
-        <iframe src="${app.url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" title="${app.title}"></iframe>
+        <iframe src="${freshAppUrl}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="autoplay; encrypted-media; fullscreen" title="${app.title}"></iframe>
       </div>
 
       <!-- 3. Thanh gạt đáy iPhone (iOS Home Indicator Bar - Chạm hoặc vuốt lên để thoát) -->
@@ -1823,6 +1968,7 @@
     DOM.windowsContainer.appendChild(winEl);
 
     const iframe = winEl.querySelector('iframe');
+    const shield = winEl.querySelector('.iframe-shield');
     const headerEl = winEl.querySelector('.window-header');
     const btnClose = winEl.querySelector('.btn-close');
     const btnMinimize = winEl.querySelector('.btn-minimize');
@@ -1853,7 +1999,7 @@
     btnMaximize.onclick = (e) => { e.stopPropagation(); toggleMaximize(app.id); };
     btnReload.onclick = (e) => { e.stopPropagation(); reloadWindow(app.id); };
     if (btnExternal) {
-      btnExternal.onclick = (e) => { e.stopPropagation(); window.open(app.url, '_blank'); };
+      btnExternal.onclick = (e) => { e.stopPropagation(); window.open(freshAppUrl, '_blank'); };
     }
 
     // Sự kiện giao diện iPhone
@@ -1872,7 +2018,7 @@
     if (iosBtnExternal) {
       iosBtnExternal.onclick = (e) => {
         e.stopPropagation();
-        window.open(app.url, '_blank');
+        window.open(freshAppUrl, '_blank');
       };
     }
 
@@ -1888,8 +2034,23 @@
       toggleMaximize(app.id);
     };
 
-    // Nhấp chuột vào cửa sổ để kích hoạt (Focus)
-    winEl.onpointerdown = () => focusWindow(app.id);
+    // Nhấp chuột vào bất kỳ vùng nào của cửa sổ (bao gồm cả iframe shield) để nhảy lên layout trên cùng
+    const handleWinActivate = (e) => {
+      focusWindow(app.id);
+    };
+    winEl.addEventListener('pointerdown', handleWinActivate, true);
+    winEl.addEventListener('mousedown', handleWinActivate, true);
+
+    if (shield) {
+      shield.onpointerdown = (e) => {
+        e.stopPropagation();
+        focusWindow(app.id);
+      };
+      shield.onmousedown = (e) => {
+        e.stopPropagation();
+        focusWindow(app.id);
+      };
+    }
 
     // Kéo di chuyển cửa sổ (Desktop)
     setupWindowDrag(winEl, winData, headerEl);
@@ -2276,6 +2437,7 @@
           focusWindow(nextVisible.id);
         } else {
           activeWindowId = null;
+          syncHistoryToHome();
         }
       }
       renderDockApps(); updateRunningAppIndicators();
@@ -2315,8 +2477,7 @@
     if (!winData) return;
 
     activeWindowId = appId;
-    highestZIndex++;
-    winData.el.style.zIndex = highestZIndex;
+    bringLayerToFront(winData.el, `Window: ${appId}`);
 
     Object.values(openWindows).forEach(w => {
       if (w.id === appId) {
@@ -2326,6 +2487,9 @@
       }
     });
 
+    // Đẩy trạng thái routing để phím Back của điện thoại Android tương tác chuẩn xác
+    pushDashboardNavState('app', { appId });
+
     renderDockApps(); updateRunningAppIndicators();
     saveWorkspaceSession();
   }
@@ -2334,7 +2498,7 @@
     const targetId = appId || activeWindowId;
     const winData = openWindows[targetId];
     if (winData && winData.iframe) {
-      winData.iframe.src = winData.app.url;
+      winData.iframe.src = buildAppUrlWithVersion(winData.app.url, true);
     }
   }
 
@@ -2355,12 +2519,13 @@
   }
 
   function goHome() {
+    syncHistoryToHome();
     const isIos = document.body.classList.contains('ios-mode') || window.innerWidth <= 768;
     const all = Object.values(openWindows);
     if (all.length === 0) return;
 
     if (isIos) {
-      // Trên iPhone, chạm hoặc vuốt Home sẽ trượt đóng ứng dụng đang mở về màn hình chính
+      // Trên iPhone & Android, chạm hoặc vuốt Home sẽ trượt đóng ứng dụng đang mở về màn hình chính
       all.forEach(w => {
         if (!w.isMinimized) dismissIosWindow(w.id, 'down');
       });
@@ -2381,6 +2546,141 @@
       });
     }
     saveWorkspaceSession();
+  }
+
+  // --------------------------------------------------------------------------
+  // BỘ ĐIỀU KHIỂN ĐIỀU HƯỚNG VÀ PHÍM BACK ANDROID (HISTORY API & ROUTING CONTROLLER)
+  // --------------------------------------------------------------------------
+  let isInternalHistoryNav = false;
+
+  function pushDashboardNavState(view, data = {}) {
+    try {
+      const stateObj = { hub: 'dashboard', view, ...data, t: Date.now() };
+      let hash = '';
+      if (view === 'app') hash = `#app-${data.appId}`;
+      else if (view === 'ai') hash = '#ai';
+      else if (view === 'modal') hash = `#modal-${data.modalId}`;
+      else hash = '#home';
+
+      if (window.location.hash !== hash) {
+        history.pushState(stateObj, '', hash);
+      }
+    } catch (e) {
+      console.warn('pushDashboardNavState error:', e);
+    }
+  }
+  window.pushDashboardNavState = pushDashboardNavState;
+
+  function syncHistoryToHome() {
+    try {
+      if (window.location.hash && window.location.hash !== '' && window.location.hash !== '#home') {
+        history.replaceState({ hub: 'dashboard', view: 'home' }, document.title, window.location.pathname + window.location.search);
+      }
+    } catch (e) {}
+  }
+  window.syncHistoryToHome = syncHistoryToHome;
+
+  function handleAndroidBackNav(targetState) {
+    if (isInternalHistoryNav) {
+      isInternalHistoryNav = false;
+      return;
+    }
+
+    // 1. Kiểm tra và đóng các modal hệ thống đang mở
+    const adminDbModal = document.getElementById('admin-database-modal');
+    if (adminDbModal && adminDbModal.classList.contains('show')) {
+      if (window.adminDatabase && typeof window.adminDatabase.close === 'function') {
+        window.adminDatabase.close();
+      } else {
+        adminDbModal.classList.remove('show');
+      }
+      return;
+    }
+
+    const spotlight = DOM.spotlightOverlay;
+    if (spotlight && spotlight.classList.contains('active')) {
+      closeSpotlight();
+      return;
+    }
+
+    const calPopover = DOM.calendarPopover;
+    if (calPopover && calPopover.classList.contains('show')) {
+      calPopover.classList.remove('show');
+      return;
+    }
+
+    const appleMenu = DOM.appleMenu;
+    if (appleMenu && appleMenu.classList.contains('show')) {
+      appleMenu.classList.remove('show');
+      return;
+    }
+
+    const modalsToCheck = [
+      DOM.wallpapersModal,
+      DOM.aboutModal,
+      DOM.appModal,
+      document.getElementById('membersManagerModal'),
+      document.getElementById('change-admin-pass-modal'),
+      document.getElementById('change-master-key-modal'),
+      document.getElementById('db-status-modal'),
+      document.getElementById('admin-auth-modal'),
+      document.getElementById('app-info-modal')
+    ];
+    for (const m of modalsToCheck) {
+      if (m && (m.classList.contains('show') || m.classList.contains('active') || m.style.display === 'flex' || m.style.display === 'block')) {
+        m.classList.remove('show');
+        m.classList.remove('active');
+        m.style.display = 'none';
+        return;
+      }
+    }
+
+    // 2. Nếu cửa sổ Công AI đang hiển thị
+    const aiModal = document.getElementById('aiAssistantModal');
+    if (aiModal && aiModal.classList.contains('show')) {
+      if (typeof window.closeAiAssistant === 'function') {
+        window.closeAiAssistant();
+      } else {
+        aiModal.classList.remove('show');
+      }
+      return;
+    }
+
+    // 3. Nếu có cửa sổ app nào đang mở (openWindows)
+    const visibleWindows = Object.values(openWindows).filter(w => !w.isMinimized);
+    if (visibleWindows.length > 0) {
+      const isMobile = document.body.classList.contains('ios-mode') || window.innerWidth <= 768;
+      if (isMobile) {
+        // Trên điện thoại Android: Đóng ứng dụng đang mở, trượt về màn hình chính Desktop
+        visibleWindows.forEach(w => {
+          dismissIosWindow(w.id, 'down');
+        });
+      } else {
+        // Trên Desktop macOS
+        if (!targetState || targetState.view === 'home') {
+          visibleWindows.forEach(w => minimizeWindow(w.id));
+        } else if (targetState.view === 'app' && targetState.appId) {
+          focusWindow(targetState.appId);
+        }
+      }
+      return;
+    }
+
+    // 4. Nếu đang ở màn hình chính và không có gì mở:
+    // Trình duyệt sẽ tự do xử lý hành vi mặc định nếu người dùng bấm Back tiếp.
+  }
+  window.handleAndroidBackNav = handleAndroidBackNav;
+
+  function initAndroidHistoryNavigation() {
+    try {
+      if (!history.state || history.state.hub !== 'dashboard') {
+        history.replaceState({ hub: 'dashboard', view: 'home' }, document.title, window.location.pathname + window.location.search);
+      }
+    } catch (e) {}
+
+    window.addEventListener('popstate', (e) => {
+      handleAndroidBackNav(e.state);
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -2435,7 +2735,7 @@
                         title: 'Cài Đặt',
                         icon: '⚙️',
                         url: 'apps/control-panel/index.html',
-                        adminOnly: true
+                        adminOnly: false
                       } : null);
           if (app && (!app.adminOnly || isAdmin)) {
             openApp(app);
@@ -2452,7 +2752,7 @@
                       title: 'Cài Đặt',
                       icon: '⚙️',
                       url: 'apps/control-panel/index.html',
-                      adminOnly: true
+                      adminOnly: false
                     } : null);
 
         if (!app) return;
@@ -2548,14 +2848,15 @@
 
     // 1. macOS Top Bar Clock
     if (DOM.clock) {
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
       const options = {
         weekday: 'short',
         month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: 'numeric'
       };
-      DOM.clock.innerText = now.toLocaleDateString('vi-VN', options);
+      const dateStr = now.toLocaleDateString('vi-VN', options);
+      DOM.clock.innerHTML = `<span class="clock-time">${h}:${m}</span><span class="clock-date"> ${dateStr}</span>`;
     }
 
     // 2. iPhone Status Bar Time (HH:mm)
@@ -2566,7 +2867,7 @@
       iosTimeEl.innerText = `${h}:${m}`;
     }
 
-    // 3. iPhone SpringBoard Summary Date Card (THỨ SÁU, 2 THÁNG 10)
+    // 3. iPhone SpringBoard Summary Date Card (THỨ SÁU, 2 THÁNG 10) & Clock
     const iosDateEl = document.getElementById('iosCardDate');
     if (iosDateEl) {
       const viDays = ['CHỦ NHẬT', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'];
@@ -2574,6 +2875,13 @@
       const day = now.getDate();
       const month = now.getMonth() + 1;
       iosDateEl.innerText = `${dayName}, ${day} THÁNG ${month}`;
+    }
+
+    const mobileClockEl = document.getElementById('mobileClock');
+    if (mobileClockEl) {
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      mobileClockEl.innerText = `${h}:${m}`;
     }
   }
 
@@ -3452,27 +3760,72 @@
     closeContextMenu();
   }
 
+  function analyzeWallpaperContrast(imageUrl) {
+    if (!imageUrl) return;
+
+    // 1. Nhận diện nhanh qua từ khóa ảnh sáng phổ biến (như macOS Sequoia Forest hay núi tuyết)
+    const norm = String(imageUrl).toLowerCase();
+    const isKnownLight = norm.includes('sequoia') || norm.includes('mountain') || norm.includes('light') || norm.includes('white');
+    if (isKnownLight) {
+      document.body.classList.add('wallpaper-is-light');
+      document.body.classList.remove('wallpaper-is-dark');
+    }
+
+    // 2. Phân tích quang độ (Luminance) thực tế qua HTML5 Canvas
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 24;
+          canvas.height = 24;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          ctx.drawImage(img, 0, 0, 24, 24);
+          const data = ctx.getImageData(0, 0, 24, 24).data;
+          let totalLuminance = 0;
+          let count = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            const lum = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+            totalLuminance += lum;
+            count++;
+          }
+          const avgLum = totalLuminance / (count * 255);
+          const isLight = avgLum > 0.45;
+          document.body.classList.toggle('wallpaper-is-light', isLight);
+          document.body.classList.toggle('wallpaper-is-dark', !isLight);
+        } catch (e) {}
+      };
+      img.src = imageUrl;
+    } catch (e) {}
+  }
+
   function initWallpaper() {
     const saved = localStorage.getItem(WALLPAPER_STORAGE_KEY);
     const wallpaperUrl = saved || DEFAULT_WALLPAPERS[0].url;
     document.body.style.backgroundImage = `url('${wallpaperUrl}')`;
+    analyzeWallpaperContrast(wallpaperUrl);
   }
 
   function setWallpaper(url) {
     localStorage.setItem(WALLPAPER_STORAGE_KEY, url);
     document.body.style.backgroundImage = `url('${url}')`;
     renderWallpapersGrid();
+    analyzeWallpaperContrast(url);
   }
 
   function openWallpapersModal() {
     closeAllMenus();
     if (!DOM.wallpapersModal) return;
     DOM.wallpapersModal.classList.add('active');
+    pushDashboardNavState('modal', { modalId: 'wallpapers' });
     renderWallpapersGrid();
   }
 
   function closeWallpapersModal() {
     if (DOM.wallpapersModal) DOM.wallpapersModal.classList.remove('active');
+    syncHistoryToHome();
   }
 
   function renderWallpapersGrid() {
@@ -3510,11 +3863,15 @@
 
   function openAboutModal() {
     closeAllMenus();
-    if (DOM.aboutModal) DOM.aboutModal.classList.add('active');
+    if (DOM.aboutModal) {
+      DOM.aboutModal.classList.add('active');
+      pushDashboardNavState('modal', { modalId: 'about' });
+    }
   }
 
   function closeAboutModal() {
     if (DOM.aboutModal) DOM.aboutModal.classList.remove('active');
+    syncHistoryToHome();
   }
 
   function resetDefaultApps() {
@@ -3540,6 +3897,7 @@
     closeAllMenus();
     if (!DOM.spotlightOverlay || !DOM.spotlightInput) return;
     DOM.spotlightOverlay.classList.add('active');
+    pushDashboardNavState('modal', { modalId: 'spotlight' });
     DOM.spotlightInput.value = '';
     DOM.spotlightInput.focus();
     spotlightSelectedIndex = 0;
@@ -3548,6 +3906,7 @@
 
   function closeSpotlight() {
     if (DOM.spotlightOverlay) DOM.spotlightOverlay.classList.remove('active');
+    syncHistoryToHome();
   }
 
   function safeCalculate(expr) {
@@ -3861,20 +4220,22 @@
       openAdminAuthModal();
       return;
     }
-    const app = appsList.find(a => String(a.id) === String(id));
+    const app = appsList.find(a => String(a.id) === String(id) || (id === 'control-panel' && (a.id === 'control-panel' || (a.url && a.url.includes('control-panel')))));
     if (!app) return;
 
     closeAllMenus();
     if (!DOM.appModal) return;
+    const isSystemApp = (String(app.id) === 'control-panel' || String(app.id) === 'admin-database' || (app.url && (app.url.includes('control-panel') || app.url.includes('admin/database'))));
     const btnDelete = document.getElementById('btn-delete-app');
-    if (btnDelete) btnDelete.style.display = 'inline-block';
+    if (btnDelete) btnDelete.style.display = isSystemApp ? 'none' : 'inline-block';
+
     if (DOM.modalAddTitle) DOM.modalAddTitle.innerText = '✏️ Sửa Ứng Dụng & Phân Quyền';
     if (DOM.appIdInput) DOM.appIdInput.value = app.id;
     if (DOM.appNameInput) DOM.appNameInput.value = app.title || '';
     const currentIcon = app.icon || '🚀';
     if (DOM.appIconInput) DOM.appIconInput.value = currentIcon;
     if (DOM.appUrlInput) DOM.appUrlInput.value = app.url || '';
-    if (DOM.appAdminOnlySelect) DOM.appAdminOnlySelect.value = app.adminOnly ? 'true' : 'false';
+    if (DOM.appAdminOnlySelect) DOM.appAdminOnlySelect.value = (app.adminOnly === true) ? 'true' : 'false';
     if (DOM.btnSaveApp) DOM.btnSaveApp.innerText = 'Lưu Thay Đổi';
     updateAppIconPreview(currentIcon, 'desktop');
     switchIconTab('work', 'desktop');
@@ -3900,9 +4261,9 @@
     }
 
     const id = DOM.appIdInput ? DOM.appIdInput.value : '';
-    const name = DOM.appNameInput.value.trim();
-    const icon = DOM.appIconInput.value.trim() || '🚀';
-    const url = DOM.appUrlInput.value.trim();
+    const name = DOM.appNameInput ? DOM.appNameInput.value.trim() : '';
+    const icon = DOM.appIconInput ? DOM.appIconInput.value.trim() : '🚀';
+    const url = DOM.appUrlInput ? DOM.appUrlInput.value.trim() : '';
     const adminOnly = DOM.appAdminOnlySelect ? (DOM.appAdminOnlySelect.value === 'true') : false;
 
     if (!name || !url) {
@@ -3911,15 +4272,23 @@
     }
 
     if (id) {
-      const idx = appsList.findIndex(a => a.id === id);
+      const idx = appsList.findIndex(a => String(a.id) === String(id) || (id === 'control-panel' && (a.id === 'control-panel' || (a.url && a.url.includes('control-panel')))));
       if (idx !== -1) {
         appsList[idx] = {
           ...appsList[idx],
           title: name,
-          icon: icon,
+          icon: icon || appsList[idx].icon,
           url: url,
           adminOnly: adminOnly
         };
+      } else {
+        appsList.push({
+          id: id,
+          title: name,
+          icon: icon,
+          url: url,
+          adminOnly: adminOnly
+        });
       }
     } else {
       const newApp = {
@@ -3934,7 +4303,8 @@
 
     saveAppsToStorage();
     renderAppGrid();
-    renderDockApps(); updateRunningAppIndicators();
+    renderDockApps();
+    updateRunningAppIndicators();
     closeModal();
 
     if (authChannel) {
@@ -3942,6 +4312,8 @@
         authChannel.postMessage({ type: 'APPS_CONFIG_CHANGED', appsList });
       } catch (e) {}
     }
+
+    showToast('Đã lưu thay đổi ứng dụng!', '💾');
   }
 
   function deleteApp(eventOrId, possibleId) {
@@ -3969,6 +4341,12 @@
     }
 
     const targetApp = appsList.find(a => String(a.id) === String(id));
+    const isSystemApp = (id === 'control-panel' || id === 'admin-database' || (targetApp && targetApp.url && (targetApp.url.includes('control-panel') || targetApp.url.includes('admin/database'))));
+    if (isSystemApp) {
+      alert('Không thể xóa ứng dụng hệ thống này!');
+      return;
+    }
+
     const appName = targetApp ? targetApp.title : 'ứng dụng này';
 
     if (confirm(`Bạn có chắc chắn muốn xóa "${appName}" khỏi màn hình chính?`)) {
@@ -4084,13 +4462,15 @@
   });
 
   document.addEventListener('contextmenu', function (e) {
-    // Nếu click chuột phải vào màn hình Desktop trống
+    // Nếu click chuột phải vào màn hình Desktop trống (không chặn chuột phải trong cửa sổ, app, modal hay Công AI)
     if (!e.target.closest('.app-item') &&
         !e.target.closest('.dock-btn') &&
         !e.target.closest('#app-context-menu') &&
         !e.target.closest('.mac-window') &&
         !e.target.closest('.modal-overlay') &&
-        !e.target.closest('.spotlight-overlay')) {
+        !e.target.closest('.spotlight-overlay') &&
+        !e.target.closest('.ai-assistant-modal') &&
+        !e.target.closest('#aiAssistantModal')) {
       e.preventDefault();
       showDesktopContextMenu(e.clientX, e.clientY);
     }
@@ -4152,6 +4532,16 @@
         isAdmin = newStatus;
         window.location.reload();
       }
+    } else if (e.data && e.data.type === 'APPS_CONFIG_CHANGED') {
+      if (Array.isArray(e.data.appsList) && e.data.appsList.length > 0) {
+        appsList = e.data.appsList;
+        saveAppsToStorage();
+        renderAppGrid();
+        renderDockApps();
+        updateRunningAppIndicators();
+      } else {
+        loadApps();
+      }
     }
   });
 
@@ -4164,47 +4554,145 @@
           window.location.reload();
         }
       } else if (e.data && e.data.type === 'APPS_CONFIG_CHANGED') {
-        loadApps();
+        if (Array.isArray(e.data.appsList) && e.data.appsList.length > 0) {
+          appsList = e.data.appsList;
+          saveAppsToStorage();
+          renderAppGrid();
+          renderDockApps();
+          updateRunningAppIndicators();
+        } else {
+          loadApps();
+        }
       }
     };
   }
 
-  // Browser Tab Title & Favicon Configuration
+  // Browser Tab Title, Favicon & PWA Web App Manifest Configuration
   function applyBrowserTabConfig() {
     try {
       const raw = localStorage.getItem('sys_browser_tab_config');
       if (!raw) return;
       const config = JSON.parse(raw);
-      if (config.title) {
-        document.title = config.title;
+
+      const appName = config.appName || config.name || 'macOS Web Dashboard';
+      const shortName = config.shortName || config.short_name || 'macOS Web';
+      const tabTitle = config.tabTitle || config.title || appName;
+
+      // 1. Cập nhật Title Tab Trình Duyệt
+      if (tabTitle) {
+        document.title = tabTitle;
       }
-      if (config.favicon) {
+
+      // 2. Cập nhật Meta Application Name & iOS Title
+      let metaAppName = document.querySelector('meta[name="application-name"]');
+      if (!metaAppName) {
+        metaAppName = document.createElement('meta');
+        metaAppName.name = 'application-name';
+        document.head.appendChild(metaAppName);
+      }
+      metaAppName.content = appName;
+
+      let metaAppleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (!metaAppleTitle) {
+        metaAppleTitle = document.createElement('meta');
+        metaAppleTitle.name = 'apple-mobile-web-app-title';
+        document.head.appendChild(metaAppleTitle);
+      }
+      metaAppleTitle.content = shortName;
+
+      // 3. Tính toán Icon/Favicon (Squircle SVG hoặc Image Data URL)
+      let iconHref = '';
+      let iconMime = 'image/png';
+
+      if (config.iconType === 'emoji' || (!config.logoUrl && (config.emoji || config.faviconType === 'emoji'))) {
+        const emoji = config.emoji || config.favicon || '';
+        const tileColor = config.tileColor || '#007aff';
+        iconHref = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='${encodeURIComponent(tileColor)}'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50' fill='white'>${emoji}</text></svg>`;
+        iconMime = 'image/svg+xml';
+      } else if (config.logoUrl) {
+        iconHref = config.logoUrl;
+        iconMime = config.logoUrl.startsWith('data:image/svg') ? 'image/svg+xml' : 'image/png';
+      } else if (config.favicon) {
+        if (!config.favicon.startsWith('data:') && !config.favicon.startsWith('http') && config.favicon.length <= 4) {
+          const tileColor = config.tileColor || '#007aff';
+          iconHref = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='${encodeURIComponent(tileColor)}'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50' fill='white'>${config.favicon}</text></svg>`;
+          iconMime = 'image/svg+xml';
+        } else {
+          iconHref = config.favicon;
+          iconMime = config.favicon.startsWith('data:image/svg') ? 'image/svg+xml' : 'image/png';
+        }
+      }
+
+      // 4. Cập nhật Link Favicon & Apple Touch Icon
+      if (iconHref) {
         let link = document.querySelector("link[rel~='icon']");
         if (!link) {
           link = document.createElement('link');
           link.rel = 'icon';
-          document.getElementsByTagName('head')[0].appendChild(link);
+          document.head.appendChild(link);
         }
-        if (config.faviconType === 'emoji' || (!config.favicon.startsWith('data:') && !config.favicon.startsWith('http') && config.favicon.length <= 4)) {
-          link.href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${config.favicon}</text></svg>`;
-        } else {
-          link.href = config.favicon;
+        link.href = iconHref;
+
+        let appleIcon = document.querySelector("link[rel='apple-touch-icon']");
+        if (!appleIcon) {
+          appleIcon = document.createElement('link');
+          appleIcon.rel = 'apple-touch-icon';
+          document.head.appendChild(appleIcon);
         }
+        appleIcon.href = iconHref;
       }
-    } catch (e) {}
+
+      // 5. Cập nhật Web App Manifest Động (PWA Install Menu: "Cài đặt [Tên Ứng Dụng]...")
+      const manifestObj = {
+        name: appName,
+        short_name: shortName,
+        description: config.description || 'Hệ thống macOS Web Dashboard - Trung tâm điều hành tiện ích văn phòng',
+        start_url: './index.html',
+        display: 'standalone',
+        background_color: '#0f172a',
+        theme_color: '#0f172a',
+        orientation: 'any',
+        icons: [
+          {
+            src: iconHref || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007aff'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50' fill='white'></text></svg>",
+            sizes: '192x192 512x512',
+            type: iconMime,
+            purpose: 'any maskable'
+          }
+        ]
+      };
+
+      let mLink = document.querySelector('link[rel="manifest"]');
+      if (!mLink) {
+        mLink = document.createElement('link');
+        mLink.rel = 'manifest';
+        document.head.appendChild(mLink);
+      }
+      mLink.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
+
+    } catch (e) {
+      console.warn('Lỗi applyBrowserTabConfig:', e);
+    }
   }
+  window.applyBrowserTabConfig = applyBrowserTabConfig;
   applyBrowserTabConfig();
 
   if ('BroadcastChannel' in window) {
     try {
       const tabChannel = new BroadcastChannel('system_tab_config');
       tabChannel.onmessage = function (e) {
-        if (e.data && e.data.type === 'TAB_CONFIG_CHANGED') {
+        if (e.data && (e.data.type === 'TAB_CONFIG_CHANGED' || e.data.type === 'PWA_BRANDING_CHANGED')) {
           applyBrowserTabConfig();
         }
       };
     } catch (e) {}
   }
+
+  window.addEventListener('message', function (e) {
+    if (e.data && (e.data.type === 'TAB_CONFIG_CHANGED' || e.data.type === 'PWA_BRANDING_CHANGED')) {
+      applyBrowserTabConfig();
+    }
+  });
 
   // PWA Service Worker Registration
   if ('serviceWorker' in navigator) {
@@ -4334,6 +4822,16 @@
     }
 
     container.style.display = 'flex';
+    bringLayerToFront(container, 'Notification Container');
+
+    if (!container.dataset.layerBound) {
+      container.dataset.layerBound = 'true';
+      const raiseNotif = () => {
+        bringLayerToFront(container, 'Notification Container');
+      };
+      container.addEventListener('pointerdown', raiseNotif, true);
+      container.addEventListener('mousedown', raiseNotif, true);
+    }
 
     listEl.innerHTML = systemNotifications.map(n => `
       <div class="mac-notif-card" id="macNotifCard_${n.id}">
@@ -4461,9 +4959,31 @@
   function scanUpcomingTasks() {
     try {
       const raw = localStorage.getItem('sticky_notes_data');
-      if (!raw) return;
-      const notes = JSON.parse(raw);
-      if (!Array.isArray(notes) || !notes.length) return;
+      let notes = [];
+      if (raw) {
+        try { notes = JSON.parse(raw); } catch (e) {}
+      }
+      if (!Array.isArray(notes)) notes = [];
+
+      // Dọn dẹp triệt để các thông báo của những task đã bị xóa hoặc đã hoàn thành (done)
+      const activeTaskIds = new Set(
+        notes.filter(n => n && n.status !== 'done' && n.deadline).map(n => String(n.id))
+      );
+
+      const beforeLen = systemNotifications.length;
+      systemNotifications = systemNotifications.filter(n => {
+        if (n.id && (n.id.startsWith('task_due_') || n.id.startsWith('task_overdue_'))) {
+          const taskId = n.id.replace(/^task_(due|overdue)_/, '');
+          return activeTaskIds.has(taskId);
+        }
+        return true;
+      });
+
+      if (systemNotifications.length !== beforeLen) {
+        renderSystemNotifications();
+      }
+
+      if (!notes.length) return;
 
       const now = Date.now();
       const oneDayMs = 24 * 3600 * 1000;
@@ -4495,7 +5015,7 @@
             tag: 'Quá Hạn',
             tagClass: 'task-overdue',
             appUrl: 'apps/ghi-chu/index.html',
-            btnText: 'Mở Ghi Chú'
+            btnText: 'Mở Nhắc Việc'
           });
         }
         // Sắp tới hạn (trong vòng 24 giờ tới)
@@ -4516,7 +5036,7 @@
             tag: 'Sắp Hết Hạn',
             tagClass: 'task-due',
             appUrl: 'apps/ghi-chu/index.html',
-            btnText: 'Mở Ghi Chú'
+            btnText: 'Mở Nhắc Việc'
           });
         }
       });
@@ -4524,6 +5044,9 @@
       console.warn('[Dashboard] Lỗi quét task ghi chú:', e);
     }
   }
+
+  window.scanUpcomingTasks = scanUpcomingTasks;
+  window.scanUpcomingBirthdays = scanUpcomingBirthdays;
 
   function scanAllProactiveNotifications() {
     scanUpcomingBirthdays();
@@ -4547,24 +5070,66 @@
     try {
       const memberSyncChannel = new BroadcastChannel('system_member_sync');
       memberSyncChannel.onmessage = function () {
-        setTimeout(scanUpcomingBirthdays, 800);
+        setTimeout(scanUpcomingBirthdays, 400);
+      };
+    } catch (e) {}
+
+    // Lắng nghe kênh đồng bộ tổng hệ thống hongcong_tool_sync
+    try {
+      const toolSyncBc = new BroadcastChannel('hongcong_tool_sync');
+      toolSyncBc.onmessage = function (e) {
+        if (!e.data) return;
+        const { key } = e.data;
+        if (key === 'sticky_notes_data' || key === 'sys_reminders' || e.data.type === 'NOTES_UPDATED') {
+          scanUpcomingTasks();
+        } else if (key === 'sys_global_members' || e.data.type === 'MEMBERS_UPDATED') {
+          scanUpcomingBirthdays();
+        }
       };
     } catch (e) {}
   }
 
-  // Lắng nghe postMessage từ iframe (các sub-app)
+  // Lắng nghe postMessage từ iframe (các sub-app) và đồng bộ tức thì không cần F5
   window.addEventListener('message', function (e) {
-    if (e.data && e.data.type === 'PUSH_NOTIFICATION' && e.data.notification) {
+    if (!e.data) return;
+
+    if (e.data.type === 'PUSH_NOTIFICATION' && e.data.notification) {
       pushSystemNotification(e.data.notification);
+    } else if (e.data.type === 'NOTES_UPDATED' || (e.data.type === 'STORAGE_KEY_CHANGED' && (e.data.key === 'sticky_notes_data' || e.data.key === 'sys_reminders'))) {
+      scanUpcomingTasks();
+    } else if (e.data.type === 'MEMBERS_UPDATED' || (e.data.type === 'STORAGE_KEY_CHANGED' && e.data.key === 'sys_global_members')) {
+      scanUpcomingBirthdays();
+    } else if (e.data.type === 'SET_DEVICE_MODE' && e.data.mode) {
+      setDeviceMode(e.data.mode);
+    } else if (e.data.type === 'WALLPAPER_CHANGED' && e.data.url) {
+      setWallpaper(e.data.url);
     }
+
+    // Chuyển tiếp tới tất cả iframe khác để đồng bộ chéo tức thì
+    document.querySelectorAll('iframe').forEach(ifr => {
+      try {
+        if (ifr.contentWindow && ifr.contentWindow !== e.source) {
+          ifr.contentWindow.postMessage(e.data, '*');
+        }
+      } catch (err) {}
+    });
   });
 
   // Lắng nghe thay đổi storage từ tab khác
   window.addEventListener('storage', function (e) {
     if (e.key === 'sys_global_members') {
-      setTimeout(scanUpcomingBirthdays, 800);
-    } else if (e.key === 'sticky_notes_data') {
-      setTimeout(scanUpcomingTasks, 800);
+      setTimeout(scanUpcomingBirthdays, 300);
+    } else if (e.key === 'sticky_notes_data' || e.key === 'sys_reminders') {
+      setTimeout(scanUpcomingTasks, 300);
+    }
+  });
+
+  window.addEventListener('system_storage_changed', function (e) {
+    const key = e.detail && e.detail.key;
+    if (key === 'sticky_notes_data' || key === 'sys_reminders') {
+      scanUpcomingTasks();
+    } else if (key === 'sys_global_members') {
+      scanUpcomingBirthdays();
     }
   });
 
@@ -4714,6 +5279,9 @@
   // 13. EXPORT API & SAFE INITIALIZATION
   // --------------------------------------------------------------------------
   window.dashboard = {
+    isAdmin: () => isAdmin,
+    getAdminStatus: () => isAdmin,
+    setAdminMode,
     goHome,
     toggleEditMode,
     toggleAdminEditMode,
@@ -4750,6 +5318,8 @@
     toggleFullscreen,
     openControlPanel,
     openControlPanelAi,
+    loadApps,
+    reloadApps: loadApps,
     openAboutModal,
     closeAboutModal,
     resetDefaultApps,
@@ -4803,6 +5373,8 @@
   };
 
   Object.assign(window, window.dashboard);
+  window.openApp = openApp;
+  window.openWindows = openWindows;
   window.pushSystemNotification = pushSystemNotification;
   window.dismissSystemNotification = dismissSystemNotification;
   window.clearAllSystemNotifications = clearAllSystemNotifications;
@@ -4835,8 +5407,10 @@
       localStorage.removeItem(SYS_MASTER_KEY_HASH_KEY);
     }
 
+    closeContextMenu();
     initDeviceMode();
     initDynamicIsland();
+    initAndroidHistoryNavigation();
     updateAdminUI();
     initWallpaper();
     loadApps();
@@ -4896,10 +5470,15 @@
       urlInput.value = cfg.url;
     }
 
+    const mobDbBadge = document.getElementById('mobileDbStatusBadge');
+    const mobDbDot = document.getElementById('mobileDbStatusDot');
+
     // 1. Kiểm tra nếu đang kết nối trực tiếp Supabase Cloud REST
     if (window.dbStorage && window.dbStorage.isConnected() && window.dbStorage.getSyncMode() === 'SUPABASE_REST') {
       if (badge) badge.classList.remove('offline');
       if (dot) dot.classList.remove('offline');
+      if (mobDbBadge) mobDbBadge.classList.remove('offline');
+      if (mobDbDot) mobDbDot.classList.remove('offline');
       if (text) text.textContent = 'Supabase 🟢';
       if (modalTag) {
         modalTag.textContent = 'Đang hoạt động (Supabase Cloud Direct)';
@@ -4926,6 +5505,8 @@
           if (data.connected) {
             if (badge) badge.classList.remove('offline');
             if (dot) dot.classList.remove('offline');
+            if (mobDbBadge) mobDbBadge.classList.remove('offline');
+            if (mobDbDot) mobDbDot.classList.remove('offline');
             if (text) text.textContent = 'Postgres 🟢';
             if (modalTag) {
               modalTag.textContent = 'Đang hoạt động (Node Server)';
@@ -4955,6 +5536,8 @@
     const isGithub = window.location.hostname.endsWith('github.io') || window.location.protocol === 'https:';
     if (badge) badge.classList.add('offline');
     if (dot) dot.classList.add('offline');
+    if (mobDbBadge) mobDbBadge.classList.add('offline');
+    if (mobDbDot) mobDbDot.classList.add('offline');
     if (text) text.textContent = isGithub ? 'Cần Key 🟡' : 'Offline 🟡';
     if (modalTag) {
       modalTag.textContent = isGithub ? 'Chưa nhập Supabase Key' : 'Chưa bật server';
@@ -4985,6 +5568,7 @@
     const modal = document.getElementById('db-status-modal');
     if (modal) {
       modal.classList.add('show');
+      pushDashboardNavState('modal', { modalId: 'db-status' });
       checkDbConnection(false);
     }
   }
@@ -4992,6 +5576,7 @@
   function closeDbStatusModal() {
     const modal = document.getElementById('db-status-modal');
     if (modal) modal.classList.remove('show');
+    syncHistoryToHome();
   }
 
   async function saveSupabaseCloudKey() {
@@ -5052,6 +5637,26 @@
     checkDbConnection(false);
   });
 
+  function bringAiToFront() {
+    const modal = document.getElementById('aiAssistantModal');
+    const box = document.getElementById('aiAssistantBox');
+    window.globalHighestZIndex = Math.max(window.globalHighestZIndex || 2000, 2000) + 1;
+    highestZIndex = window.globalHighestZIndex;
+    if (modal) modal.style.zIndex = window.globalHighestZIndex;
+    if (box) box.style.zIndex = window.globalHighestZIndex;
+
+    // Khi chuyển focus sang Công AI, nhả trạng thái focused của các cửa sổ app để kích hoạt iframe-shield
+    // Giúp người dùng click vào bất cứ vị trí nào của cửa sổ (kể cả vùng iframe) thì cửa sổ đó cũng nhảy ngay lên trên Công AI
+    Object.values(openWindows).forEach(w => {
+      if (w && w.el) {
+        w.el.classList.remove('focused');
+      }
+    });
+    activeWindowId = null;
+    renderDockApps();
+    updateRunningAppIndicators();
+  }
+
   // Expose on window
   window.openDbStatusModal = openDbStatusModal;
   window.closeDbStatusModal = closeDbStatusModal;
@@ -5059,6 +5664,13 @@
   window.saveSupabaseCloudKey = saveSupabaseCloudKey;
   window.testSupabaseCloudConnection = testSupabaseCloudConnection;
   window.pushSystemNotification = pushSystemNotification;
+  window.focusWindow = focusWindow;
+  window.bringAiToFront = bringAiToFront;
+  window.bringLayerToFront = bringLayerToFront;
+  window.dashboard = window.dashboard || {};
+  window.dashboard.focusWindow = focusWindow;
+  window.dashboard.bringAiToFront = bringAiToFront;
+  window.dashboard.bringLayerToFront = bringLayerToFront;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

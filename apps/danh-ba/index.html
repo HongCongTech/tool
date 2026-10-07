@@ -12,8 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Supabase Database Storage Adapter -->
-    <script src="../../assets/js/db-config.js"></script>
-    <script src="../../assets/js/db-storage.js"></script>
+    <script src="../../assets/js/db-config.js?v=v49"></script>
+    <script src="../../assets/js/db-storage.js?v=v50"></script>
+    <script src="../../assets/js/member-service.js?v=2.10.1"></script>
+    <!-- System Version Gatekeeper -->
+    <script src="../../assets/js/system-version.js?v=2.12.0"></script>
 
     <style>
         :root {
@@ -1140,13 +1143,128 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        @media (max-width: 768px) {
-            .app-header { padding: 12px 16px; }
-            .main-container { padding: 16px; }
-            .cards-grid { grid-template-columns: 1fr; }
-            .search-wrap { max-width: 100%; }
-            .bday-simple-item { flex-direction: column; align-items: flex-start; }
-            .bday-simple-right { width: 100%; justify-content: flex-start; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px; }
+        @keyframes aiFormPulse {
+            0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(2, 132, 199, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+        }
+        .ai-form-highlight {
+            animation: aiFormPulse 1.5s ease 2 !important;
+            border-color: #0284c7 !important;
+        }
+
+        /* ==========================================================================
+           MOBILE RESPONSIVE OPTIMIZATIONS (DANH-BA)
+           ========================================================================== */
+        .btn-text-short { display: none; }
+        @media (max-width: 640px) {
+            .app-header { padding: 8px 12px; }
+            .header-brand { gap: 8px; }
+            .brand-logo { width: 34px; height: 34px; font-size: 16px; border-radius: 8px; }
+            .brand-title { font-size: 0.95rem; }
+            .brand-subtitle { display: none; }
+            .admin-badge { padding: 3px 8px; font-size: 10.5px; }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 4px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 2px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .header-actions .btn, .header-actions .view-toggle-btn {
+                padding: 6px 9px;
+                font-size: 11.5px;
+                border-radius: 6px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            .btn-text { display: none !important; }
+            .btn-text-short { display: inline !important; }
+
+            .main-container { padding: 0 10px; margin: 10px auto; gap: 12px; }
+
+            /* Compact 2x2 stats grid */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+            .stat-card {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 10px;
+            }
+            .stat-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+            .stat-value {
+                font-size: 1.05rem;
+                margin-top: 0;
+            }
+            .stat-label {
+                font-size: 0.65rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .stat-sub { display: none; }
+
+            /* Toolbar / Search box */
+            .toolbar-box {
+                padding: 10px 12px;
+                margin-bottom: 12px;
+                border-radius: 10px;
+            }
+            .toolbar-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            /* Member card grid */
+            .member-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .member-card {
+                border-radius: 12px;
+            }
+            .card-avatar {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+            .card-header-top {
+                padding: 12px 14px;
+            }
+            .member-body {
+                padding: 12px 14px;
+                gap: 8px;
+            }
+            .member-card-footer {
+                padding: 10px 14px;
+            }
+
+            /* Birthday section */
+            .birthday-alert-section {
+                padding: 14px 12px;
+                margin-bottom: 14px;
+                border-radius: 12px;
+            }
+            .bday-simple-item {
+                padding: 8px 12px;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .header-actions .btn-text-short { display: none !important; }
+            .header-actions .btn { padding: 6px 10px; }
         }
     </style>
 </head>
@@ -1171,28 +1289,28 @@
             <!-- Switch Cards vs Table -->
             <div class="view-toggle">
                 <button type="button" class="view-toggle-btn active" id="btnViewCards" onclick="switchView('cards')">
-                    <i class="fa-solid fa-grip"></i> Dạng Thẻ
+                    <i class="fa-solid fa-grip"></i> <span class="btn-text">Dạng Thẻ</span><span class="btn-text-short">Thẻ</span>
                 </button>
                 <button type="button" class="view-toggle-btn" id="btnViewTable" onclick="switchView('table')">
-                    <i class="fa-solid fa-table-list"></i> Dạng Bảng
+                    <i class="fa-solid fa-table-list"></i> <span class="btn-text">Dạng Bảng</span><span class="btn-text-short">Bảng</span>
                 </button>
             </div>
 
             <!-- Action buttons -->
             <button type="button" class="btn btn-outline btn-sm" id="btnHeaderBirthday" onclick="toggleBirthdaySection()" title="Báo Sinh Nhật & Lịch Chúc Mừng">
-                <i class="fa-solid fa-cake-candles" style="color:#f59e0b;"></i> Báo Sinh Nhật <span id="headerBdayBadge" style="display:none; background:#ec4899; color:white; font-size:10px; font-weight:800; padding:1px 6px; border-radius:10px; margin-left:4px;">0</span>
+                <i class="fa-solid fa-cake-candles" style="color:#f59e0b;"></i> <span class="btn-text">Báo Sinh Nhật</span><span class="btn-text-short">Sinh Nhật</span> <span id="headerBdayBadge" style="display:none; background:#ec4899; color:white; font-size:10px; font-weight:800; padding:1px 6px; border-radius:10px; margin-left:4px;">0</span>
             </button>
             <button type="button" class="btn btn-outline btn-sm" onclick="exportDirectoryCsv()" title="Tải file Excel / CSV danh bạ">
-                <i class="fa-solid fa-file-csv"></i> Xuất CSV
+                <i class="fa-solid fa-file-csv"></i> <span class="btn-text">Xuất CSV</span><span class="btn-text-short">CSV</span>
             </button>
             <button type="button" class="btn btn-outline btn-sm" onclick="window.print()" title="In danh bạ hoặc lưu PDF">
-                <i class="fa-solid fa-print"></i> In
+                <i class="fa-solid fa-print"></i> <span class="btn-text">In</span><span class="btn-text-short">In</span>
             </button>
-            <button type="button" class="btn btn-primary btn-sm admin-only" onclick="openAddMemberModal()">
-                <i class="fa-solid fa-user-plus"></i> Thêm Mới
+            <button type="button" class="btn btn-primary btn-sm admin-only" onclick="openAddMemberModal()" title="Thêm thành viên mới">
+                <i class="fa-solid fa-user-plus"></i> <span class="btn-text">Thêm Mới</span><span class="btn-text-short">+ Thêm</span>
             </button>
             <button type="button" class="btn btn-success btn-sm admin-only" onclick="syncMembersToOtherApps()" title="Đồng bộ thông tin sang Tiền Cơm & Chia Bill">
-                <i class="fa-solid fa-rotate"></i> Đồng Bộ
+                <i class="fa-solid fa-rotate"></i> <span class="btn-text">Đồng Bộ</span><span class="btn-text-short">Đồng Bộ</span>
             </button>
         </div>
     </header>
@@ -1940,10 +2058,36 @@
         // -------------------------------------------------------------------------
         function loadMembers() {
             try {
-                const stored = localStorage.getItem(MEMBERS_STORAGE_KEY);
-                if (stored) {
-                    members = JSON.parse(stored);
-                } else {
+                // 1. Ưu tiên lấy từ memberService nếu đã sẵn sàng
+                const s = window.memberService || (window.top && window.top.memberService);
+                if (s && typeof s.getAllMembers === 'function') {
+                    const allMems = s.getAllMembers({ includeInactive: true });
+                    if (Array.isArray(allMems) && allMems.length > 0) {
+                        members = allMems;
+                    }
+                }
+
+                // 2. Nếu chưa có từ service, đọc từ localStorage
+                if (!members || members.length === 0) {
+                    const stored = localStorage.getItem(MEMBERS_STORAGE_KEY);
+                    if (stored) {
+                        members = JSON.parse(stored);
+                    }
+                }
+
+                // 3. Nếu vẫn trống, thử đọc từ dbStorage (Cloud System Store)
+                if (!members || members.length === 0) {
+                    try {
+                        const db = window.dbStorage || (window.top && window.top.dbStorage);
+                        if (db && typeof db.getItem === 'function') {
+                            const cloudRaw = db.getItem(MEMBERS_STORAGE_KEY);
+                            if (cloudRaw) members = JSON.parse(cloudRaw);
+                        }
+                    } catch(e) {}
+                }
+
+                // 4. Chỉ fallback về mặc định nếu toàn bộ nguồn dữ liệu đều trống
+                if (!members || members.length === 0) {
                     members = [...DEFAULT_MEMBERS];
                     localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(members));
                 }
@@ -1951,17 +2095,41 @@
                 members = [...DEFAULT_MEMBERS];
             }
 
+            // Lọc bỏ các thành viên nằm trong danh sách đã xóa vĩnh viễn (Tombstones)
+            let deletedBlacklist = [];
+            try {
+                const rawDel = localStorage.getItem('sys_deleted_members');
+                if (rawDel) deletedBlacklist = JSON.parse(rawDel) || [];
+            } catch(e) {}
+
+            if (Array.isArray(deletedBlacklist) && deletedBlacklist.length > 0) {
+                members = members.filter(m => {
+                    const strId = String(m.id);
+                    const mNick = (m.nickname || m.name || '').trim().toLowerCase();
+                    const mName = (m.name || '').trim().toLowerCase();
+                    return !deletedBlacklist.some(d => {
+                        const dId = String(d.id);
+                        const dNick = (d.nickname || d.name || '').trim().toLowerCase();
+                        const dName = (d.name || '').trim().toLowerCase();
+                        return (dId === strId) || (dNick && mNick && dNick === mNick) || (dName && mName && dName === mName);
+                    });
+                });
+            }
+
             // Normalization
             members = members.map(m => ({
-                id: m.id || Date.now() + Math.floor(Math.random() * 1000),
-                fullName: m.fullName || m.name || 'Thành viên',
+                id: m.id || (Date.now() + Math.floor(Math.random() * 1000)),
+                fullName: m.fullName || m.full_name || m.name || 'Thành viên',
                 nickname: m.nickname || m.name || '',
+                name: m.nickname || m.name || m.fullName || 'Thành viên',
                 dob: m.dob || '',
                 phone: m.phone || '',
-                bankId: m.bankId || '',
-                accountNo: m.accountNo || '',
-                accountName: m.accountName || '',
-                note: m.note || ''
+                bankId: m.bankId || m.bank_id || '',
+                accountNo: m.accountNo || m.account_no || '',
+                accountName: (m.accountName || m.account_name || '').toUpperCase(),
+                note: m.note || '',
+                status: m.status || 'active',
+                is_active: m.is_active !== false && m.status !== 'inactive'
             }));
 
             updateAdminState();
@@ -2511,127 +2679,297 @@
                 return;
             }
 
+            let memberObj = null;
             if (id) {
-                const idx = members.findIndex(mem => mem.id == id);
+                const targetId = parseInt(id, 10) || id;
+                const idx = members.findIndex(mem => String(mem.id) === String(id));
                 if (idx !== -1) {
-                    members[idx] = {
+                    memberObj = {
                         ...members[idx],
                         fullName, nickname, name: nickname, dob, phone, bankId, accountNo, accountName, note
                     };
+                    members[idx] = memberObj;
                 }
+                // Đồng bộ cập nhật sang memberService & Supabase
+                try {
+                    const s = window.memberService || (window.top && window.top.memberService) || (window.parent && window.parent.memberService);
+                    if (s && typeof s.updateMember === 'function') {
+                        s.updateMember(targetId, { fullName, nickname, name: nickname, dob, phone, bankId, accountNo, accountName, note });
+                    }
+                } catch(e) {}
             } else {
-                members.push({
-                    id: Date.now(),
-                    fullName, nickname, name: nickname, dob, phone, bankId, accountNo, accountName, note
-                });
+                const validIds = (members || []).map(m => parseInt(m.id, 10)).filter(n => Number.isFinite(n) && n > 0 && n < 2000000000);
+                const newId = (validIds.length > 0 ? Math.max(...validIds) : 0) + 1;
+                memberObj = {
+                    id: newId,
+                    code: String(newId),
+                    fullName, nickname, name: nickname, dob, phone, bankId, accountNo, accountName, note,
+                    status: 'active',
+                    is_active: true
+                };
+                members.push(memberObj);
+
+                // Đồng bộ thêm mới sang memberService & Supabase
+                try {
+                    const s = window.memberService || (window.top && window.top.memberService) || (window.parent && window.parent.memberService);
+                    if (s && typeof s.addMember === 'function') {
+                        s.addMember(memberObj);
+                    }
+                } catch(e) {}
             }
 
             saveMembersToStorage();
+            if (memberObj) {
+                syncUpdatedMemberToOtherApps(memberObj);
+            }
             closeMemberModal();
             renderStats();
             renderBirthdayAlert();
             renderDirectory();
             broadcastMembers();
-            showToast('Đã lưu thông tin thành viên thành công!', '✅');
+            showToast('Đã lưu thông tin thành viên và đồng bộ tức thì sang các ứng dụng!', '✅');
         }
 
-        function deleteMember(id) {
+        function syncUpdatedMemberToOtherApps(memberObj) {
+            if (!memberObj) return;
+            const targetIdStr = String(memberObj.id);
+            const targetNick = (memberObj.nickname || '').toLowerCase().trim();
+            const targetFull = (memberObj.fullName || '').toLowerCase().trim();
+            const targetName = (memberObj.name || '').toLowerCase().trim();
+
+            // 1. Cập nhật Chia Bill (nhau_members)
+            try {
+                let billMems = JSON.parse(localStorage.getItem('nhau_members')) || [];
+                let billChanged = false;
+                billMems = billMems.map(bm => {
+                    const bIdStr = String(bm.id);
+                    const bNick = (bm.nickname || '').toLowerCase().trim();
+                    const bFull = (bm.fullName || '').toLowerCase().trim();
+                    const bName = (bm.name || '').toLowerCase().trim();
+                    const isMatch = (bIdStr === targetIdStr) || 
+                                    (targetNick && bNick && targetNick === bNick) ||
+                                    (targetFull && bFull && targetFull === bFull) ||
+                                    (targetName && bName && targetName === bName);
+                    if (isMatch) {
+                        billChanged = true;
+                        return {
+                            ...bm,
+                            name: memberObj.nickname || memberObj.fullName || bm.name,
+                            nickname: memberObj.nickname || bm.nickname || bm.name,
+                            fullName: memberObj.fullName || bm.fullName || bm.name,
+                            dob: memberObj.dob || bm.dob || '',
+                            phone: memberObj.phone || bm.phone || '',
+                            bankId: memberObj.bankId || bm.bankId || '',
+                            accountNo: memberObj.accountNo || bm.accountNo || '',
+                            accountName: memberObj.accountName || bm.accountName || '',
+                            note: memberObj.note !== undefined ? memberObj.note : (bm.note || '')
+                        };
+                    }
+                    return bm;
+                });
+                if (billChanged) {
+                    localStorage.setItem('nhau_members', JSON.stringify(billMems));
+                    try {
+                        const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                        if (db && typeof db.setItem === 'function') db.setItem('nhau_members', JSON.stringify(billMems));
+                    } catch(e) {}
+                    window.dispatchEvent(new StorageEvent('storage', { key: 'nhau_members', newValue: JSON.stringify(billMems) }));
+                }
+            } catch(e) {}
+
+            // 2. Cập nhật Tiền Cơm (p2p_members)
+            try {
+                let comMems = JSON.parse(localStorage.getItem('p2p_members')) || [];
+                let comChanged = false;
+                comMems = comMems.map(cm => {
+                    const cIdStr = String(cm.id);
+                    const cNick = (cm.nickname || '').toLowerCase().trim();
+                    const cFull = (cm.fullName || '').toLowerCase().trim();
+                    const cName = (cm.name || '').toLowerCase().trim();
+                    const isMatch = (cIdStr === targetIdStr) || 
+                                    (targetNick && cNick && targetNick === cNick) ||
+                                    (targetFull && cFull && targetFull === cFull) ||
+                                    (targetName && cName && targetName === cName);
+                    if (isMatch) {
+                        comChanged = true;
+                        return {
+                            ...cm,
+                            name: memberObj.nickname || memberObj.fullName || cm.name,
+                            nickname: memberObj.nickname || cm.nickname || cm.name,
+                            fullName: memberObj.fullName || cm.fullName || cm.name,
+                            dob: memberObj.dob || cm.dob || '',
+                            phone: memberObj.phone || cm.phone || '',
+                            bankId: memberObj.bankId || cm.bankId || '',
+                            accountNo: memberObj.accountNo || cm.accountNo || '',
+                            accountName: memberObj.accountName || cm.accountName || '',
+                            note: memberObj.note !== undefined ? memberObj.note : (cm.note || '')
+                        };
+                    }
+                    return cm;
+                });
+                if (comChanged) {
+                    localStorage.setItem('p2p_members', JSON.stringify(comMems));
+                    try {
+                        const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                        if (db && typeof db.setItem === 'function') db.setItem('p2p_members', JSON.stringify(comMems));
+                    } catch(e) {}
+                    window.dispatchEvent(new StorageEvent('storage', { key: 'p2p_members', newValue: JSON.stringify(comMems) }));
+                }
+            } catch(e) {}
+        }
+
+        async function deleteMember(id) {
             if (!checkAdmin()) return;
-            const m = members.find(mem => mem.id == id);
+            const strId = String(id);
+            const m = members.find(mem => String(mem.id) === strId || mem.name === id || mem.nickname === id);
             if (!m) return;
 
-            if (confirm(`Bạn có chắc muốn xóa thành viên "${m.fullName || m.nickname}" khỏi danh bạ hệ thống?`)) {
-                members = members.filter(mem => mem.id != id);
+            const memberName = m.fullName || m.nickname || m.name;
+            const memberNick = m.nickname || m.name;
+            if (confirm(`Bạn có chắc muốn xóa thành viên "${memberName}" khỏi danh bạ hệ thống?`)) {
+                // 1. Thêm vào Danh Sách Đã Xóa Vĩnh Viễn (Tombstones)
+                try {
+                    let deletedList = [];
+                    const rawDel = localStorage.getItem('sys_deleted_members');
+                    if (rawDel) deletedList = JSON.parse(rawDel) || [];
+                    if (!deletedList.some(d => String(d.id) === strId || (memberNick && d.nickname === memberNick))) {
+                        deletedList.push({ id: strId, name: m.name, nickname: memberNick, deleted_at: new Date().toISOString() });
+                        const serialized = JSON.stringify(deletedList);
+                        localStorage.setItem('sys_deleted_members', serialized);
+                        const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                        if (db && typeof db.setItem === 'function') db.setItem('sys_deleted_members', serialized);
+                    }
+                } catch(e) {}
+
+                // 2. Lọc bỏ khỏi members hiện tại
+                members = members.filter(mem => String(mem.id) !== strId && mem.name !== m.name && mem.nickname !== m.nickname);
                 saveMembersToStorage();
+
+                // 3. Đồng bộ xóa trong p2p_members (Tiền Cơm)
+                try {
+                    let comMems = JSON.parse(localStorage.getItem('p2p_members')) || [];
+                    comMems = comMems.filter(cm => String(cm.id) !== strId && cm.name !== m.name && cm.nickname !== m.nickname);
+                    localStorage.setItem('p2p_members', JSON.stringify(comMems));
+                    window.dispatchEvent(new StorageEvent('storage', { key: 'p2p_members', newValue: JSON.stringify(comMems) }));
+                } catch(e) {}
+
+                // 4. Đồng bộ xóa trong nhau_members (Chia Bill)
+                try {
+                    let billMems = JSON.parse(localStorage.getItem('nhau_members')) || [];
+                    billMems = billMems.filter(bm => String(bm.id) !== strId && bm.name !== m.name && bm.nickname !== m.nickname);
+                    localStorage.setItem('nhau_members', JSON.stringify(billMems));
+                    window.dispatchEvent(new StorageEvent('storage', { key: 'nhau_members', newValue: JSON.stringify(billMems) }));
+                } catch(e) {}
+
+                // 5. Xóa triệt để qua memberService (cả local instance và window.top instance)
+                try {
+                    if (window.memberService && typeof window.memberService.deleteMember === 'function') {
+                        await window.memberService.deleteMember(id, { permanent: true });
+                    }
+                    if (window.top && window.top !== window && window.top.memberService && typeof window.top.memberService.deleteMember === 'function') {
+                        await window.top.memberService.deleteMember(id, { permanent: true });
+                    }
+                } catch(e) {}
+
+                // 6. Đồng bộ lên Supabase Cloud REST qua dbStorage
+                try {
+                    const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                    if (db && typeof db.setItem === 'function') {
+                        db.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(members));
+                        const curCom = localStorage.getItem('p2p_members');
+                        if (curCom) db.setItem('p2p_members', curCom);
+                        const curBill = localStorage.getItem('nhau_members');
+                        if (curBill) db.setItem('nhau_members', curBill);
+                    }
+                } catch(e) {}
+
                 renderStats();
                 renderBirthdayAlert();
                 renderDirectory();
                 broadcastMembers();
+                showToast(`Đã xóa vĩnh viễn thành viên "${memberName}" khỏi toàn bộ hệ thống!`, '🗑️');
             }
         }
 
         function saveMembersToStorage() {
             localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(members));
+            try {
+                const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                if (db && typeof db.setItem === 'function') {
+                    db.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(members));
+                }
+            } catch(e) {}
+            window.dispatchEvent(new StorageEvent('storage', { key: MEMBERS_STORAGE_KEY, newValue: JSON.stringify(members) }));
         }
 
         function broadcastMembers() {
             try {
-                const bc = new BroadcastChannel('system_member_sync');
-                bc.postMessage({ type: 'MEMBERS_UPDATED', members: members, globalMembers: members });
+                const payload = {
+                    type: 'MEMBERS_UPDATED',
+                    members: members,
+                    globalMembers: members,
+                    comMembers: JSON.parse(localStorage.getItem('p2p_members') || '[]'),
+                    nhauMembers: JSON.parse(localStorage.getItem('nhau_members') || '[]')
+                };
+                new BroadcastChannel('system_member_sync').postMessage(payload);
+                new BroadcastChannel('members_sync').postMessage(payload);
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage(payload, '*');
+                }
             } catch(e) {}
         }
 
         function syncMembersToOtherApps() {
             if (!checkAdmin()) return;
-            if (confirm('Đồng bộ toàn bộ danh sách thành viên sang app Tiền Cơm và Chia Bill?')) {
-                // Update nhau_members (Chia Bill)
+            if (confirm('Đồng bộ thông tin cá nhân (Ngân hàng, SĐT, Tên) từ Danh Bạ sang các thành viên đang tham gia Tiền Cơm và Chia Bill?')) {
+                // Update nhau_members (Chia Bill) - Chỉ cập nhật thông tin thành viên ĐANG CÓ MẶT
                 let billMembers = JSON.parse(localStorage.getItem('nhau_members')) || [];
-                members.forEach(gm => {
-                    const existingIdx = billMembers.findIndex(bm => (bm.id == gm.id) || (bm.name && bm.name.toLowerCase() === (gm.nickname || gm.fullName).toLowerCase()));
-                    if (existingIdx !== -1) {
-                        billMembers[existingIdx] = {
-                            ...billMembers[existingIdx],
-                            id: gm.id,
-                            name: gm.nickname || gm.fullName,
-                            fullName: gm.fullName,
-                            nickname: gm.nickname,
-                            dob: gm.dob || '',
-                            phone: gm.phone || '',
-                            bankId: gm.bankId || '',
-                            accountNo: gm.accountNo || '',
-                            accountName: gm.accountName || ''
+                let billUpdated = 0;
+                billMembers = billMembers.map(bm => {
+                    const gm = members.find(m => (m.id == bm.id) || (m.nickname && bm.nickname && m.nickname.toLowerCase() === bm.nickname.toLowerCase()) || (m.fullName && bm.name && m.fullName.toLowerCase() === bm.name.toLowerCase()));
+                    if (gm) {
+                        billUpdated++;
+                        return {
+                            ...bm,
+                            fullName: gm.fullName || bm.fullName || bm.name,
+                            nickname: gm.nickname || bm.nickname || bm.name,
+                            name: gm.nickname || gm.fullName || bm.name,
+                            dob: gm.dob || bm.dob || '',
+                            phone: gm.phone || bm.phone || '',
+                            bankId: gm.bankId || bm.bankId || '',
+                            accountNo: gm.accountNo || bm.accountNo || '',
+                            accountName: gm.accountName || bm.accountName || ''
                         };
-                    } else {
-                        billMembers.push({
-                            id: gm.id,
-                            name: gm.nickname || gm.fullName,
-                            fullName: gm.fullName,
-                            nickname: gm.nickname,
-                            dob: gm.dob || '',
-                            phone: gm.phone || '',
-                            bankId: gm.bankId || '',
-                            accountNo: gm.accountNo || '',
-                            accountName: gm.accountName || ''
-                        });
                     }
+                    return bm;
                 });
                 localStorage.setItem('nhau_members', JSON.stringify(billMembers));
 
-                // Update p2p_members (Tiền Cơm)
+                // Update p2p_members (Tiền Cơm) - Chỉ cập nhật thông tin thành viên ĐANG CÓ MẶT
                 let comMembers = JSON.parse(localStorage.getItem('p2p_members')) || [];
-                members.forEach(gm => {
-                    const existingIdx = comMembers.findIndex(cm => (cm.id == gm.id) || (cm.name && cm.name.toLowerCase() === (gm.nickname || gm.fullName).toLowerCase()));
-                    if (existingIdx !== -1) {
-                        comMembers[existingIdx] = {
-                            ...comMembers[existingIdx],
-                            id: gm.id,
-                            name: gm.nickname || gm.fullName,
-                            fullName: gm.fullName,
-                            nickname: gm.nickname,
-                            dob: gm.dob || '',
-                            phone: gm.phone || '',
-                            bankId: gm.bankId || '',
-                            accountNo: gm.accountNo || '',
-                            accountName: gm.accountName || ''
+                let comUpdated = 0;
+                comMembers = comMembers.map(cm => {
+                    const gm = members.find(m => (m.id == cm.id) || (m.nickname && cm.nickname && m.nickname.toLowerCase() === cm.nickname.toLowerCase()) || (m.fullName && cm.name && m.fullName.toLowerCase() === cm.name.toLowerCase()));
+                    if (gm) {
+                        comUpdated++;
+                        return {
+                            ...cm,
+                            fullName: gm.fullName || cm.fullName || cm.name,
+                            nickname: gm.nickname || cm.nickname || cm.name,
+                            name: gm.nickname || gm.fullName || cm.name,
+                            dob: gm.dob || cm.dob || '',
+                            phone: gm.phone || cm.phone || '',
+                            bankId: gm.bankId || cm.bankId || '',
+                            accountNo: gm.accountNo || cm.accountNo || '',
+                            accountName: gm.accountName || cm.accountName || ''
                         };
-                    } else {
-                        comMembers.push({
-                            id: gm.id,
-                            name: gm.nickname || gm.fullName,
-                            fullName: gm.fullName,
-                            nickname: gm.nickname,
-                            dob: gm.dob || '',
-                            phone: gm.phone || '',
-                            bankId: gm.bankId || '',
-                            accountNo: gm.accountNo || '',
-                            accountName: gm.accountName || ''
-                        });
                     }
+                    return cm;
                 });
                 localStorage.setItem('p2p_members', JSON.stringify(comMembers));
 
                 broadcastMembers();
-                alert(`✅ Đã đồng bộ thành công ${members.length} thành viên sang cả Tiền Cơm và Chia Bill!`);
+                alert(`✅ Đã đồng bộ thông tin hồ sơ cho ${comUpdated} thành viên Tiền Cơm và ${billUpdated} thành viên Chia Bill!`);
             }
         }
 
@@ -2786,6 +3124,49 @@
                 updateAdminState();
             }
         });
+
+        // Listen for custom member_data_changed events from member-service.js
+        window.addEventListener('member_data_changed', (e) => {
+            if (e.detail && Array.isArray(e.detail.members) && e.detail.members.length > 0) {
+                loadMembers();
+            }
+        });
+
+        // Listen for iframe postMessages
+        window.addEventListener('message', (e) => {
+            if (e.data && (e.data.type === 'MEMBERS_UPDATED' || e.data.type === 'member_data_changed')) {
+                loadMembers();
+            } else if (e.data && e.data.type === 'AI_FILL_CONTACT_FORM') {
+                handleAiFillContactForm(e.data.payload);
+            }
+        });
+
+        function handleAiFillContactForm(payload) {
+            if (!payload) return;
+            
+            document.getElementById('memberModalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color:var(--primary);"></i> Thêm Thành Viên (AI Điền Sẵn)';
+            document.getElementById('formMemberId').value = payload.id || '';
+            document.getElementById('formFullName').value = payload.fullName || payload.name || '';
+            document.getElementById('formNickname').value = payload.nickname || '';
+            document.getElementById('formDob').value = payload.dob || '';
+            document.getElementById('formPhone').value = payload.phone || '';
+            document.getElementById('formBankId').value = payload.bankId || '';
+            document.getElementById('formAccountNo').value = payload.accountNo || '';
+            document.getElementById('formAccountName').value = (payload.accountName || '').toUpperCase();
+            document.getElementById('formNote').value = payload.note || '';
+
+            const modal = document.getElementById('memberEditModal');
+            if (modal) {
+                modal.classList.add('show');
+                const card = modal.querySelector('.modal-card') || modal;
+                card.classList.add('ai-form-highlight');
+                setTimeout(() => card.classList.remove('ai-form-highlight'), 3500);
+            }
+            setTimeout(() => {
+                const el = document.getElementById('formFullName');
+                if (el) el.focus();
+            }, 200);
+        }
 
         // Initialize on DOM load
         document.addEventListener('DOMContentLoaded', () => {

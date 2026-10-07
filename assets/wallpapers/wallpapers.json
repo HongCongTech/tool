@@ -1,0 +1,37 @@
+[
+  {
+    "id": "wp-sequoia",
+    "name": "macOS Sequoia Forest",
+    "category": "macOS Official",
+    "url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2560&q=85",
+    "thumb": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "wp-sonoma",
+    "name": "macOS Sonoma Horizon",
+    "category": "macOS Official",
+    "url": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=2560&q=85",
+    "thumb": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "wp-ventura",
+    "name": "macOS Ventura Sunburst",
+    "category": "Abstract",
+    "url": "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=2560&q=85",
+    "thumb": "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "wp-dark-nebula",
+    "name": "Deep Space Nebula Dark",
+    "category": "Space & Dark",
+    "url": "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=2560&q=85",
+    "thumb": "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    "id": "wp-cyberpunk",
+    "name": "Tokyo Cyberpunk Neon Night",
+    "category": "Cyberpunk",
+    "url": "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=2560&q=85",
+    "thumb": "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=600&q=80"
+  }
+]

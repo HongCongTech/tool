@@ -12,8 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Supabase Database Storage Adapter -->
-    <script src="../../assets/js/db-config.js"></script>
-    <script src="../../assets/js/db-storage.js"></script>
+    <script src="../../assets/js/db-config.js?v=v49"></script>
+    <script src="../../assets/js/db-storage.js?v=v50"></script>
+    <script src="../../assets/js/member-service.js?v=2.10.1"></script>
+    <!-- System Version Gatekeeper -->
+    <script src="../../assets/js/system-version.js?v=2.12.0"></script>
 
     <style>
         :root {
@@ -1021,12 +1024,113 @@
             color: var(--slate-300);
         }
 
+        @keyframes aiFormPulse {
+            0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(2, 132, 199, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+        }
+        .ai-form-highlight {
+            animation: aiFormPulse 1.5s ease 2 !important;
+            border-color: #0284c7 !important;
+        }
+
+        /* ==========================================================================
+           MOBILE RESPONSIVE OPTIMIZATIONS (CHIA-BILL)
+           ========================================================================== */
+        .btn-text-short { display: none; }
         @media (max-width: 640px) {
-            .app-header { padding: 12px 14px; }
-            .main-container { padding: 0 12px; margin: 14px auto; }
-            .card { padding: 14px; }
-            .kpi-grid { grid-template-columns: 1fr 1fr; }
-            .kpi-value { font-size: 1.15rem; }
+            .app-header { padding: 8px 12px; }
+            .header-container { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+            .brand-group { gap: 8px; }
+            .logo-box { width: 34px; height: 34px; font-size: 16px; border-radius: 8px; }
+            .brand-title { font-size: 0.95rem; }
+            .brand-desc { display: none; }
+            .admin-badge { padding: 3px 8px; font-size: 10.5px; }
+            .header-actions { width: auto; justify-content: flex-end; gap: 4px; flex-wrap: nowrap; }
+            .header-actions .btn { padding: 6px 9px; font-size: 11.5px; border-radius: 6px; }
+            .btn-text { display: none !important; }
+            .btn-text-short { display: inline !important; }
+
+            .main-container { padding: 0 10px; margin: 10px auto; gap: 12px; }
+            .card { padding: 14px 12px; border-radius: 12px; }
+            .card-header { margin-bottom: 10px; padding-bottom: 8px; gap: 6px; }
+            .card-title { font-size: 0.92rem; }
+
+            /* Compact horizontal 3-column stats */
+            .kpi-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+            .kpi-card {
+                padding: 8px 6px;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 4px;
+                border-radius: 10px;
+            }
+            .kpi-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 13px;
+                border-radius: 6px;
+            }
+            .kpi-value {
+                font-size: 0.92rem;
+                font-weight: 800;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+                margin-top: 0;
+            }
+            .kpi-title {
+                font-size: 0.64rem;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }
+
+            .member-grid { grid-template-columns: 1fr; gap: 10px; }
+            .member-card { padding: 12px; }
+
+            /* Compact tabs */
+            .tab-nav {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 6px;
+                margin-bottom: 10px;
+                gap: 6px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .tab-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* Feed items */
+            .feed-item {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+            .feed-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+            .feed-title { font-size: 0.85rem; }
+            .feed-sub { font-size: 0.72rem; }
+            .feed-amount { font-size: 0.88rem; }
+        }
+
+        @media (max-width: 420px) {
+            .header-actions .btn-text-short { display: none !important; }
+            .header-actions .btn { padding: 6px 10px; }
         }
     </style>
 </head>
@@ -1052,13 +1156,13 @@
 
             <div class="header-actions">
                 <button class="btn btn-outline btn-sm" onclick="exportZaloReport()" title="Sao chép báo cáo nợ để gửi nhóm Zalo/Telegram">
-                    <i class="fa-solid fa-share-nodes"></i> Báo Cáo Zalo
+                    <i class="fa-solid fa-share-nodes"></i> <span class="btn-text">Báo Cáo Zalo</span><span class="btn-text-short">Báo Cáo</span>
                 </button>
-                <button class="btn btn-primary btn-sm admin-only" onclick="openAddMealModal()">
-                    <i class="fa-solid fa-plus"></i> Tạo Bill Mới
+                <button class="btn btn-primary btn-sm admin-only" onclick="openAddMealModal()" title="Tạo bill mới">
+                    <i class="fa-solid fa-plus"></i> <span class="btn-text">Tạo Bill Mới</span><span class="btn-text-short">Tạo Bill</span>
                 </button>
-                <button class="btn btn-outline btn-sm admin-only" onclick="resetData()" title="Đặt lại dữ liệu ban đầu">
-                    <i class="fa-solid fa-rotate-right"></i>
+                <button class="btn btn-outline btn-sm" id="btnReloadChiaBill" onclick="reloadChiaBillData(this)" title="Làm mới & Đồng bộ dữ liệu tức thì từ Cloud">
+                    <i class="fa-solid fa-rotate-right"></i> <span class="btn-text">Đồng Bộ</span>
                 </button>
             </div>
         </div>
@@ -1099,8 +1203,8 @@
                     <span>Số Dư & Công Nợ Thành Viên</span>
                 </div>
                 <div style="font-size: 0.8rem; color: var(--slate-500); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <button class="btn btn-outline btn-sm" onclick="openMemberDirectoryModal()"><i class="fa-solid fa-address-book" style="color:var(--primary);"></i> Xem Danh Bạ & STK</button>
-                    <button class="btn btn-success btn-sm admin-only" onclick="openAddMemberModal()"><i class="fa-solid fa-user-plus"></i> Thêm TV</button>
+                    <button class="btn btn-outline btn-sm" onclick="openMemberDirectoryModal()" title="Mở danh bạ thông tin thành viên"><i class="fa-solid fa-address-book" style="color:var(--primary);"></i> <span class="btn-text">Xem Danh Bạ & STK</span><span class="btn-text-short">Danh Bạ</span></button>
+                    <button class="btn btn-success btn-sm admin-only" onclick="openAddMemberModal()" title="Thêm thành viên mới"><i class="fa-solid fa-user-plus"></i> <span class="btn-text">Thêm TV</span><span class="btn-text-short">Thêm</span></button>
                     <span>Nhấn <strong>"QR"</strong> để chuyển tiền / trả tiền lại</span>
                 </div>
             </div>
@@ -1308,7 +1412,10 @@
             <div class="modal-body">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
                     <input type="text" id="dirSearchInput" class="form-control" placeholder="🔍 Tìm theo tên, nickname, số điện thoại, ngân hàng, STK..." style="max-width:340px; font-size:13px;" oninput="filterMemberDirectory(this.value)">
-                    <button class="btn btn-success btn-sm" onclick="openAddMemberModal()"><i class="fa-solid fa-user-plus"></i> Thêm Thành Viên Mới</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-danger btn-sm admin-only" onclick="openResetConfirmModal()" title="Khôi phục toàn bộ số dư về 0đ (Yêu cầu Master Key)"><i class="fa-solid fa-trash-can"></i> Đặt Lại Về 0đ</button>
+                        <button class="btn btn-success btn-sm" onclick="openAddMemberModal()"><i class="fa-solid fa-user-plus"></i> Thêm Thành Viên Mới</button>
+                    </div>
                 </div>
 
                 <div style="overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-md); max-height:420px; overflow-y:auto;">
@@ -1615,18 +1722,68 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Xác Nhận Reset Bằng Master Key (macOS Style) -->
+    <div class="modal-overlay" id="resetMasterKeyModal">
+        <div class="modal" style="max-width: 480px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.02)); border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                <h3 style="color: var(--danger); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Khôi Phục Dữ Liệu Ban Đầu
+                </h3>
+                <button class="close-btn" onclick="closeModal('resetMasterKeyModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div style="background: var(--danger-light); border: 1px solid var(--danger-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+                    <div style="font-weight: 700; color: var(--danger); font-size: 0.9rem; margin-bottom: 4px;">
+                        ⚠️ CẢNH BÁO BẢO MẬT DỮ LIỆU
+                    </div>
+                    <div style="font-size: 0.82rem; color: #991b1b; line-height: 1.45;">
+                        Thao tác này sẽ xóa sạch <strong>toàn bộ Hóa đơn (Bills)</strong>, <strong>Nhật ký quỹ (Logs)</strong> và đưa số dư tất cả thành viên về <strong>0đ</strong> trên cả trình duyệt và Supabase Cloud.
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="font-weight: 700; font-size: 0.85rem; color: var(--slate-700); margin-bottom: 6px; display: block;">
+                        <i class="fa-solid fa-key" style="color: var(--primary);"></i> Nhập Master Key để xác nhận:
+                    </label>
+                    <input type="password" id="resetMasterKeyInput" class="form-control" placeholder="Nhập Master Key hệ thống..." style="font-size: 0.95rem; letter-spacing: 1px;">
+                    <div id="resetMasterKeyError" style="color: var(--danger); font-size: 0.8rem; font-weight: 600; margin-top: 6px; display: none;"></div>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--slate-500);">
+                    * Master Key là khóa bảo mật cao nhất của Quản trị viên Hong Cong Tech.
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; background: var(--slate-50); border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-outline" onclick="closeModal('resetMasterKeyModal')">Hủy Bỏ</button>
+                <button type="button" class="btn btn-danger" id="btnSubmitResetMasterKey" onclick="submitResetWithMasterKey()" style="font-weight: 700;">
+                    <i class="fa-solid fa-trash-can"></i> Xác Nhận Khôi Phục Về 0đ
+                </button>
+            </div>
+        </div>
+    </div>
     <script>
-        // Default initial data
+        // Default initial data (Toàn bộ số dư ban đầu luôn là 0đ)
         const defaultMembers = [
-            { id: 1, name: "Đô", fullName: "Nguyễn Văn Đô", nickname: "Đô", balance: 285000, dob: "1994-05-10", phone: "0987111222", bankId: "MB", accountNo: "0987111222", accountName: "NGUYEN VAN DO", note: "Thủ quỹ" },
-            { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt", balance: 212000, dob: "1996-09-18", phone: "0976222333", bankId: "VCB", accountNo: "1023456789", accountName: "TRAN THANH DAT", note: "Thành viên" },
-            { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", balance: 685000, dob: "1993-12-05", phone: "0965333444", bankId: "TCB", accountNo: "1903334445", accountName: "LE THANH CONG", note: "Thành viên" },
+            { id: 1, name: "Đô", fullName: "Nguyễn Văn Đô", nickname: "Đô", balance: 0, dob: "1994-05-10", phone: "0987111222", bankId: "MB", accountNo: "0987111222", accountName: "NGUYEN VAN DO", note: "Thủ quỹ" },
+            { id: 2, name: "Đạt", fullName: "Trần Thành Đạt", nickname: "Đạt", balance: 0, dob: "1996-09-18", phone: "0976222333", bankId: "VCB", accountNo: "1023456789", accountName: "TRAN THANH DAT", note: "Thành viên" },
+            { id: 3, name: "Công", fullName: "Lê Thành Công", nickname: "Công", balance: 0, dob: "1993-12-05", phone: "0965333444", bankId: "TCB", accountNo: "1903334445", accountName: "LE THANH CONG", note: "Thành viên" },
             { id: 4, name: "Hạnh", fullName: "Phạm Hồng Hạnh", nickname: "Hạnh", balance: 0, dob: "1998-03-22", phone: "0944555666", bankId: "ACB", accountNo: "246813579", accountName: "PHAM HONG HANH", note: "Kế toán" },
-            { id: 5, name: "Quyền", fullName: "Vũ Thế Quyền", nickname: "Quyền", balance: -225000, dob: "1995-07-14", phone: "0933777888", bankId: "VPB", accountNo: "9876543210", accountName: "VU THE QUYEN", note: "Thành viên" },
+            { id: 5, name: "Quyền", fullName: "Vũ Thế Quyền", nickname: "Quyền", balance: 0, dob: "1995-07-14", phone: "0933777888", bankId: "VPB", accountNo: "9876543210", accountName: "VU THE QUYEN", note: "Thành viên" },
             { id: 6, name: "Duy", fullName: "Hoàng Anh Duy", nickname: "Duy", balance: 0, dob: "1997-11-28", phone: "0912888999", bankId: "BIDV", accountNo: "5678901234", accountName: "HOANG ANH DUY", note: "Thành viên" }
         ];
 
         let members = JSON.parse(localStorage.getItem('nhau_members')) || defaultMembers;
+        let meals = JSON.parse(localStorage.getItem('nhau_meals')) || [];
+        let moneyLogs = JSON.parse(localStorage.getItem('nhau_money_logs')) || [];
+
+        // Khử số dư mẫu giả lập nếu không có hóa đơn nào
+        const DUMMY_SUM = 285000 + 212000 + 685000;
+        const currentSum = members.reduce((sum, m) => sum + (m.balance > 0 ? m.balance : 0), 0);
+        if (meals.length === 0 && currentSum === DUMMY_SUM) {
+            members = members.map(m => ({ ...m, balance: 0 }));
+            localStorage.setItem('nhau_members', JSON.stringify(members));
+        }
+
         members = members.map(m => ({
             id: m.id,
             name: m.nickname || m.name || m.fullName || '',
@@ -1640,8 +1797,6 @@
             accountName: m.accountName || '',
             note: m.note || ''
         }));
-        let meals = JSON.parse(localStorage.getItem('nhau_meals')) || [];
-        let moneyLogs = JSON.parse(localStorage.getItem('nhau_money_logs')) || [];
 
         // Tab state: 'bills' | 'logs'
         let currentFeedTab = 'bills';
@@ -1653,6 +1808,14 @@
             localStorage.setItem('nhau_members', JSON.stringify(members));
             localStorage.setItem('nhau_meals', JSON.stringify(meals));
             localStorage.setItem('nhau_money_logs', JSON.stringify(moneyLogs));
+            try {
+                new BroadcastChannel('chia_bill_sync').postMessage({ type: 'CHIA_BILL_UPDATED' });
+            } catch(e) {}
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'CHIA_BILL_UPDATED' }, '*');
+                }
+            } catch(e) {}
         }
 
         // =========================================================================
@@ -1800,44 +1963,221 @@
                 }
             };
 
-            const memberChannel = new BroadcastChannel('system_member_sync');
-            memberChannel.onmessage = (event) => {
-                if (event.data && (event.data.type === 'MEMBERS_UPDATED' || event.data.type === 'SYNC_ALL_MEMBERS' || event.data.type === 'MEMBERS_SYNCED')) {
-                    const syncedList = event.data.nhauMembers || event.data.billMembers;
-                    if (syncedList && Array.isArray(syncedList)) {
-                        members = syncedList;
-                    } else if (event.data.globalMembers && Array.isArray(event.data.globalMembers)) {
-                        members = event.data.globalMembers.map(gm => {
-                            const existing = members.find(m => String(m.id) === String(gm.id));
-                            return {
-                                id: gm.id,
-                                name: gm.nickname || gm.name || gm.fullName || '',
-                                fullName: gm.fullName || gm.name || '',
-                                nickname: gm.nickname || gm.name || '',
-                                balance: existing ? existing.balance : 0,
-                                dob: gm.dob || '',
-                                phone: gm.phone || '',
-                                bankId: gm.bankId || '',
-                                accountNo: gm.accountNo || '',
-                                accountName: gm.accountName || '',
-                                note: gm.note || ''
-                            };
+            let isSyncingDirectory = false;
+            function syncWithGlobalDirectory(explicitGlobalList = null) {
+                if (isSyncingDirectory) return false;
+                isSyncingDirectory = true;
+                try {
+                    let globalList = explicitGlobalList;
+                    if (!globalList) {
+                        try {
+                            const raw = localStorage.getItem('sys_global_members');
+                            if (raw) globalList = JSON.parse(raw);
+                        } catch(e) {}
+                    }
+                    if (!Array.isArray(globalList) || globalList.length === 0) return false;
+
+                    let delBlacklist = [];
+                    try {
+                        const rawDel = localStorage.getItem('sys_deleted_members');
+                        if (rawDel) delBlacklist = JSON.parse(rawDel) || [];
+                    } catch(e) {}
+
+                    if (Array.isArray(delBlacklist) && delBlacklist.length > 0) {
+                        members = members.filter(m => {
+                            const sId = String(m.id || '');
+                            const mNick = (m.nickname || m.name || '').trim().toLowerCase();
+                            const mName = (m.name || '').trim().toLowerCase();
+                            return !delBlacklist.some(d => {
+                                const dId = String(d.id || '');
+                                const dNick = (d.nickname || d.name || '').trim().toLowerCase();
+                                const dName = (d.name || '').trim().toLowerCase();
+                                return (dId && sId && dId === sId) || 
+                                       (dNick && mNick && dNick === mNick) || 
+                                       (dName && mName && dName === mName);
+                            });
                         });
                     }
-                    render();
-                    if (document.getElementById('memberDirectoryModal')?.classList.contains('active')) {
-                        renderMemberDirectory();
+
+                    let hasDiff = false;
+                    members = members.map(m => {
+                        const strId = String(m.id);
+                        const gm = globalList.find(g => 
+                            String(g.id) === strId || 
+                            (g.nickname && m.nickname && g.nickname.trim().toLowerCase() === m.nickname.trim().toLowerCase()) ||
+                            (g.fullName && m.fullName && g.fullName.trim().toLowerCase() === m.fullName.trim().toLowerCase()) ||
+                            (g.name && m.name && g.name.trim().toLowerCase() === m.name.trim().toLowerCase()) ||
+                            (g.phone && m.phone && g.phone.trim() === m.phone.trim())
+                        );
+                        if (!gm) return m;
+
+                        const newNick = gm.nickname || gm.name || gm.fullName || m.nickname || m.name;
+                        const newFull = gm.fullName || gm.name || m.fullName || m.name;
+                        const newBankId = gm.bankId || gm.bank_id || m.bankId || '';
+                        const newAccNo = gm.accountNo || gm.account_no || m.accountNo || '';
+                        const newAccName = (gm.accountName || gm.account_name || m.accountName || '').toUpperCase();
+                        const newDob = gm.dob || m.dob || '';
+                        const newPhone = gm.phone || m.phone || '';
+                        const newNote = (gm.note !== undefined && gm.note !== null) ? gm.note : (m.note || '');
+
+                        const isChanged = (
+                            m.name !== newNick ||
+                            m.nickname !== newNick ||
+                            m.fullName !== newFull ||
+                            (m.dob || '') !== newDob ||
+                            (m.phone || '') !== newPhone ||
+                            (m.bankId || '') !== newBankId ||
+                            (m.accountNo || '') !== newAccNo ||
+                            (m.accountName || '').toUpperCase() !== newAccName ||
+                            (m.note || '') !== newNote
+                        );
+
+                        if (isChanged) {
+                            hasDiff = true;
+                            return {
+                                ...m,
+                                id: (gm.id !== undefined && gm.id !== null) ? gm.id : m.id,
+                                name: newNick,
+                                nickname: newNick,
+                                fullName: newFull,
+                                dob: newDob,
+                                phone: newPhone,
+                                bankId: newBankId,
+                                accountNo: newAccNo,
+                                accountName: newAccName,
+                                note: newNote
+                            };
+                        }
+                        return m;
+                    });
+
+                    if (hasDiff) {
+                        saveData();
+                        render();
+                        if (document.getElementById('memberDirectoryModal')?.classList.contains('active')) {
+                            renderMemberDirectory();
+                        }
+                        if (document.getElementById('manageMemberList')) {
+                            renderManageMemberList();
+                        }
                     }
+                    return hasDiff;
+                } finally {
+                    isSyncingDirectory = false;
+                }
+            }
+
+            function handleMemberSyncPayload(data) {
+                if (!data) return;
+                if (data.type === 'MEMBERS_UPDATED' || data.type === 'SYNC_ALL_MEMBERS' || data.type === 'MEMBERS_SYNCED' || data.type === 'GLOBAL_MEMBERS_CHANGED') {
+                    const syncedList = data.nhauMembers || data.billMembers;
+                    if (syncedList && Array.isArray(syncedList)) {
+                        members = syncedList;
+                        render();
+                    }
+                    const globalList = data.globalMembers || data.members;
+                    if (globalList && Array.isArray(globalList)) {
+                        syncWithGlobalDirectory(globalList);
+                    } else {
+                        syncWithGlobalDirectory();
+                    }
+                }
+            }
+
+            const memberChannel = new BroadcastChannel('system_member_sync');
+            memberChannel.onmessage = (event) => handleMemberSyncPayload(event.data);
+
+            const legacySyncChannel = new BroadcastChannel('members_sync');
+            legacySyncChannel.onmessage = (event) => handleMemberSyncPayload(event.data);
+
+            window.addEventListener('message', (event) => {
+                if (event.data) handleMemberSyncPayload(event.data);
+            });
+        } catch (e) {}
+
+        try {
+            const chiaBillChannel = new BroadcastChannel('chia_bill_sync');
+            chiaBillChannel.onmessage = (event) => {
+                if (event.data && (event.data.type === 'CHIA_BILL_UPDATED' || event.data.type === 'RELOAD_CHIA_BILL' || event.data.type === 'NHAU_DATA_UPDATED')) {
+                    reloadChiaBillData();
                 }
             };
         } catch (e) {}
 
+        async function reloadChiaBillData(btnEl) {
+            let icon = null;
+            if (btnEl) {
+                icon = btnEl.querySelector('i');
+                if (icon) icon.classList.add('fa-spin');
+            }
+            try {
+                // 1. Thử kéo dữ liệu mới nhất từ Supabase Cloud REST
+                if (window.dbStorage && typeof window.dbStorage.syncFromSupabaseRest === 'function') {
+                    const cfg = (typeof window.getSupabaseConfig === 'function') ? window.getSupabaseConfig() : null;
+                    if (cfg && cfg.url && cfg.anonKey) {
+                        await window.dbStorage.syncFromSupabaseRest(cfg.url, cfg.anonKey);
+                    }
+                }
+
+                // 2. Nạp lại từ localStorage
+                const storedMem = localStorage.getItem('nhau_members');
+                if (storedMem) {
+                    members = JSON.parse(storedMem);
+                    members = members.map(m => ({
+                        id: m.id,
+                        name: m.nickname || m.name || m.fullName || '',
+                        fullName: m.fullName || m.name || '',
+                        nickname: m.nickname || m.name || '',
+                        balance: typeof m.balance === 'number' ? m.balance : 0,
+                        dob: m.dob || '',
+                        phone: m.phone || '',
+                        bankId: m.bankId || '',
+                        accountNo: m.accountNo || '',
+                        accountName: m.accountName || '',
+                        note: m.note || ''
+                    }));
+                }
+                const storedMeals = localStorage.getItem('nhau_meals');
+                if (storedMeals) meals = JSON.parse(storedMeals);
+                else meals = [];
+                const storedLogs = localStorage.getItem('nhau_money_logs');
+                if (storedLogs) moneyLogs = JSON.parse(storedLogs);
+                else moneyLogs = [];
+
+                render();
+                if (document.getElementById('memberDirectoryModal')?.classList.contains('active')) {
+                    renderMemberDirectory();
+                }
+                if (document.getElementById('manageMemberList')) {
+                    renderManageMemberList();
+                }
+
+                if (btnEl && typeof window.showToast === 'function') {
+                    window.showToast('✅ Đã đồng bộ & làm mới dữ liệu Chia Bill từ Cloud thành công!');
+                }
+            } catch(e) {
+                console.error('[Chia Bill] Lỗi tải lại dữ liệu:', e);
+                if (btnEl && typeof window.showToast === 'function') {
+                    window.showToast('⚠️ Lỗi khi đồng bộ dữ liệu: ' + e.message);
+                }
+            } finally {
+                if (icon) {
+                    setTimeout(() => icon.classList.remove('fa-spin'), 600);
+                }
+            }
+        }
+
         window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'ADMIN_STATUS_CHANGED') {
+            if (!event.data) return;
+            if (event.data.type === 'ADMIN_STATUS_CHANGED') {
                 isAdmin = !!event.data.isAdmin;
                 updateAdminUI();
-            } else if (event.data && event.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
+            } else if (event.data.type === 'ADMIN_EDIT_MODE_CHANGED') {
                 document.body.classList.toggle('admin-edit-mode', !!event.data.adminEditMode);
+            } else if (event.data.type === 'CHIA_BILL_UPDATED' || event.data.type === 'RELOAD_CHIA_BILL' || event.data.type === 'NHAU_DATA_UPDATED' || event.data.type === 'APP_DATA_UPDATED') {
+                reloadChiaBillData();
+            } else if (event.data.type === 'AI_FILL_BILL_FORM') {
+                handleAiFillBillForm(event.data.payload);
             }
         });
 
@@ -2221,6 +2561,100 @@
 
             updateMealCalculation();
             openModal('mealModal');
+        }
+
+        function handleAiFillBillForm(payload) {
+            if (!payload) return;
+            openAddMealModal();
+
+            if (payload.title || payload.name) {
+                const nameEl = document.getElementById('mealName');
+                if (nameEl) nameEl.value = payload.title || payload.name;
+            }
+
+            if (payload.date) {
+                const dateEl = document.getElementById('mealDate');
+                if (dateEl) dateEl.value = payload.date;
+            }
+
+            // Danh sách các khoản chi (sub-expenses)
+            const expenseContainer = document.getElementById('expenseListContainer');
+            if (expenseContainer) {
+                expenseContainer.innerHTML = '';
+                const items = Array.isArray(payload.expenseItems) ? payload.expenseItems : 
+                             (Array.isArray(payload.items) ? payload.items : null);
+
+                if (items && items.length > 0) {
+                    items.forEach(it => {
+                        const itTitle = it.title || it.name || 'Khoản chi';
+                        const itAmt = parseFloat(it.amount || it.cost || 0);
+                        addExpenseRow(itTitle, itAmt > 0 ? (itAmt / 1000) : '');
+                    });
+                } else if (payload.totalCost || payload.amount) {
+                    const totalAmt = parseFloat(payload.totalCost || payload.amount || 0);
+                    addExpenseRow(payload.title || 'Tổng chi phí', totalAmt > 0 ? (totalAmt / 1000) : '');
+                } else {
+                    addExpenseRow();
+                }
+            }
+
+            // Danh sách người tham gia & người trả trước
+            const participants = Array.isArray(payload.participants) ? payload.participants : null;
+            const payerId = payload.payerId;
+            const payerName = payload.payerName ? payload.payerName.toLowerCase().trim() : '';
+
+            // Tính tổng tiền chi tiêu theo k
+            let totalBillK = 0;
+            const amtInputs = document.querySelectorAll('#expenseListContainer .expense-amount');
+            amtInputs.forEach(inp => {
+                totalBillK += (parseFloat(inp.value) || 0);
+            });
+
+            const rows = document.querySelectorAll('#mealMembersTable .meal-member-row');
+            rows.forEach(row => {
+                const chk = row.querySelector('.meal-check');
+                const paidInput = row.querySelector('.meal-paid');
+                if (!chk || !paidInput) return;
+
+                const memId = chk.value;
+                const m = members.find(mem => String(mem.id) === String(memId));
+                if (!m) return;
+
+                // Kiểm tra người tham gia
+                if (participants && participants.length > 0) {
+                    const isPart = participants.some(p => {
+                        if (typeof p === 'object' && p !== null) {
+                            return String(p.id) === String(m.id) || (p.name && (m.name === p.name || m.nickname === p.name));
+                        }
+                        const pStr = String(p).toLowerCase().trim();
+                        return String(m.id) === pStr || (m.name && m.name.toLowerCase().trim() === pStr) || (m.nickname && m.nickname.toLowerCase().trim() === pStr);
+                    });
+                    chk.checked = isPart;
+                }
+
+                // Kiểm tra người trả tiền
+                let isPayer = false;
+                if (payerId && String(m.id) === String(payerId)) isPayer = true;
+                if (!isPayer && payerName) {
+                    isPayer = (m.name && m.name.toLowerCase().trim() === payerName) ||
+                              (m.nickname && m.nickname.toLowerCase().trim() === payerName) ||
+                              (m.fullName && m.fullName.toLowerCase().trim() === payerName);
+                }
+
+                if (isPayer && totalBillK > 0) {
+                    paidInput.value = totalBillK;
+                } else if (!isPayer) {
+                    paidInput.value = '';
+                }
+            });
+
+            updateMealCalculation();
+
+            const modalBox = document.querySelector('#mealModal .modal') || document.getElementById('mealModal');
+            if (modalBox) {
+                modalBox.classList.add('ai-form-highlight');
+                setTimeout(() => modalBox.classList.remove('ai-form-highlight'), 3500);
+            }
         }
 
         function openEditMealModal(mealId) {
@@ -3610,20 +4044,37 @@
 
         function removeMember(id) {
             if (!checkAdminPermission()) return;
-            const member = members.find(m => String(m.id) === String(id));
+            const strId = String(id);
+            const member = members.find(m => String(m.id) === strId || m.name === id || m.nickname === id);
             if (!member) return;
 
-            if (confirm(`Bạn có chắc muốn xóa thành viên "${member.fullName || member.name}" khỏi danh sách?`)) {
-                members = members.filter(m => String(m.id) !== String(id));
+            const memberName = member.fullName || member.name || member.nickname;
+            if (confirm(`Bạn có chắc muốn xóa thành viên "${memberName}" khỏi danh sách tham gia Chia Bill?\n(Lưu ý: Thao tác này chỉ gỡ khỏi Chia Bill, không xóa trong Danh Bạ hệ thống)`)) {
+                // 1. Chỉ gỡ khỏi danh sách tham gia của Chia Bill (nhau_members)
+                members = members.filter(m => String(m.id) !== strId && m.name !== member.name && m.nickname !== member.nickname);
                 saveData();
+
+                // 2. Đồng bộ lên dbStorage để lưu nhau_members lên Cloud
+                try {
+                    const db = window.dbStorage || (window.top && window.top.dbStorage) || (window.parent && window.parent.dbStorage);
+                    if (db && typeof db.setItem === 'function') {
+                        db.setItem('nhau_members', JSON.stringify(members));
+                    }
+                } catch(e) {}
+
                 render();
                 renderManageMemberList();
                 if (document.getElementById('memberDirectoryModal')?.classList.contains('active')) {
                     renderMemberDirectory();
                 }
+
+                // 3. Phát thông báo đồng bộ liên ứng dụng (chỉ cập nhật nhauMembers)
                 try {
                     const bc = new BroadcastChannel('system_member_sync');
-                    bc.postMessage({ type: 'MEMBERS_UPDATED', nhauMembers: members });
+                    bc.postMessage({
+                        type: 'MEMBERS_UPDATED',
+                        nhauMembers: members
+                    });
                 } catch(e) {}
             }
         }
@@ -3699,16 +4150,103 @@
             openModal('logDetailModal');
         }
 
-        function resetData() {
+        // =========================================================================
+        // KHÔI PHỤC DỮ LIỆU BAN ĐẦU (RESET BẢO MẬT BẮT BUỘC MASTER KEY)
+        // =========================================================================
+        function openResetConfirmModal() {
             if (!checkAdminPermission()) return;
-            if (confirm("Khôi phục toàn bộ dữ liệu ban đầu? Mọi hóa đơn và nhật ký sẽ bị xóa vĩnh viễn.")) {
-                members = JSON.parse(JSON.stringify(defaultMembers));
-                meals = [];
-                moneyLogs = [];
-                currentLogPage = 1;
-                saveData();
-                render();
+            const input = document.getElementById('resetMasterKeyInput');
+            const err = document.getElementById('resetMasterKeyError');
+            if (input) input.value = '';
+            if (err) { err.textContent = ''; err.style.display = 'none'; }
+            openModal('resetMasterKeyModal');
+            if (input) setTimeout(() => input.focus(), 200);
+        }
+
+        async function submitResetWithMasterKey() {
+            if (!checkAdminPermission()) return;
+            const input = document.getElementById('resetMasterKeyInput');
+            const err = document.getElementById('resetMasterKeyError');
+            const btn = document.getElementById('btnSubmitResetMasterKey');
+            const key = (input ? input.value : '').trim();
+
+            if (!key) {
+                if (err) {
+                    err.textContent = 'Vui lòng nhập Master Key cứu hộ!';
+                    err.style.display = 'block';
+                }
+                return;
             }
+
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác thực...';
+                btn.disabled = true;
+            }
+
+            let isAuthorized = false;
+            if (window.systemVersion && typeof window.systemVersion.verifyMasterKey === 'function') {
+                isAuthorized = await window.systemVersion.verifyMasterKey(key);
+            } else if (typeof verifyMasterKey === 'function') {
+                isAuthorized = await verifyMasterKey(key);
+            } else {
+                const storedMaster = localStorage.getItem('sys_master_key_hash') || '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9';
+                const hashed = await hashPassword(key);
+                if (hashed === storedMaster) isAuthorized = true;
+                try {
+                    const encoder = new TextEncoder();
+                    const legacyBuf = await crypto.subtle.digest('SHA-256', encoder.encode(key));
+                    const legacyHash = Array.from(new Uint8Array(legacyBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    if (legacyHash === storedMaster) isAuthorized = true;
+                } catch(e) {}
+            }
+
+            if (!isAuthorized) {
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Xác Nhận Khôi Phục Về 0đ';
+                    btn.disabled = false;
+                }
+                if (err) {
+                    err.textContent = '❌ Master Key không chính xác! Thao tác đã bị từ chối để bảo vệ an toàn dữ liệu.';
+                    err.style.display = 'block';
+                }
+                return;
+            }
+
+            // Master Key hợp lệ -> Khôi phục dữ liệu ban đầu sạch sẽ (toàn bộ số dư về 0đ)
+            members = defaultMembers.map(m => ({ ...m, balance: 0 }));
+            meals = [];
+            moneyLogs = [];
+            currentLogPage = 1;
+
+            saveData();
+
+            // Đồng bộ trực tiếp lên dbStorage / Supabase
+            try {
+                if (window.dbStorage) {
+                    window.dbStorage.setItem('nhau_members', JSON.stringify(members));
+                    window.dbStorage.setItem('nhau_meals', JSON.stringify(meals));
+                    window.dbStorage.setItem('nhau_money_logs', JSON.stringify(moneyLogs));
+                }
+            } catch(e) {}
+
+            render();
+            closeModal('resetMasterKeyModal');
+
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Xác Nhận Khôi Phục Về 0đ';
+                btn.disabled = false;
+            }
+
+            if (typeof window.showToast === 'function') {
+                window.showToast('✅ Đã xác thực Master Key: Dữ liệu Chia Bill đã được khôi phục về 0đ an toàn!');
+            } else {
+                alert('Đã khôi phục dữ liệu Chia Bill về 0đ thành công!');
+            }
+        }
+
+        // Tương thích ngược: nếu hàm cũ resetData được gọi ở đâu thì chuyển sang mở modal nhập Master Key
+        function resetData() {
+            openResetConfirmModal();
         }
 
         // =========================================================================

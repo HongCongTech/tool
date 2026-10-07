@@ -1,0 +1,596 @@
+/**
+ * ==============================================================================
+ * MACOS ADMIN DATABASE DASHBOARD STYLES (admin-db-dashboard.css)
+ * Phong cách macOS Sonoma / Sequoia Glassmorphism • Dark Mode Cao Cấp
+ * ==============================================================================
+ */
+
+.admin-db-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-db-modal-overlay.show {
+  display: flex;
+  opacity: 1;
+}
+
+.admin-db-window {
+  width: 95vw;
+  max-width: 1200px;
+  height: 88vh;
+  max-height: 820px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: adminDbPopIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif;
+}
+
+@keyframes adminDbPopIn {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Header macOS Window */
+.admin-db-header {
+  height: 52px;
+  padding: 0 18px;
+  background: rgba(30, 41, 59, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.admin-db-traffic-lights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-db-traffic-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s;
+}
+
+.admin-db-traffic-btn:hover {
+  opacity: 0.8;
+}
+
+.admin-db-traffic-btn.close { background: #ef4444; }
+.admin-db-traffic-btn.min { background: #f59e0b; }
+.admin-db-traffic-btn.max { background: #10b981; }
+
+.admin-db-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-db-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-db-badge-cloud {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-db-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-db-btn-top {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.admin-db-btn-top:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Body: 2 Cột (Sidebar Bảng + Nội Dung) */
+.admin-db-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Sidebar Danh Sách Bảng */
+.admin-db-sidebar {
+  width: 240px;
+  background: rgba(15, 23, 42, 0.6);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 12px 8px;
+}
+
+.admin-db-sidebar-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.8px;
+  padding: 8px 12px 4px 12px;
+}
+
+.admin-db-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  margin-bottom: 2px;
+}
+
+.admin-db-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+}
+
+.admin-db-nav-item.active {
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.admin-db-nav-item .nav-count {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.admin-db-nav-item.active .nav-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* Khu vực nội dung chính */
+.admin-db-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: rgba(15, 23, 42, 0.4);
+  position: relative;
+}
+
+/* Toolbar bên trong Content */
+.admin-db-toolbar {
+  padding: 12px 18px;
+  background: rgba(30, 41, 59, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.admin-db-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 12px;
+  width: 280px;
+  max-width: 100%;
+}
+
+.admin-db-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12.5px;
+  color: #f8fafc;
+  width: 100%;
+}
+
+.admin-db-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-db-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s;
+  user-select: none;
+}
+
+.admin-db-btn-primary {
+  background: #0284c7;
+  color: #fff;
+}
+.admin-db-btn-primary:hover {
+  background: #0369a1;
+}
+
+.admin-db-btn-success {
+  background: #16a34a;
+  color: #fff;
+}
+.admin-db-btn-success:hover {
+  background: #15803d;
+}
+
+.admin-db-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+}
+.admin-db-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.admin-db-btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+.admin-db-btn-danger:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Bảng Dữ Liệu (macOS Table View) */
+.admin-db-table-container {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+  min-height: 0;
+}
+
+.admin-db-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.admin-db-table th {
+  position: sticky;
+  top: 0;
+  background: #1e293b;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.admin-db-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  vertical-align: middle;
+}
+
+.admin-db-table tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-db-col-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.admin-db-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.admin-db-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.admin-db-icon-btn.delete:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+/* SQL Runner View */
+.admin-db-sql-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 16px 18px;
+  gap: 14px;
+  overflow: auto;
+}
+
+.admin-db-sql-snippets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-db-sql-snippet-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #38bdf8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.admin-db-sql-snippet-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+}
+
+.admin-db-sql-editor-wrap {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #090d16;
+}
+
+.admin-db-sql-textarea {
+  width: 100%;
+  height: 140px;
+  background: transparent;
+  border: none;
+  padding: 12px 14px;
+  color: #4ade80;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 13.5px;
+  line-height: 1.5;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.admin-db-sql-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Backup & Restore View */
+.admin-db-backup-view {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.admin-db-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.admin-db-dropzone {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.admin-db-dropzone:hover, .admin-db-dropzone.dragover {
+  border-color: #0284c7;
+  background: rgba(2, 132, 199, 0.08);
+}
+
+/* Form Record Edit Modal con */
+.admin-db-record-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.admin-db-record-modal.show {
+  display: flex;
+}
+
+.admin-db-record-box {
+  width: 580px;
+  max-width: 100%;
+  max-height: 90%;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-db-record-header {
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-db-record-body {
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-db-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.admin-db-field label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.admin-db-field input, .admin-db-field textarea, .admin-db-field select {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #f8fafc;
+  outline: none;
+  font-family: inherit;
+}
+
+.admin-db-field input:focus, .admin-db-field textarea:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.3);
+}
+
+.admin-db-record-footer {
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+  .admin-db-window {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    max-height: 100vh;
+  }
+  .admin-db-body {
+    flex-direction: column;
+  }
+  .admin-db-sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 8px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .admin-db-nav-item {
+    white-space: nowrap;
+  }
+  .admin-db-sidebar-section-title {
+    display: none;
+  }
+}
