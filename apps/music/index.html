@@ -15,7 +15,7 @@
     <script src="../../assets/js/db-config.js"></script>
     <script src="../../assets/js/db-storage.js"></script>
     <!-- System Version Gatekeeper -->
-    <script src="../../assets/js/system-version.js?v=2.12.0"></script>
+    <script src="../../assets/js/system-version.js?v=2.13.0"></script>
 
     <style>
         :root {
@@ -492,6 +492,303 @@
             font-size: 0.75rem;
             color: var(--text-sub);
             margin-top: 3px;
+        }
+
+        /* SIDEBAR HEADINGS & ACTION BUTTONS */
+        .sidebar-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 10px 4px 10px;
+        }
+        .btn-sidebar-add-playlist {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 3px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-sidebar-add-playlist:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .playlist-user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .playlist-user-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+        }
+        .playlist-user-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 700;
+        }
+        .playlist-user-del {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .playlist-user-item:hover .playlist-user-del {
+            opacity: 1;
+        }
+        .playlist-user-del:hover {
+            color: #ef4444;
+        }
+
+        /* SUBVIEW HEADER (BREADCRUMB / COLLECTION BANNER) */
+        .subview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+            backdrop-filter: blur(16px);
+        }
+        .subview-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .subview-back-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .subview-back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+        .subview-header-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(250, 45, 72, 0.2), rgba(99, 102, 241, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--primary);
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .subview-header-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1.2;
+        }
+        .subview-header-sub {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 3px;
+        }
+        .subview-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* FOLDER CARD & COMPOSER CARD */
+        .folder-card, .composer-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+        }
+        .folder-card:hover, .composer-card:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+        .folder-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.25), rgba(99, 102, 241, 0.25));
+            border: 1px solid rgba(2, 132, 199, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #38bdf8;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .composer-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25));
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #f59e0b;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .folder-card-info, .composer-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .folder-card-name, .composer-card-name {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .folder-card-count, .composer-card-count {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            margin-top: 3px;
+        }
+
+        /* ARTIST CARD */
+        .artist-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 18px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .artist-card:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+        .artist-avatar-wrap {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #4f46e5, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .artist-avatar {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.3s ease;
+        }
+        .artist-card:hover .artist-avatar {
+            transform: scale(1.08);
+        }
+        .artist-card-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        .artist-card-sub {
+            font-size: 0.76rem;
+            color: var(--text-sub);
+            margin-top: 3px;
+        }
+
+        /* GENRE CARD (APPLE MUSIC VIBRANT TILES) */
+        .genre-card {
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .genre-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+        }
+        .genre-card-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+        .genre-card-sub {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+            z-index: 2;
+        }
+        .genre-card-icon {
+            position: absolute;
+            right: 14px;
+            bottom: -8px;
+            font-size: 56px;
+            opacity: 0.22;
+            color: white;
+            pointer-events: none;
         }
 
         /* BOTTOM PLAYER */
@@ -1054,57 +1351,83 @@
     <div class="music-main">
         <!-- SIDEBAR -->
         <aside class="music-sidebar">
-            <div class="sidebar-heading">Khám Phá</div>
+            <div class="sidebar-heading">MY MUSIC</div>
             <button class="sidebar-btn active" id="sidebarBtnAll" onclick="switchMusicCategory('all')">
-                <i class="fa-solid fa-house" style="color:#fa2d48;"></i>
-                <span>Trang Chủ & Gợi Ý</span>
+                <i class="fa-solid fa-music" style="color:#fa2d48;"></i>
+                <span>All Music</span>
+                <span class="badge-pill" id="sidebarAllMusicBadge">0</span>
             </button>
+            <button class="sidebar-btn" id="sidebarBtnFolders" onclick="switchMusicCategory('folders')">
+                <i class="fa-solid fa-folder" style="color:#38bdf8;"></i>
+                <span>By Folder</span>
+                <span class="badge-pill" id="sidebarFoldersBadge">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnAlbums" onclick="switchMusicCategory('albums')">
+                <i class="fa-solid fa-compact-disc" style="color:#8b5cf6;"></i>
+                <span>By Album</span>
+                <span class="badge-pill" id="sidebarAlbumsBadge">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnArtists" onclick="switchMusicCategory('artists')">
+                <i class="fa-solid fa-microphone" style="color:#ec4899;"></i>
+                <span>By Artist</span>
+                <span class="badge-pill" id="sidebarArtistsBadge">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnComposers" onclick="switchMusicCategory('composers')">
+                <i class="fa-solid fa-pen" style="color:#f59e0b;"></i>
+                <span>By Composer</span>
+                <span class="badge-pill" id="sidebarComposersBadge">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnGenres" onclick="switchMusicCategory('genres')">
+                <i class="fa-solid fa-shapes" style="color:#10b981;"></i>
+                <span>By Genre</span>
+                <span class="badge-pill" id="sidebarGenresBadge">0</span>
+            </button>
+
+            <div class="sidebar-heading-row">
+                <span class="sidebar-heading" style="padding:0; margin:0;">PLAYLIST</span>
+                <button class="btn-sidebar-add-playlist" onclick="openCreatePlaylistModal()" title="Tạo Playlist mới">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+            <button class="sidebar-btn" id="sidebarBtnPlaylists" onclick="switchMusicCategory('playlists')">
+                <i class="fa-solid fa-bars-staggered" style="color:#06b6d4;"></i>
+                <span>All Playlist</span>
+                <span class="badge-pill" id="sidebarPlaylistsBadge">0</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnRandom100" onclick="switchMusicCategory('random100')">
+                <i class="fa-solid fa-shuffle" style="color:#a855f7;"></i>
+                <span>Random100</span>
+                <span class="badge-pill" style="background:rgba(168,85,247,0.18); color:#c084fc;">100</span>
+            </button>
+            <button class="sidebar-btn" id="sidebarBtnRecentlyAdded" onclick="switchMusicCategory('recently_added')">
+                <i class="fa-solid fa-circle-plus" style="color:#f43f5e;"></i>
+                <span>Recently Added</span>
+                <span class="badge-pill" id="sidebarRecentBadge" style="background:rgba(244,63,94,0.18); color:#fb7185;">0</span>
+            </button>
+
+            <!-- Dynamic User Playlists Container -->
+            <div id="userPlaylistsSidebarList" style="display:flex; flex-direction:column; gap:2px; margin-top:2px;"></div>
+
+            <div class="sidebar-heading" style="margin-top:14px;">BỘ SƯU TẬP & CÔNG CỤ</div>
             <button class="sidebar-btn" id="sidebarBtnFavorites" onclick="switchMusicCategory('favorites')">
                 <i class="fa-solid fa-heart" style="color:#ec4899;"></i>
                 <span>Yêu Thích</span>
                 <span class="badge-pill" id="sidebarFavoritesBadge" style="background:rgba(236,72,153,0.18); color:#f472b6;">0</span>
             </button>
-            <button class="sidebar-btn" id="sidebarBtnAlbums" onclick="switchMusicCategory('albums')">
-                <i class="fa-solid fa-compact-disc" style="color:#8b5cf6;"></i>
-                <span>Album & Tuyển Tập</span>
-                <span class="badge-pill" id="sidebarAlbumsBadge" style="background:rgba(139,92,246,0.18); color:#a78bfa;">0</span>
-            </button>
-            <button class="sidebar-btn" id="sidebarBtnPlaylists" onclick="switchMusicCategory('playlists')">
-                <i class="fa-solid fa-layer-group" style="color:#06b6d4;"></i>
-                <span>Playlists NAS</span>
-                <span class="badge-pill" id="sidebarPlaylistsBadge" style="background:rgba(6,182,212,0.18); color:#22d3ee;">0</span>
-            </button>
-
-            <div class="sidebar-heading">Nguồn Nhạc Đám Mây</div>
-            <button class="sidebar-btn" id="sidebarBtnSyno" onclick="filterBySource('synology')">
-                <i class="fa-solid fa-server" style="color:#34d399;"></i>
-                <span>Synology Audio NAS</span>
-                <span class="badge-pill" id="sidebarSynoBadge" style="background:rgba(52,211,153,0.18); color:#34d399;">0</span>
-            </button>
-            <button class="sidebar-btn" id="sidebarBtnGdrive" onclick="filterBySource('gdrive')">
-                <i class="fa-brands fa-google-drive" style="color:#38bdf8;"></i>
-                <span>Google Drive Stream</span>
-            </button>
-            <button class="sidebar-btn" id="sidebarBtnLocal" onclick="filterBySource('local')">
-                <i class="fa-solid fa-hard-drive" style="color:#fbbf24;"></i>
-                <span>Thư Viện Cục Bộ</span>
-            </button>
-
-            <div class="sidebar-heading">Cấu Hình & Hiệu Ứng</div>
             <button class="sidebar-btn" onclick="openEqualizerModal()">
                 <i class="fa-solid fa-sliders" style="color:#a855f7;"></i>
                 <span>Bộ Chỉnh Âm (EQ)</span>
             </button>
             <button class="sidebar-btn" onclick="toggleLyricsView()">
                 <i class="fa-solid fa-microphone-lines" style="color:#f43f5e;"></i>
-                <span>Lời Bài Hát (Karaoke)</span>
+                <span>Lời Bài Hát</span>
             </button>
         </aside>
 
         <!-- CONTENT VIEW -->
         <main class="music-content" id="musicContentPane">
             <!-- HERO BANNER -->
-            <div class="music-hero">
+            <div class="music-hero" id="heroBannerSection">
                 <i class="fa-solid fa-record-vinyl music-hero-bg"></i>
                 <div class="hero-info">
                     <span class="hero-badge"><i class="fa-solid fa-sparkles"></i> Apple Music Hi-Res Lossless</span>
@@ -1121,16 +1444,52 @@
                 </div>
             </div>
 
+            <!-- SUBVIEW HEADER (BREADCRUMB / COLLECTION BANNER) -->
+            <div id="subviewHeader" class="subview-header" style="display:none;">
+                <div class="subview-header-left">
+                    <button class="subview-back-btn" id="btnSubviewBack" onclick="goBackFromSubview()" title="Quay lại danh mục">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div class="subview-header-icon" id="subviewHeaderIcon">
+                        <i class="fa-solid fa-folder"></i>
+                    </div>
+                    <div>
+                        <div class="subview-header-title" id="subviewHeaderTitle">Tiêu Đề Danh Mục</div>
+                        <div class="subview-header-sub" id="subviewHeaderSub">0 bài hát</div>
+                    </div>
+                </div>
+                <div class="subview-header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="playCurrentSubviewTracks()">
+                        <i class="fa-solid fa-play"></i> Phát Tất Cả
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="shuffleCurrentSubviewTracks()">
+                        <i class="fa-solid fa-shuffle"></i> Phát Ngẫu Nhiên
+                    </button>
+                </div>
+            </div>
+
             <!-- VIEW TABS -->
-            <div class="view-tabs">
+            <div class="view-tabs" id="viewTabsBar">
                 <button class="view-tab active" id="tabBtnTracks" onclick="switchViewMode('tracks')">
                     <i class="fa-solid fa-list"></i> Bài Hát (<span id="trackCountBadge">0</span>)
+                </button>
+                <button class="view-tab" id="tabBtnFolders" onclick="switchViewMode('folders')">
+                    <i class="fa-solid fa-folder"></i> Thư Mục (<span id="folderCountBadge">0</span>)
                 </button>
                 <button class="view-tab" id="tabBtnAlbums" onclick="switchViewMode('albums')">
                     <i class="fa-solid fa-compact-disc"></i> Album (<span id="albumCountBadge">0</span>)
                 </button>
+                <button class="view-tab" id="tabBtnArtists" onclick="switchViewMode('artists')">
+                    <i class="fa-solid fa-microphone"></i> Ca Sĩ (<span id="artistCountBadge">0</span>)
+                </button>
+                <button class="view-tab" id="tabBtnComposers" onclick="switchViewMode('composers')">
+                    <i class="fa-solid fa-pen"></i> Nhạc Sĩ (<span id="composerCountBadge">0</span>)
+                </button>
+                <button class="view-tab" id="tabBtnGenres" onclick="switchViewMode('genres')">
+                    <i class="fa-solid fa-shapes"></i> Thể Loại (<span id="genreCountBadge">0</span>)
+                </button>
                 <button class="view-tab" id="tabBtnPlaylists" onclick="switchViewMode('playlists')">
-                    <i class="fa-solid fa-layer-group"></i> Playlists NAS (<span id="playlistCountBadge">0</span>)
+                    <i class="fa-solid fa-layer-group"></i> Playlists (<span id="playlistCountBadge">0</span>)
                 </button>
             </div>
 
@@ -1143,8 +1502,8 @@
                             <th>Bài Hát & Nghệ Sĩ</th>
                             <th>Album</th>
                             <th>Nguồn Nhạc</th>
-                            <th style="text-align:right; width:90px;">Thời Lượng</th>
-                            <th style="width:70px; text-align:center;">Thao Tác</th>
+                            <th style="text-align:right; width:80px;">Thời Lượng</th>
+                            <th style="width:90px; text-align:center;">Thao Tác</th>
                         </tr>
                     </thead>
                     <tbody id="trackTableBody">
@@ -1153,15 +1512,23 @@
                 </table>
             </div>
 
-            <!-- VIEW 2: ALBUMS GRID -->
-            <div id="viewAlbumsContainer" class="album-grid" style="display:none;">
-                <!-- Populated dynamically -->
-            </div>
+            <!-- VIEW 2: FOLDERS GRID -->
+            <div id="viewFoldersContainer" class="album-grid" style="display:none;"></div>
 
-            <!-- VIEW 3: PLAYLISTS GRID -->
-            <div id="viewPlaylistsContainer" class="album-grid" style="display:none;">
-                <!-- Populated dynamically -->
-            </div>
+            <!-- VIEW 3: ALBUMS GRID -->
+            <div id="viewAlbumsContainer" class="album-grid" style="display:none;"></div>
+
+            <!-- VIEW 4: ARTISTS GRID -->
+            <div id="viewArtistsContainer" class="album-grid" style="display:none;"></div>
+
+            <!-- VIEW 5: COMPOSERS GRID -->
+            <div id="viewComposersContainer" class="album-grid" style="display:none;"></div>
+
+            <!-- VIEW 6: GENRES GRID -->
+            <div id="viewGenresContainer" class="album-grid" style="display:none;"></div>
+
+            <!-- VIEW 7: PLAYLISTS GRID -->
+            <div id="viewPlaylistsContainer" class="album-grid" style="display:none;"></div>
         </main>
     </div>
 
@@ -1431,6 +1798,53 @@
         </div>
     </div>
 
+    <!-- MODAL TẠO PLAYLIST MỚI -->
+    <div class="add-modal-overlay" id="createPlaylistModal" onclick="if(event.target===this) closeCreatePlaylistModal()">
+        <div class="add-card" style="width:420px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div style="font-weight:800; font-size:1.1rem; color:white;">
+                    <i class="fa-solid fa-folder-plus" style="color:var(--primary);"></i> Tạo Playlist Mới
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="closeCreatePlaylistModal()">Đóng</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tên danh sách phát (Playlist):</label>
+                <input type="text" id="newPlaylistNameInput" class="form-input" placeholder="VD: Bolero Tuyển Chọn, Nhạc Acoustic..." onkeydown="if(event.key==='Enter') submitCreatePlaylist()">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button class="btn btn-outline" onclick="closeCreatePlaylistModal()">Hủy</button>
+                <button class="btn btn-primary" onclick="submitCreatePlaylist()">
+                    <i class="fa-solid fa-check"></i> Hoàn Tất Tạo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM BÀI HÁT VÀO PLAYLIST -->
+    <div class="add-modal-overlay" id="addToPlaylistModal" onclick="if(event.target===this) closeAddToPlaylistModal()">
+        <div class="add-card" style="width:440px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <div style="font-weight:800; font-size:1.1rem; color:white;">
+                    <i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Thêm Vào Playlist
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="closeAddToPlaylistModal()">Đóng</button>
+            </div>
+            <div style="font-size:0.85rem; color:#cbd5e1; margin-bottom:14px; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px;" id="addToPlaylistSongName">
+                Bài hát: ...
+            </div>
+            <div style="font-size:0.78rem; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-bottom:8px;">Chọn Playlist:</div>
+            <div id="addToPlaylistItemsList" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; margin-bottom:16px;">
+                <!-- Populated dynamically -->
+            </div>
+            <div style="border-top:1px solid var(--border); padding-top:12px; display:flex; gap:8px;">
+                <input type="text" id="quickNewPlaylistName" class="form-input" placeholder="Hoặc tạo playlist mới..." style="flex:1;" onkeydown="if(event.key==='Enter') quickCreatePlaylistAndAdd()">
+                <button class="btn btn-primary btn-sm" onclick="quickCreatePlaylistAndAdd()" style="white-space:nowrap;">
+                    <i class="fa-solid fa-plus"></i> Tạo & Thêm
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
     <div class="music-toast" id="musicToast">
         <i class="fa-solid fa-circle-check" id="toastIcon" style="color:#10b981;"></i>
@@ -1448,6 +1862,7 @@
         const STORAGE_KEY_FAVORITES = 'sys_music_favorites';
         const STORAGE_KEY_ALBUMS = 'sys_synology_albums';
         const STORAGE_KEY_PLAYLISTS = 'sys_synology_playlists';
+        const STORAGE_KEY_USER_PLAYLISTS = 'sys_user_playlists';
         const STORAGE_KEY_CONFIG = 'sys_synology_config';
 
         const DEFAULT_SYNO_CONFIG = {
@@ -1462,6 +1877,7 @@
         let musicLibrary = [];
         let synoAlbums = [];
         let synoPlaylists = [];
+        let userPlaylists = [];
         let synoConfig = { ...DEFAULT_SYNO_CONFIG };
 
         let currentTrackIndex = 0;
@@ -1469,10 +1885,13 @@
         let isShuffle = false;
         let repeatMode = 0; // 0: None, 1: All, 2: One
         let currentFilter = 'all';
-        let currentViewMode = 'tracks'; // 'tracks' | 'albums' | 'playlists'
+        let currentViewMode = 'tracks'; // 'tracks' | 'folders' | 'albums' | 'artists' | 'composers' | 'genres' | 'playlists'
         let currentActiveTab = 'synology';
 
         let activeDetailItems = [];
+        let currentSubviewTracks = [];
+        let currentParentCategory = 'all';
+        let pendingTrackToAddToPlaylist = null;
         let favorites = JSON.parse(localStorage.getItem(STORAGE_KEY_FAVORITES) || '[]');
 
         const audio = document.getElementById('mainAudioPlayer');
@@ -1554,6 +1973,7 @@
         // =========================================================================
         async function initMusicApp() {
             loadSavedSynologyConfig();
+            loadUserPlaylists();
 
             // 1. Thử nạp từ LocalStorage
             let loadedFromStorage = false;
@@ -1583,8 +2003,13 @@
 
             // Render giao diện ban đầu
             renderTrackTable();
+            renderFolderGrid();
             renderAlbumGrid();
+            renderArtistGrid();
+            renderComposerGrid();
+            renderGenreGrid();
             renderPlaylistGrid();
+            renderUserPlaylistsInSidebar();
             updateAllBadges();
 
             // Load âm lượng đã lưu
@@ -1658,26 +2083,106 @@
             }
         }
 
+        function loadUserPlaylists() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_USER_PLAYLISTS);
+                if (raw) {
+                    userPlaylists = JSON.parse(raw);
+                } else {
+                    userPlaylists = [];
+                }
+            } catch(e) {
+                userPlaylists = [];
+            }
+            if (window.DBStorage && typeof window.DBStorage.get === 'function') {
+                window.DBStorage.get(STORAGE_KEY_USER_PLAYLISTS).then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        userPlaylists = data;
+                        renderUserPlaylistsInSidebar();
+                        updateAllBadges();
+                    }
+                }).catch(() => {});
+            }
+        }
+
+        function saveUserPlaylists() {
+            try {
+                localStorage.setItem(STORAGE_KEY_USER_PLAYLISTS, JSON.stringify(userPlaylists));
+                if (window.DBStorage && typeof window.DBStorage.set === 'function') {
+                    window.DBStorage.set(STORAGE_KEY_USER_PLAYLISTS, userPlaylists);
+                }
+            } catch(e) {}
+            renderUserPlaylistsInSidebar();
+            updateAllBadges();
+        }
+
+        function getFoldersCount() {
+            const set = new Set();
+            musicLibrary.forEach(t => set.add(getTrackFolder(t)));
+            return set.size;
+        }
+
+        function getArtistsCount() {
+            const set = new Set();
+            musicLibrary.forEach(t => set.add((t.artist || 'Nghệ Sĩ Khác').trim()));
+            return set.size;
+        }
+
+        function getComposersCount() {
+            const set = new Set();
+            musicLibrary.forEach(t => set.add(getTrackComposer(t)));
+            return set.size;
+        }
+
+        function getGenresCount() {
+            const set = new Set();
+            musicLibrary.forEach(t => set.add(getTrackGenre(t)));
+            return set.size;
+        }
+
         function updateAllBadges() {
             const trackCount = musicLibrary.length;
-            const albumCount = synoAlbums.length;
-            const playlistCount = synoPlaylists.length;
-            const synoTrackCount = musicLibrary.filter(t => t.source === 'synology').length;
+            const folderCount = getFoldersCount();
+            const albumCount = synoAlbums.length || (new Set(musicLibrary.map(t => t.album || 'Single'))).size;
+            const artistCount = getArtistsCount();
+            const composerCount = getComposersCount();
+            const genreCount = getGenresCount();
+            const playlistCount = synoPlaylists.length + userPlaylists.length;
 
             const badgeTracks = document.getElementById('trackCountBadge');
+            const badgeFolders = document.getElementById('folderCountBadge');
             const badgeAlbums = document.getElementById('albumCountBadge');
+            const badgeArtists = document.getElementById('artistCountBadge');
+            const badgeComposers = document.getElementById('composerCountBadge');
+            const badgeGenres = document.getElementById('genreCountBadge');
             const badgePlaylists = document.getElementById('playlistCountBadge');
-            const sideSyno = document.getElementById('sidebarSynoBadge');
+
+            const sideAllMusic = document.getElementById('sidebarAllMusicBadge');
+            const sideFolders = document.getElementById('sidebarFoldersBadge');
             const sideAlbums = document.getElementById('sidebarAlbumsBadge');
+            const sideArtists = document.getElementById('sidebarArtistsBadge');
+            const sideComposers = document.getElementById('sidebarComposersBadge');
+            const sideGenres = document.getElementById('sidebarGenresBadge');
             const sidePlaylists = document.getElementById('sidebarPlaylistsBadge');
+            const sideRecent = document.getElementById('sidebarRecentBadge');
             const sideFavs = document.getElementById('sidebarFavoritesBadge');
 
             if (badgeTracks) badgeTracks.innerText = trackCount;
+            if (badgeFolders) badgeFolders.innerText = folderCount;
             if (badgeAlbums) badgeAlbums.innerText = albumCount;
+            if (badgeArtists) badgeArtists.innerText = artistCount;
+            if (badgeComposers) badgeComposers.innerText = composerCount;
+            if (badgeGenres) badgeGenres.innerText = genreCount;
             if (badgePlaylists) badgePlaylists.innerText = playlistCount;
-            if (sideSyno) sideSyno.innerText = synoTrackCount;
+
+            if (sideAllMusic) sideAllMusic.innerText = trackCount;
+            if (sideFolders) sideFolders.innerText = folderCount;
             if (sideAlbums) sideAlbums.innerText = albumCount;
+            if (sideArtists) sideArtists.innerText = artistCount;
+            if (sideComposers) sideComposers.innerText = composerCount;
+            if (sideGenres) sideGenres.innerText = genreCount;
             if (sidePlaylists) sidePlaylists.innerText = playlistCount;
+            if (sideRecent) sideRecent.innerText = Math.min(100, trackCount);
             if (sideFavs) sideFavs.innerText = favorites.length;
         }
 
@@ -2062,7 +2567,291 @@
         }
 
         // =========================================================================
-        // RENDERING VIEWS: TRACKS, ALBUMS & PLAYLISTS
+        // METADATA EXTRACTION & TAXONOMY HELPERS
+        // =========================================================================
+        function getTrackFolder(track) {
+            if (track && track.path) {
+                const parts = track.path.replace(/\\/g, '/').split('/').filter(Boolean);
+                if (parts.length >= 3) {
+                    return parts[parts.length - 2];
+                } else if (parts.length === 2) {
+                    return parts[0];
+                }
+            }
+            return track.album || 'Thư Mục Chung';
+        }
+
+        function getTrackComposer(track) {
+            if (track.composer && track.composer.trim() && track.composer.trim().toLowerCase() !== 'unknown') {
+                return track.composer.trim();
+            }
+            const combined = `${track.title || ''} ${track.path || ''}`.toLowerCase();
+            const known = [
+                { name: 'Trịnh Công Sơn', kw: ['trịnh công sơn', 'tcs', 'diễm xưa', 'hạ trắng', 'biển nhớ'] },
+                { name: 'Lam Phương', kw: ['lam phương', 'thành phố buồn', 'cỏ úa', 'khóc thầm'] },
+                { name: 'Vũ Thành An', kw: ['vũ thành an', 'bài không tên'] },
+                { name: 'Ngô Thụy Miên', kw: ['ngô thụy miên', 'niệm khúc cuối', 'bản tình cuối'] },
+                { name: 'Phạm Duy', kw: ['phạm duy', 'nghìn trùng xa cách'] },
+                { name: 'Trần Thiện Thanh', kw: ['trần thiện thanh', 'nhật trường'] },
+                { name: 'Trúc Phương', kw: ['trúc phương', 'thói đời'] },
+                { name: 'Anh Bằng', kw: ['anh bằng', 'khúc thụy du', 'nỗi lòng người đi'] },
+                { name: 'Châu Kỳ', kw: ['châu kỳ', 'giọt lệ đài trang'] },
+                { name: 'Kenny G', kw: ['kenny g', 'silhouette', 'songbird', 'forever in love', 'going home'] },
+                { name: 'Y Vân', kw: ['y vân', 'lòng mẹ', '60 năm cuộc đời'] },
+                { name: 'Hoàng Thi Thơ', kw: ['hoàng thi thơ'] },
+                { name: 'Minh Kỳ', kw: ['minh kỳ'] },
+                { name: 'Đoàn Chuẩn', kw: ['đoàn chuẩn'] }
+            ];
+            for (const k of known) {
+                if (k.kw.some(w => combined.includes(w))) {
+                    return k.name;
+                }
+            }
+            return 'Nhạc Sĩ Chọn Lọc';
+        }
+
+        function getTrackGenre(track) {
+            if (track.genre && track.genre.trim() && track.genre.trim().toLowerCase() !== 'unknown') {
+                return track.genre.trim();
+            }
+            const text = `${track.title || ''} ${track.album || ''} ${track.artist || ''} ${track.path || ''}`.toLowerCase();
+            if (text.includes('bolero') || text.includes('trữ tình') || text.includes('lệ quyên') || text.includes('đan nguyên') || text.includes('như quỳnh') || text.includes('quang lê') || text.includes('chế linh') || text.includes('thanh tuyền') || text.includes('phi nhung')) {
+                return 'Trữ Tình & Bolero';
+            }
+            if (text.includes('kenny g') || text.includes('instrumental') || text.includes('saxophone') || text.includes('guitar') || text.includes('không lời') || text.includes('hòa tấu')) {
+                return 'Không Lời & Hòa Tấu';
+            }
+            if (text.includes('trịnh công sơn') || text.includes('phạm duy') || text.includes('vũ thành an') || text.includes('nhạc xưa') || text.includes('tiền chiến') || text.includes('ngô thụy miên')) {
+                return 'Nhạc Xưa & Tiền Chiến';
+            }
+            if (text.includes('acoustic') || text.includes('chill') || text.includes('ballad') || text.includes('mộc')) {
+                return 'Acoustic & Ballad';
+            }
+            if (text.includes('remix') || text.includes('dance') || text.includes('edm') || text.includes('vinahouse') || text.includes('dj')) {
+                return 'Remix & EDM';
+            }
+            if (text.includes('pop') || text.includes('nhạc trẻ') || text.includes('v-pop')) {
+                return 'Nhạc Trẻ & Pop';
+            }
+            return 'Nhạc Chọn Lọc';
+        }
+
+        // =========================================================================
+        // USER PLAYLISTS MANAGEMENT
+        // =========================================================================
+        function renderUserPlaylistsInSidebar() {
+            const container = document.getElementById('userPlaylistsSidebarList');
+            if (!container) return;
+            container.innerHTML = '';
+            userPlaylists.forEach(pl => {
+                const item = document.createElement('div');
+                const isActive = (currentFilter === 'user_pl_' + pl.id);
+                item.className = `playlist-user-item ${isActive ? 'active' : ''}`;
+                item.onclick = () => switchMusicCategory('user_pl_' + pl.id);
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        <i class="fa-solid fa-compact-disc" style="color:#06b6d4; font-size:12px; flex-shrink:0;"></i>
+                        <span style="overflow:hidden; text-overflow:ellipsis;">${escapeHtml(pl.name)}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${(pl.trackIds || []).length}</span>
+                        <button class="playlist-user-del" title="Xóa playlist này" onclick="event.stopPropagation(); deleteUserPlaylist('${pl.id}')">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function openCreatePlaylistModal() {
+            const input = document.getElementById('newPlaylistNameInput');
+            if (input) input.value = '';
+            document.getElementById('createPlaylistModal')?.classList.add('show');
+            setTimeout(() => input?.focus(), 100);
+        }
+
+        function closeCreatePlaylistModal() {
+            document.getElementById('createPlaylistModal')?.classList.remove('show');
+        }
+
+        function submitCreatePlaylist() {
+            const input = document.getElementById('newPlaylistNameInput');
+            const name = (input ? input.value : '').trim();
+            if (!name) {
+                alert('Vui lòng nhập tên danh sách phát!');
+                return;
+            }
+            const newPl = {
+                id: 'pl_' + Date.now(),
+                name: name,
+                trackIds: [],
+                createdAt: new Date().toISOString()
+            };
+            userPlaylists.push(newPl);
+            saveUserPlaylists();
+            closeCreatePlaylistModal();
+            showToast(`Đã tạo playlist "${name}" thành công!`, 'success');
+        }
+
+        function deleteUserPlaylist(id) {
+            const pl = userPlaylists.find(p => p.id === id);
+            if (!pl) return;
+            if (!confirm(`Bạn có chắc muốn xóa playlist "${pl.name}" không?`)) return;
+            userPlaylists = userPlaylists.filter(p => p.id !== id);
+            saveUserPlaylists();
+            if (currentFilter === 'user_pl_' + id) {
+                switchMusicCategory('all');
+            }
+            showToast(`Đã xóa playlist "${pl.name}"`, 'info');
+        }
+
+        function openAddToPlaylistModal(trackId) {
+            const track = musicLibrary.find(t => t.id === trackId);
+            if (!track) return;
+            pendingTrackToAddToPlaylist = track;
+            const titleEl = document.getElementById('addToPlaylistSongName');
+            if (titleEl) {
+                titleEl.innerHTML = `<i class="fa-solid fa-music" style="color:var(--primary); margin-right:6px;"></i> <b>${escapeHtml(track.title)}</b> • <span style="color:#94a3b8;">${escapeHtml(track.artist || 'Nghệ sĩ chưa rõ')}</span>`;
+            }
+            const listEl = document.getElementById('addToPlaylistItemsList');
+            if (listEl) {
+                listEl.innerHTML = '';
+                if (userPlaylists.length === 0) {
+                    listEl.innerHTML = `<div style="text-align:center; padding:18px; color:#64748b; font-size:0.82rem; font-style:italic;">Chưa có playlist nào. Nhập tên bên dưới để tạo mới!</div>`;
+                } else {
+                    userPlaylists.forEach(pl => {
+                        const isAlready = (pl.trackIds || []).includes(track.id);
+                        const btn = document.createElement('div');
+                        btn.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:rgba(255,255,255,0.06); border-radius:8px; cursor:pointer; font-size:0.85rem; color:white; transition:background 0.2s;';
+                        btn.onmouseenter = () => btn.style.background = 'rgba(255,255,255,0.12)';
+                        btn.onmouseleave = () => btn.style.background = 'rgba(255,255,255,0.06)';
+                        btn.onclick = () => addTrackToUserPlaylist(pl.id, track.id);
+                        btn.innerHTML = `
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-compact-disc" style="color:#06b6d4;"></i>
+                                <span>${escapeHtml(pl.name)}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:11px; color:#94a3b8;">${(pl.trackIds || []).length} bài</span>
+                                ${isAlready ? '<span style="font-size:11px; color:#10b981; font-weight:700;"><i class="fa-solid fa-check"></i> Đã có</span>' : '<span style="font-size:11px; color:#38bdf8;"><i class="fa-solid fa-plus"></i> Thêm</span>'}
+                            </div>
+                        `;
+                        listEl.appendChild(btn);
+                    });
+                }
+            }
+            document.getElementById('addToPlaylistModal')?.classList.add('show');
+        }
+
+        function closeAddToPlaylistModal() {
+            document.getElementById('addToPlaylistModal')?.classList.remove('show');
+            pendingTrackToAddToPlaylist = null;
+        }
+
+        function addTrackToUserPlaylist(plId, trackId) {
+            const pl = userPlaylists.find(p => p.id === plId);
+            if (!pl) return;
+            if (!pl.trackIds) pl.trackIds = [];
+            if (!pl.trackIds.includes(trackId)) {
+                pl.trackIds.push(trackId);
+                saveUserPlaylists();
+                showToast(`Đã thêm vào playlist "${pl.name}"`, 'success');
+            } else {
+                showToast(`Bài hát đã có trong "${pl.name}"`, 'info');
+            }
+            closeAddToPlaylistModal();
+        }
+
+        function quickCreatePlaylistAndAdd() {
+            const input = document.getElementById('quickNewPlaylistName');
+            const name = (input ? input.value : '').trim();
+            if (!name) {
+                alert('Vui lòng nhập tên playlist!');
+                return;
+            }
+            if (!pendingTrackToAddToPlaylist) return;
+            const newPl = {
+                id: 'pl_' + Date.now(),
+                name: name,
+                trackIds: [pendingTrackToAddToPlaylist.id],
+                createdAt: new Date().toISOString()
+            };
+            userPlaylists.push(newPl);
+            saveUserPlaylists();
+            input.value = '';
+            closeAddToPlaylistModal();
+            showToast(`Đã tạo playlist "${name}" và thêm bài hát!`, 'success');
+        }
+
+        // =========================================================================
+        // SUBVIEW (BREADCRUMB / COLLECTION EXPLORER)
+        // =========================================================================
+        function openCollectionSubview(category, title, tracks, iconHtml) {
+            currentParentCategory = category;
+            currentSubviewTracks = tracks;
+
+            const banner = document.getElementById('heroBannerSection');
+            if (banner) banner.style.display = 'none';
+
+            const tabs = document.getElementById('viewTabsBar');
+            if (tabs) tabs.style.display = 'none';
+
+            const subviewHeader = document.getElementById('subviewHeader');
+            if (subviewHeader) {
+                subviewHeader.style.display = 'flex';
+                document.getElementById('subviewHeaderTitle').innerText = title;
+                document.getElementById('subviewHeaderSub').innerText = `${tracks.length} bài hát`;
+                const iconBox = document.getElementById('subviewHeaderIcon');
+                if (iconBox) iconBox.innerHTML = iconHtml;
+            }
+
+            hideAllViewContainers();
+            const tracksContainer = document.getElementById('viewTracksContainer');
+            if (tracksContainer) tracksContainer.style.display = 'block';
+
+            renderTrackTable(tracks);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goBackFromSubview() {
+            const subviewHeader = document.getElementById('subviewHeader');
+            if (subviewHeader) subviewHeader.style.display = 'none';
+
+            const banner = document.getElementById('heroBannerSection');
+            if (banner) banner.style.display = 'flex';
+
+            const tabs = document.getElementById('viewTabsBar');
+            if (tabs) tabs.style.display = 'flex';
+
+            currentSubviewTracks = [];
+            switchMusicCategory(currentParentCategory);
+        }
+
+        function playCurrentSubviewTracks() {
+            if (!currentSubviewTracks || currentSubviewTracks.length === 0) return;
+            selectAndPlayTrack(currentSubviewTracks[0].id);
+            showToast(`Đang phát: ${currentSubviewTracks.length} bài hát`, 'success');
+        }
+
+        function shuffleCurrentSubviewTracks() {
+            if (!currentSubviewTracks || currentSubviewTracks.length === 0) return;
+            const randIdx = Math.floor(Math.random() * currentSubviewTracks.length);
+            selectAndPlayTrack(currentSubviewTracks[randIdx].id);
+            isShuffle = true;
+            document.getElementById('btnShuffle')?.classList.add('active');
+            showToast(`Phát ngẫu nhiên: ${currentSubviewTracks.length} bài hát`, 'success');
+        }
+
+        function hideAllViewContainers() {
+            ['viewTracksContainer', 'viewFoldersContainer', 'viewAlbumsContainer', 'viewArtistsContainer', 'viewComposersContainer', 'viewGenresContainer', 'viewPlaylistsContainer'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
+
+        // =========================================================================
+        // RENDERING VIEWS: TRACKS, FOLDERS, ALBUMS, ARTISTS, COMPOSERS, GENRES, PLAYLISTS
         // =========================================================================
         function renderTrackTable(filteredList = null) {
             const tbody = document.getElementById('trackTableBody');
@@ -2105,11 +2894,14 @@
                     <td>${sourceBadge}</td>
                     <td style="text-align:right; font-family:ui-monospace, monospace; color:#94a3b8; font-size:12px;">${track.duration || '--:--'}</td>
                     <td style="text-align:center;" onclick="event.stopPropagation()">
-                        <div style="display:inline-flex; gap:6px;">
-                            <button class="btn btn-outline btn-sm" style="padding:4px 8px; font-size:11px;" onclick="toggleFavorite('${track.id}')" title="Yêu thích">
+                        <div style="display:inline-flex; gap:5px;">
+                            <button class="btn btn-outline btn-sm" style="padding:4px 7px; font-size:11px;" onclick="toggleFavorite('${track.id}')" title="Yêu thích">
                                 <i class="${favorites.includes(track.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}" style="color:${favorites.includes(track.id) ? '#ec4899' : '#94a3b8'};"></i>
                             </button>
-                            <button class="btn btn-outline btn-sm" style="padding:4px 8px; font-size:11px; color:#ef4444;" onclick="deleteTrack('${track.id}')" title="Xóa khỏi thư viện">
+                            <button class="btn btn-outline btn-sm" style="padding:4px 7px; font-size:11px; color:#38bdf8;" onclick="openAddToPlaylistModal('${track.id}')" title="Thêm vào playlist">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button class="btn btn-outline btn-sm" style="padding:4px 7px; font-size:11px; color:#ef4444;" onclick="deleteTrack('${track.id}')" title="Xóa khỏi thư viện">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -2119,12 +2911,177 @@
             });
         }
 
+        function renderFolderGrid() {
+            const grid = document.getElementById('viewFoldersContainer');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const folderMap = {};
+            musicLibrary.forEach(t => {
+                const folderName = getTrackFolder(t);
+                if (!folderMap[folderName]) {
+                    folderMap[folderName] = {
+                        name: folderName,
+                        cover: t.cover,
+                        tracks: []
+                    };
+                }
+                folderMap[folderName].tracks.push(t);
+            });
+
+            const folders = Object.values(folderMap);
+            if (folders.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b; font-style:italic;">Chưa có thư mục nào.</div>`;
+                return;
+            }
+
+            folders.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'folder-card';
+                card.onclick = () => openCollectionSubview('folders', `Folder: ${f.name}`, f.tracks, '<i class="fa-solid fa-folder" style="color:#38bdf8;"></i>');
+                card.innerHTML = `
+                    <div class="folder-icon-box" style="${f.cover ? `background-image:url('${f.cover}');` : ''}">
+                        ${!f.cover ? '<i class="fa-solid fa-folder"></i>' : ''}
+                    </div>
+                    <div class="folder-card-info">
+                        <div class="folder-card-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
+                        <div class="folder-card-count">${f.tracks.length} bài hát</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color:#64748b; font-size:12px;"></i>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderArtistGrid() {
+            const grid = document.getElementById('viewArtistsContainer');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const artistMap = {};
+            musicLibrary.forEach(t => {
+                const art = (t.artist || 'Nghệ Sĩ Khác').trim();
+                if (!artistMap[art]) {
+                    artistMap[art] = {
+                        name: art,
+                        cover: t.cover,
+                        tracks: []
+                    };
+                }
+                artistMap[art].tracks.push(t);
+            });
+
+            const artists = Object.values(artistMap);
+            if (artists.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b; font-style:italic;">Chưa có nghệ sĩ nào.</div>`;
+                return;
+            }
+
+            artists.forEach(a => {
+                const card = document.createElement('div');
+                card.className = 'artist-card';
+                card.onclick = () => openCollectionSubview('artists', `Ca Sĩ: ${a.name}`, a.tracks, '<i class="fa-solid fa-microphone" style="color:#ec4899;"></i>');
+                card.innerHTML = `
+                    <div class="artist-avatar-wrap">
+                        ${a.cover ? `<div class="artist-avatar" style="background-image:url('${a.cover}');"></div>` : '<i class="fa-solid fa-microphone" style="font-size:32px; color:white;"></i>'}
+                    </div>
+                    <div class="artist-card-title" title="${escapeHtml(a.name)}">${escapeHtml(a.name)}</div>
+                    <div class="artist-card-sub">${a.tracks.length} bài hát</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderComposerGrid() {
+            const grid = document.getElementById('viewComposersContainer');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const compMap = {};
+            musicLibrary.forEach(t => {
+                const comp = getTrackComposer(t);
+                if (!compMap[comp]) {
+                    compMap[comp] = {
+                        name: comp,
+                        cover: t.cover,
+                        tracks: []
+                    };
+                }
+                compMap[comp].tracks.push(t);
+            });
+
+            const comps = Object.values(compMap);
+            if (comps.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b; font-style:italic;">Chưa có nhạc sĩ nào.</div>`;
+                return;
+            }
+
+            comps.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'composer-card';
+                card.onclick = () => openCollectionSubview('composers', `Nhạc Sĩ: ${c.name}`, c.tracks, '<i class="fa-solid fa-pen" style="color:#f59e0b;"></i>');
+                card.innerHTML = `
+                    <div class="composer-icon-box">
+                        <i class="fa-solid fa-pen-nib"></i>
+                    </div>
+                    <div class="composer-card-info">
+                        <div class="composer-card-name" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</div>
+                        <div class="composer-card-count">${c.tracks.length} bài hát</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color:#64748b; font-size:12px;"></i>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderGenreGrid() {
+            const grid = document.getElementById('viewGenresContainer');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const genreMap = {};
+            musicLibrary.forEach(t => {
+                const g = getTrackGenre(t);
+                if (!genreMap[g]) {
+                    genreMap[g] = {
+                        name: g,
+                        tracks: []
+                    };
+                }
+                genreMap[g].tracks.push(t);
+            });
+
+            const GENRE_CONFIG = {
+                'Trữ Tình & Bolero': { grad: 'linear-gradient(135deg, #b91c1c, #db2777)', icon: 'fa-guitar' },
+                'Không Lời & Hòa Tấu': { grad: 'linear-gradient(135deg, #0284c7, #6366f1)', icon: 'fa-compact-disc' },
+                'Nhạc Xưa & Tiền Chiến': { grad: 'linear-gradient(135deg, #d97706, #b45309)', icon: 'fa-radio' },
+                'Acoustic & Ballad': { grad: 'linear-gradient(135deg, #059669, #0d9488)', icon: 'fa-music' },
+                'Remix & EDM': { grad: 'linear-gradient(135deg, #7c3aed, #c026d3)', icon: 'fa-bolt' },
+                'Nhạc Trẻ & Pop': { grad: 'linear-gradient(135deg, #e11d48, #ea580c)', icon: 'fa-headphones' },
+                'Nhạc Chọn Lọc': { grad: 'linear-gradient(135deg, #475569, #1e293b)', icon: 'fa-shapes' }
+            };
+
+            const genres = Object.values(genreMap);
+            genres.forEach(g => {
+                const cfg = GENRE_CONFIG[g.name] || { grad: 'linear-gradient(135deg, #334155, #1e293b)', icon: 'fa-music' };
+                const card = document.createElement('div');
+                card.className = 'genre-card';
+                card.style.background = cfg.grad;
+                card.onclick = () => openCollectionSubview('genres', `Thể Loại: ${g.name}`, g.tracks, `<i class="fa-solid ${cfg.icon}"></i>`);
+                card.innerHTML = `
+                    <div class="genre-card-title">${escapeHtml(g.name)}</div>
+                    <div class="genre-card-sub">${g.tracks.length} bài hát</div>
+                    <i class="fa-solid ${cfg.icon} genre-card-icon"></i>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
         function renderAlbumGrid() {
             const grid = document.getElementById('viewAlbumsContainer');
             if (!grid) return;
             grid.innerHTML = '';
 
-            // Group bài hát theo Album
             const albumsMap = {};
             musicLibrary.forEach(t => {
                 const albName = t.album || 'Single Tracks';
@@ -2139,7 +3096,6 @@
                 albumsMap[albName].tracks.push(t);
             });
 
-            // Nếu synoAlbums có thêm album mà chưa có bài thì vẫn hiển thị
             synoAlbums.forEach(a => {
                 const name = a.cleanName || a.name;
                 if (!albumsMap[name]) {
@@ -2180,19 +3136,33 @@
             if (!grid) return;
             grid.innerHTML = '';
 
-            if (synoPlaylists.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b; font-style:italic;">Chưa có Playlist nào trên Synology NAS. Bấm "Đồng Bộ NAS" để cập nhật.</div>`;
+            const allPlaylists = [
+                ...synoPlaylists.map(p => ({ ...p, isUser: false })),
+                ...userPlaylists.map(p => ({ ...p, isUser: true, trackCount: (p.trackIds || []).length }))
+            ];
+
+            if (allPlaylists.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#64748b; font-style:italic;">Chưa có Playlist nào. Bấm nút "+" bên menu hoặc "Đồng Bộ NAS" để thêm.</div>`;
                 return;
             }
 
-            synoPlaylists.forEach(pl => {
+            allPlaylists.forEach(pl => {
                 const card = document.createElement('div');
                 card.className = 'album-card';
-                card.onclick = () => openDetailModal('playlist', pl.id, pl);
+                card.onclick = () => {
+                    if (pl.isUser) {
+                        const plTracks = (pl.trackIds || []).map(id => musicLibrary.find(t => t.id === id)).filter(Boolean);
+                        openCollectionSubview('playlists', `Playlist: ${pl.name}`, plTracks, '<i class="fa-solid fa-compact-disc" style="color:#06b6d4;"></i>');
+                    } else {
+                        openDetailModal('playlist', pl.id, pl);
+                    }
+                };
 
-                // Tìm bài đầu tiên để lấy cover
                 let coverImg = 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=400';
-                if (pl.songIds && pl.songIds.length > 0) {
+                if (pl.isUser && pl.trackIds && pl.trackIds.length > 0) {
+                    const firstTrack = musicLibrary.find(t => t.id === pl.trackIds[0]);
+                    if (firstTrack && firstTrack.cover) coverImg = firstTrack.cover;
+                } else if (pl.songIds && pl.songIds.length > 0) {
                     const firstTrack = musicLibrary.find(t => t.id === pl.songIds[0] || t.synoSongId === pl.songIds[0]);
                     if (firstTrack && firstTrack.cover) coverImg = firstTrack.cover;
                 }
@@ -2203,7 +3173,7 @@
                         <div class="album-card-play"><i class="fa-solid fa-play"></i></div>
                     </div>
                     <div class="album-title">${escapeHtml(pl.name)}</div>
-                    <div class="album-subtitle">Synology Playlist • ${pl.trackCount || pl.songIds?.length || 0} bài hát</div>
+                    <div class="album-subtitle">${pl.isUser ? 'Playlist của bạn' : 'Synology Audio Station'} • ${pl.trackCount || pl.songIds?.length || 0} bài hát</div>
                 `;
                 grid.appendChild(card);
             });
@@ -2228,30 +3198,108 @@
         function switchMusicCategory(cat) {
             currentFilter = cat;
             document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.playlist-user-item').forEach(b => b.classList.remove('active'));
+
+            // Reset subview header if clicking a top-level category
+            if (!cat.startsWith('user_pl_') && cat !== 'random100' && cat !== 'recently_added') {
+                const subviewHeader = document.getElementById('subviewHeader');
+                if (subviewHeader) subviewHeader.style.display = 'none';
+                const banner = document.getElementById('heroBannerSection');
+                if (banner) banner.style.display = 'flex';
+                const tabs = document.getElementById('viewTabsBar');
+                if (tabs) tabs.style.display = 'flex';
+            }
 
             if (cat === 'all') {
                 document.getElementById('sidebarBtnAll')?.classList.add('active');
                 switchViewMode('tracks');
-            } else if (cat === 'favorites') {
-                document.getElementById('sidebarBtnFavorites')?.classList.add('active');
-                switchViewMode('tracks');
+            } else if (cat === 'folders') {
+                document.getElementById('sidebarBtnFolders')?.classList.add('active');
+                switchViewMode('folders');
             } else if (cat === 'albums') {
                 document.getElementById('sidebarBtnAlbums')?.classList.add('active');
                 switchViewMode('albums');
+            } else if (cat === 'artists') {
+                document.getElementById('sidebarBtnArtists')?.classList.add('active');
+                switchViewMode('artists');
+            } else if (cat === 'composers') {
+                document.getElementById('sidebarBtnComposers')?.classList.add('active');
+                switchViewMode('composers');
+            } else if (cat === 'genres') {
+                document.getElementById('sidebarBtnGenres')?.classList.add('active');
+                switchViewMode('genres');
             } else if (cat === 'playlists') {
                 document.getElementById('sidebarBtnPlaylists')?.classList.add('active');
                 switchViewMode('playlists');
+            } else if (cat === 'random100') {
+                document.getElementById('sidebarBtnRandom100')?.classList.add('active');
+                const sample = [...musicLibrary].sort(() => 0.5 - Math.random()).slice(0, 100);
+                openCollectionSubview('random100', 'Random 100 Bài Hát', sample, '<i class="fa-solid fa-shuffle" style="color:#a855f7;"></i>');
+            } else if (cat === 'recently_added') {
+                document.getElementById('sidebarBtnRecentlyAdded')?.classList.add('active');
+                const recent = [...musicLibrary].slice(-100).reverse();
+                openCollectionSubview('recently_added', 'Recently Added (Mới Thêm)', recent, '<i class="fa-solid fa-circle-plus" style="color:#f43f5e;"></i>');
+            } else if (cat.startsWith('user_pl_')) {
+                const plId = cat.replace('user_pl_', '');
+                const pl = userPlaylists.find(p => p.id === plId);
+                if (pl) {
+                    const plTracks = (pl.trackIds || []).map(id => musicLibrary.find(t => t.id === id)).filter(Boolean);
+                    openCollectionSubview(cat, `Playlist: ${pl.name}`, plTracks, '<i class="fa-solid fa-compact-disc" style="color:#06b6d4;"></i>');
+                }
+            } else if (cat === 'favorites') {
+                document.getElementById('sidebarBtnFavorites')?.classList.add('active');
+                switchViewMode('tracks');
             }
-            renderTrackTable();
+        }
+
+        function switchViewMode(mode) {
+            currentViewMode = mode;
+
+            // Reset subview header if switching via view tabs
+            const subviewHeader = document.getElementById('subviewHeader');
+            if (subviewHeader) subviewHeader.style.display = 'none';
+            const banner = document.getElementById('heroBannerSection');
+            if (banner) banner.style.display = 'flex';
+            const tabs = document.getElementById('viewTabsBar');
+            if (tabs) tabs.style.display = 'flex';
+
+            document.getElementById('tabBtnTracks')?.classList.toggle('active', mode === 'tracks');
+            document.getElementById('tabBtnFolders')?.classList.toggle('active', mode === 'folders');
+            document.getElementById('tabBtnAlbums')?.classList.toggle('active', mode === 'albums');
+            document.getElementById('tabBtnArtists')?.classList.toggle('active', mode === 'artists');
+            document.getElementById('tabBtnComposers')?.classList.toggle('active', mode === 'composers');
+            document.getElementById('tabBtnGenres')?.classList.toggle('active', mode === 'genres');
+            document.getElementById('tabBtnPlaylists')?.classList.toggle('active', mode === 'playlists');
+
+            hideAllViewContainers();
+
+            if (mode === 'tracks') {
+                document.getElementById('viewTracksContainer').style.display = 'block';
+                renderTrackTable();
+            } else if (mode === 'folders') {
+                document.getElementById('viewFoldersContainer').style.display = 'grid';
+                renderFolderGrid();
+            } else if (mode === 'albums') {
+                document.getElementById('viewAlbumsContainer').style.display = 'grid';
+                renderAlbumGrid();
+            } else if (mode === 'artists') {
+                document.getElementById('viewArtistsContainer').style.display = 'grid';
+                renderArtistGrid();
+            } else if (mode === 'composers') {
+                document.getElementById('viewComposersContainer').style.display = 'grid';
+                renderComposerGrid();
+            } else if (mode === 'genres') {
+                document.getElementById('viewGenresContainer').style.display = 'grid';
+                renderGenreGrid();
+            } else if (mode === 'playlists') {
+                document.getElementById('viewPlaylistsContainer').style.display = 'grid';
+                renderPlaylistGrid();
+            }
         }
 
         function filterBySource(source) {
             currentFilter = source;
             document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-            if (source === 'synology') document.getElementById('sidebarBtnSyno')?.classList.add('active');
-            else if (source === 'gdrive') document.getElementById('sidebarBtnGdrive')?.classList.add('active');
-            else if (source === 'local') document.getElementById('sidebarBtnLocal')?.classList.add('active');
-
             switchViewMode('tracks');
             renderTrackTable();
         }
@@ -2265,20 +3313,10 @@
             const filtered = musicLibrary.filter(t =>
                 (t.title || '').toLowerCase().includes(q) ||
                 (t.artist || '').toLowerCase().includes(q) ||
-                (t.album || '').toLowerCase().includes(q)
+                (t.album || '').toLowerCase().includes(q) ||
+                (t.path || '').toLowerCase().includes(q)
             );
             renderTrackTable(filtered);
-        }
-
-        function switchViewMode(mode) {
-            currentViewMode = mode;
-            document.getElementById('tabBtnTracks')?.classList.toggle('active', mode === 'tracks');
-            document.getElementById('tabBtnAlbums')?.classList.toggle('active', mode === 'albums');
-            document.getElementById('tabBtnPlaylists')?.classList.toggle('active', mode === 'playlists');
-
-            document.getElementById('viewTracksContainer').style.display = (mode === 'tracks' ? 'block' : 'none');
-            document.getElementById('viewAlbumsContainer').style.display = (mode === 'albums' ? 'grid' : 'none');
-            document.getElementById('viewPlaylistsContainer').style.display = (mode === 'playlists' ? 'grid' : 'none');
         }
 
         // =========================================================================

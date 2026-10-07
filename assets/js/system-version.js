@@ -15,11 +15,11 @@
 
   // 1. THÔNG TIN PHIÊN BẢN CỦA MÃ NGUỒN HIỆN TẠI (BUILD VERSION)
   const CURRENT_SYSTEM_VERSION = {
-    version: '2.12.0',
-    buildNumber: 2026100706,
+    version: '2.13.0',
+    buildNumber: 2026100707,
     releaseDate: '07/10/2026',
-    title: 'Nâng Cấp Tiền Cơm: Tinh Gọn Thanh Chọn Ngày & Bổ Sung Bộ Lọc Lịch Sử Dài Hạn',
-    description: 'Di chuyển thanh chọn ngày (Date Toolbar) xuống ngay phía trên bảng log giao dịch theo đúng ngữ cảnh sử dụng; Tinh gọn kích thước từ dạng card cồng kềnh sang thanh compact chips tinh tế chuẩn macOS/iOS; Bổ sung bộ chọn lịch HTML5 native cho phép xem lại lịch sử bất kỳ ngày nào trong quá khứ; Mở rộng tùy chọn dải ngày 14/30/60 ngày hoặc tất cả ngày từng có log; Thêm nút điều hướng nhanh lùi/tiến 1 ngày và nút quay về Hôm nay tức thì; Tối ưu zero-overlap và responsive mượt mà trên iPad và Mobile.',
+    title: 'Nâng Cấp Apple Music Streamer: Điều Hướng Phân Loại Chuẩn Synology Audio Station & Playlist Cá Nhân',
+    description: 'Tái cấu trúc hoàn toàn thanh điều hướng sidebar theo chuẩn Synology Audio Station: All Music, By Folder, By Album, By Artist, By Composer, By Genre, All Playlist, Random100, Recently Added; Bổ sung tính năng tạo danh sách phát cá nhân linh hoạt và thêm bài hát vào playlist; Bổ sung các view lưới Thư mục, Nghệ sĩ (avatar tròn), Nhạc sĩ, Thể loại (Apple Music colorful tiles) kèm giao diện duyệt chi tiết Subview Breadcrumb Banner hỗ trợ Phát tất cả và Phát ngẫu nhiên; Tối ưu đồng bộ hai chiều Direct Output chuẩn Lossless.',
     level: 'minor', // 'patch' | 'minor' | 'major'
     author: 'Hong Cong Tech (AI Pair System)'
   };
