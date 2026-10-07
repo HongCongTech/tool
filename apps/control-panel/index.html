@@ -3103,10 +3103,10 @@
                     <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--slate-900); margin-bottom: 6px;">Hong Cong Tech Tool Hub OS</h2>
                     <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 20px; font-size: 0.85rem; font-weight: 700; color: #059669; margin-bottom: 14px;">
                         <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
-                        <span id="updateVersionText">Phiên bản hiện tại: v2.5.0 (Ổn định)</span>
+                        <span id="updateVersionText">Phiên bản hiện tại: v2.12.0 (Bản mới nhất)</span>
                     </div>
                     <div style="font-size: 0.88rem; color: var(--slate-500); max-width: 480px; margin: 0 auto 20px auto; line-height: 1.6;">
-                        Hệ thống của bạn đang chạy phiên bản mới nhất. Toàn bộ cơ chế Gatekeeper và bảo mật Master Key đang hoạt động bảo vệ an toàn dữ liệu.
+                        Hệ thống Web Station trên Synology NAS đang chạy phiên bản mới nhất. Toàn bộ cơ chế Gatekeeper và bảo mật Master Key đang hoạt động bảo vệ an toàn dữ liệu.
                     </div>
                     <div>
                         <button class="btn btn-primary" id="btnCheckUpdateCp" onclick="checkSoftwareUpdateFromCp()" style="font-weight: 700; padding: 10px 22px;">
@@ -3117,34 +3117,34 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Nhật Ký Bản Phát Hành (Changelog v2.5.0)</div>
+                    <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Nhật Ký Bản Phát Hành (Changelog)</div>
                     <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; color: var(--slate-700);">
+                        <div style="padding: 12px 14px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px;">
+                            <div style="font-weight: 800; color: #15803d; margin-bottom: 4px;">🚀 v2.12.0 (07/10/2026 - Bản Hiện Tại)</div>
+                            <ul style="padding-left: 20px; line-height: 1.6; font-size: 0.83rem;">
+                                <li><b>Tinh gọn thanh chọn ngày Tiền Cơm</b>: Di chuyển thanh ngày xuống ngay bên trên bảng log theo ngữ cảnh, thu nhỏ từ card cồng kềnh sang thanh compact chips 56×42px chuẩn macOS/iOS.</li>
+                                <li><b>Bộ lọc lịch sử dài hạn & Bộ chọn ngày native</b>: Bổ sung input date HTML5 chọn ngày bất kỳ trong lịch sử, mở rộng dải ngày 14 / 30 / 60 ngày hoặc tất cả ngày từng có log, thêm nút lùi/tiến 1 ngày và nút Hôm nay tức thì.</li>
+                                <li><b>Nâng cấp bảo mật Master Key 4 tầng</b>: Hỗ trợ xác thực bằng cả Mật khẩu Admin, mã cứu hộ 0 và tự động tra cứu Cloud khi xóa cache.</li>
+                            </ul>
+                        </div>
                         <div style="padding: 12px 14px; background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 8px;">
-                            <div style="font-weight: 800; color: #0284c7; margin-bottom: 4px;">🚀 v2.5.0 (06/10/2026 - Bản Hiện Tại)</div>
+                            <div style="font-weight: 800; color: #0284c7; margin-bottom: 4px;">🎵 v2.11.1 (07/10/2026)</div>
                             <ul style="padding-left: 20px; line-height: 1.6; font-size: 0.83rem;">
-                                <li><b>Loại bỏ header xung đột trên mobile</b>: Triệt tiêu thanh header giả lập và Dynamic Island gây che khuất nội dung, tối ưu 100% không gian hiển thị trên điện thoại.</li>
-                                <li><b>Tách biểu tượng Trợ lý AI Kira ra ngoài Dock</b>: Nút AI Kira cố định bên phải Dock thành nút nổi phát sáng độc lập, không bị lẫn vào danh sách ứng dụng.</li>
-                                <li><b>Đại tu Cài Đặt Hệ Thống trên Mobile</b>: Thiết kế kiến trúc điều hướng phân cấp (drill-down) chuẩn Apple iOS Settings, bổ sung thanh pill chuyển nhanh, hỗ trợ đầy đủ chế độ xem và sửa trên mọi kích thước màn hình.</li>
-                                <li><b>Tích hợp Module Trợ Lý AI & Gemini</b>: Quản lý API Key, mô hình ngôn ngữ lớn, Text-to-Speech và kiểm soát ký ức dài hạn của Kira trực tiếp trong Cài Đặt.</li>
+                                <li><b>Hotfix Phát Nhạc Synology NAS</b>: Khắc phục triệt để lỗi mất tiếng khi stream Audio Station do Web Audio API CORS chặn âm thanh; Chuyển sang Native Direct Audio Engine chuẩn Audiophile phát trực tiếp ra loa thiết bị.</li>
+                                <li><b>Spectrum Visualizer động 60fps</b>: Hiệu ứng cột sóng âm thanh Apple Music sắc nét, tự động duy trì SID phiên NAS ổn định.</li>
                             </ul>
                         </div>
                         <div style="padding: 12px 14px; background: var(--slate-50); border: 1px solid var(--border); border-radius: 8px;">
-                            <div style="font-weight: 800; color: #0284c7; margin-bottom: 4px;">🚀 v2.2.0 (05/10/2026 - Bản Hiện Tại)</div>
+                            <div style="font-weight: 800; color: #64748b; margin-bottom: 4px;">🚀 v2.5.0 (06/10/2026)</div>
                             <ul style="padding-left: 20px; line-height: 1.6; font-size: 0.83rem;">
-                                <li>Nâng cấp Cài đặt hệ thống (Control Panel) toàn diện theo chuẩn macOS Sequoia máy tính thực thụ.</li>
-                                <li>Bổ sung mục <b>Màn Hình & Thiết Bị</b> giải quyết triệt để lỗi chuyển từ macOS sang Mobile không có đường quay lại.</li>
-                                <li>Tích hợp <b>Nút Nổi Assistive [ 💻 Về macOS ]</b> và thanh <b>Dynamic Island</b> luôn hoạt động ở chế độ Mobile.</li>
-                                <li>Bổ sung mục Cập nhật phần mềm (Software Update) và Giới thiệu máy này (About This Mac).</li>
+                                <li>Loại bỏ header xung đột trên mobile, tách Trợ lý Kira ra ngoài Dock, đại tu Cài Đặt Hệ Thống trên mobile chuẩn Apple iOS Settings.</li>
+                                <li>Tích hợp Module Trợ Lý AI & Gemini: Quản lý API Key, mô hình ngôn ngữ lớn, TTS và bộ nhớ dài hạn.</li>
                             </ul>
                         </div>
-
                         <div style="padding: 12px 14px; background: var(--slate-50); border: 1px solid var(--border); border-radius: 8px;">
-                            <div style="font-weight: 800; color: #10b981; margin-bottom: 4px;">🔒 v2.1.0 (05/10/2026)</div>
+                            <div style="font-weight: 800; color: #64748b; margin-bottom: 4px;">🚀 v2.2.0 (05/10/2026)</div>
                             <ul style="padding-left: 20px; line-height: 1.6; font-size: 0.83rem;">
-                                <li>Sửa nút Reload trong Chia Bill thành đồng bộ Cloud thực sự kèm hiệu ứng xoay.</li>
-                                <li>Bảo vệ mọi thao tác Reset dữ liệu bằng Master Key xác thực 2 lớp.</li>
-                                <li>Đưa toàn bộ số dư mặc định của thành viên về 0đ chuẩn xác.</li>
-                                <li>Tích hợp System Version Gatekeeper tự động phát hiện và chặn phiên bản lỗi thời.</li>
+                                <li>Nâng cấp Cài đặt hệ thống theo chuẩn macOS Sequoia, Màn Hình & Thiết Bị, Assistive Mac floating button, Dynamic Island.</li>
                             </ul>
                         </div>
                     </div>
@@ -3501,6 +3501,7 @@
             loadWallpapers();
             renderCpAppsTable();
             if (typeof initSecurityCenter === 'function') initSecurityCenter();
+            if (typeof initSoftwareUpdateSection === 'function') initSoftwareUpdateSection();
         }
 
         function updateAdminBadge() {
@@ -3565,6 +3566,9 @@
 
             if (secId === 'security' && typeof initSecurityCenter === 'function') {
                 initSecurityCenter();
+            }
+            if (secId === 'update' && typeof initSoftwareUpdateSection === 'function') {
+                initSoftwareUpdateSection();
             }
         }
 
@@ -5748,28 +5752,82 @@ HƯỚNG DẪN SỬ DỤNG:
             localStorage.setItem('sound_effects_enabled', enabled ? 'true' : 'false');
         }
 
-        function checkSoftwareUpdateFromCp() {
+        function initSoftwareUpdateSection() {
+            const curVer = (window.SYSTEM_VERSION && window.SYSTEM_VERSION.version) 
+                || (window.parent && window.parent.SYSTEM_VERSION && window.parent.SYSTEM_VERSION.version) 
+                || '2.12.0';
+            const buildNo = (window.SYSTEM_VERSION && window.SYSTEM_VERSION.buildNumber) || '2026100706';
+
+            const verEl = document.getElementById('updateVersionText');
+            if (verEl) {
+                verEl.textContent = `Phiên bản hiện tại: v${curVer} (Bản mới nhất)`;
+            }
+        }
+
+        async function checkSoftwareUpdateFromCp() {
             const btn = document.getElementById('btnCheckUpdateCp');
             const res = document.getElementById('updateCheckResult');
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kết nối Supabase Cloud...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đối soát Supabase Cloud...';
                 btn.disabled = true;
             }
 
-            setTimeout(async () => {
+            const curVer = (window.SYSTEM_VERSION && window.SYSTEM_VERSION.version) 
+                || (window.parent && window.parent.SYSTEM_VERSION && window.parent.SYSTEM_VERSION.version) 
+                || '2.12.0';
+
+            let cloudVer = curVer;
+            let cloudTitle = '';
+            let cloudDesc = '';
+
+            try {
+                let url = 'https://wqzwxzwrozbpetbwbgrk.supabase.co';
+                let anonKey = '';
+                if (window.__SUPABASE_CONFIG__) {
+                    url = window.__SUPABASE_CONFIG__.url || url;
+                    anonKey = window.__SUPABASE_CONFIG__.anonKey || '';
+                }
+                if (anonKey) {
+                    const resp = await fetch(`${url}/rest/v1/system_store?key=eq.sys_latest_app_version&select=value`, {
+                        headers: { 'apikey': anonKey, 'Authorization': `Bearer ${anonKey}` }
+                    });
+                    if (resp.ok) {
+                        const rows = await resp.json();
+                        if (rows && rows.length > 0 && rows[0].value) {
+                            const parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value;
+                            if (parsed && parsed.version) {
+                                cloudVer = parsed.version;
+                                cloudTitle = parsed.title || '';
+                                cloudDesc = parsed.description || '';
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Lỗi kiểm tra version Cloud:', e);
+            }
+
+            setTimeout(() => {
                 if (btn) {
                     btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Kiểm Tra Bản Cập Nhật Ngay';
                     btn.disabled = false;
                 }
                 if (res) {
                     res.style.display = 'block';
-                    res.style.color = '#15803d';
-                    res.innerHTML = '✅ <b>Hệ thống đang chạy phiên bản mới nhất (v2.2.0)!</b> Toàn bộ tính năng đã được đồng bộ.';
+                    const cmp = (window.systemVersion && typeof window.systemVersion.compareSemver === 'function')
+                        ? window.systemVersion.compareSemver(curVer, cloudVer)
+                        : (curVer.localeCompare(cloudVer));
+
+                    if (cmp >= 0) {
+                        res.style.color = '#15803d';
+                        res.innerHTML = `✅ <b>Hệ thống đang chạy phiên bản mới nhất (v${curVer})!</b> Mã nguồn trên Synology Web Station đã đồng bộ 100% với Supabase Cloud.`;
+                    } else {
+                        res.style.color = '#d97706';
+                        res.innerHTML = `⚠️ <b>Phát hiện bản cập nhật mới v${cloudVer} trên Cloud!</b> (${cloudTitle})<br><span style="font-size:0.8rem; color:#64748b;">${cloudDesc}</span>`;
+                    }
                 }
-                if (window.systemVersion && typeof window.systemVersion.checkUpdate === 'function') {
-                    window.systemVersion.checkUpdate();
-                }
-            }, 800);
+                initSoftwareUpdateSection();
+            }, 600);
         }
 
         const cpAppStartTime = Date.now();
